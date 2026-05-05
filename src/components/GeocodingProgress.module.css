@@ -1,0 +1,82 @@
+.overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(13,17,23,0.85);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 50;
+  backdrop-filter: blur(4px);
+}
+
+.card {
+  background: #161b22;
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 14px;
+  padding: 36px 32px;
+  max-width: 380px;
+  width: 90%;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.icon {
+  margin-bottom: 4px;
+}
+
+.title {
+  font-size: 18px;
+  font-weight: 700;
+  color: #e6edf3;
+}
+
+.sub {
+  font-size: 13px;
+  color: #8b949e;
+}
+
+.barTrack {
+  width: 100%;
+  height: 6px;
+  background: rgba(88,166,255,0.15);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.barFill {
+  height: 100%;
+  background: #58a6ff;
+  border-radius: 3px;
+  transition: width 0.3s ease;
+}
+
+.pct {
+  font-size: 13px;
+  font-weight: 600;
+  color: #58a6ff;
+}
+
+.note {
+  font-size: 11px;
+  color: #6e7681;
+  line-height: 1.5;
+}
+
+.skipBtn {
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 7px;
+  padding: 8px 20px;
+  font-size: 12px;
+  color: #8b949e;
+  margin-top: 4px;
+  transition: background 0.15s;
+}
+
+.skipBtn:hover {
+  background: rgba(255,255,255,0.1);
+  color: #c9d1d9;
+}
