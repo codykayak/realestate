@@ -1,7 +1,8 @@
 import styles from './GeocodingProgress.module.css';
 
-export default function GeocodingProgress({ done, total, onSkip }) {
+export default function GeocodingProgress({ done, total, successes, onSkip }) {
   const pct = total > 0 ? Math.round((done / total) * 100) : 0;
+  const eta = done > 0 ? Math.round(((total - done) * 1.1)) : null;
 
   return (
     <div className={styles.overlay}>
@@ -13,15 +14,21 @@ export default function GeocodingProgress({ done, total, onSkip }) {
           </svg>
         </div>
         <h2 className={styles.title}>Geocoding addresses…</h2>
-        <p className={styles.sub}>{done} of {total} addresses resolved</p>
+        <p className={styles.sub}>
+          {done} of {total} processed
+          {successes != null && done > 0 && (
+            <span className={styles.successCount}> — {successes} mapped ✓</span>
+          )}
+        </p>
 
         <div className={styles.barTrack}>
           <div className={styles.barFill} style={{ width: `${pct}%` }} />
         </div>
-        <p className={styles.pct}>{pct}%</p>
+        <p className={styles.pct}>{pct}%{eta != null ? ` — ~${eta}s remaining` : ''}</p>
 
         <p className={styles.note}>
-          Using OpenStreetMap Nominatim (rate-limited to 1 req/sec)
+          Using OpenStreetMap Nominatim (1 req/sec).<br/>
+          Open DevTools → Console to see per-address results.
         </p>
         <button className={styles.skipBtn} onClick={onSkip}>
           Skip remaining — show what we have

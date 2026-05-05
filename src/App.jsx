@@ -13,6 +13,7 @@ export default function App() {
   const [selectedId, setSelectedId] = useState(null);
   const [geocoding, setGeocoding] = useState(false);
   const [geocodeDone, setGeocodeDone] = useState(0);
+  const [geocodeSuccesses, setGeocodeSuccesses] = useState(0);
   const abortRef = useRef(null);
 
   // Restore from localStorage on mount
@@ -37,6 +38,7 @@ export default function App() {
     setLeads(initialLeads);
     setSelectedId(null);
     setGeocodeDone(0);
+    setGeocodeSuccesses(0);
     setGeocoding(true);
 
     const controller = new AbortController();
@@ -44,7 +46,10 @@ export default function App() {
 
     const geocoded = await geocodeLeads(
       initialLeads,
-      (done) => setGeocodeDone(done),
+      (done, _total, successes) => {
+        setGeocodeDone(done);
+        setGeocodeSuccesses(successes);
+      },
       controller.signal,
     );
 
@@ -73,6 +78,8 @@ export default function App() {
     setLeads(null);
     setSelectedId(null);
     setGeocoding(false);
+    setGeocodeDone(0);
+    setGeocodeSuccesses(0);
   }, []);
 
   const selectedLead = leads?.find((l) => l.id === selectedId) ?? null;
@@ -101,6 +108,7 @@ export default function App() {
           <GeocodingProgress
             done={geocodeDone}
             total={leads.length}
+            successes={geocodeSuccesses}
             onSkip={handleSkipGeocode}
           />
         )}

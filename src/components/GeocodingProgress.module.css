@@ -59,10 +59,16 @@
   color: #58a6ff;
 }
 
+.successCount {
+  color: #27ae60;
+  font-weight: 600;
+}
+
 .note {
   font-size: 11px;
   color: #6e7681;
   line-height: 1.5;
+  text-align: center;
 }
 
 .skipBtn {
