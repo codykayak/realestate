@@ -3,28 +3,47 @@
   flex-direction: column;
   width: 100%;
   height: 100%;
+  height: 100dvh;
 }
 
 .map-area {
   position: relative;
   flex: 1;
   overflow: hidden;
+  /* Pad top for the absolute-positioned TopBar */
+  margin-top: 52px;
 }
 
-/* MapLibre control overrides — dark theme */
+/* ── MapLibre control overrides ─────────────────────────────────────────── */
 .maplibregl-ctrl-group {
-  background: rgba(13, 17, 23, 0.9) !important;
+  background: rgba(13,17,23,0.88) !important;
   border: 1px solid rgba(255,255,255,0.1) !important;
+  border-radius: 10px !important;
 }
 
 .maplibregl-ctrl-group button {
   background-color: transparent !important;
+  width: 36px !important;
+  height: 36px !important;
 }
 
 .maplibregl-ctrl-group button .maplibregl-ctrl-icon {
-  filter: invert(1) opacity(0.7);
+  filter: invert(1) opacity(0.65);
 }
 
 .maplibregl-ctrl-group button:hover .maplibregl-ctrl-icon {
   filter: invert(1) opacity(1);
+}
+
+/* Move zoom controls so they clear the bottom sheet on mobile */
+.maplibregl-ctrl-bottom-right {
+  bottom: 16px !important;
+  right: 14px !important;
+}
+
+@media (max-width: 640px) {
+  .maplibregl-ctrl-bottom-right {
+    /* Stay above the bottom sheet handle area */
+    bottom: 12px !important;
+  }
 }
