@@ -164,18 +164,22 @@ export default function MapView({
   }, [leads]);
 
   // ── Apply zone filter on lead layer ──────────────────────────────────────
+  // Store latest filter in a ref so the load callback always uses current value
+  const zoneFilterRef = useRef(zoneFilter);
+  useEffect(() => { zoneFilterRef.current = zoneFilter; }, [zoneFilter]);
+
   useEffect(() => {
     const map = mapRef.current;
     if (!map) return;
+
     function apply() {
       if (!map.getLayer(LEAD_CIRCLE)) return;
-      if (!zoneFilter || zoneFilter.size === 0) {
+      const current = zoneFilterRef.current;
+      if (!current || current.size === 0) {
         map.setFilter(LEAD_CIRCLE, null);
         map.setFilter(LEAD_HALO,   null);
       } else {
-        const codes = [...zoneFilter];
-        // Show leads whose zoneCode is in the selected set,
-        // OR leads with no zone assigned yet (zoneCode === '')
+        const codes = [...current];
         const f = ['any',
           ['in', ['get', 'zoneCode'], ['literal', codes]],
           ['==', ['get', 'zoneCode'], ''],
@@ -184,8 +188,19 @@ export default function MapView({
         map.setFilter(LEAD_HALO,   f);
       }
     }
-    if (map.isStyleLoaded()) apply();
-    else map.once('load', apply);
+
+    // If style + layers already loaded, apply immediately.
+    // Otherwise wait for load — the callback uses the ref so it gets
+    // the latest filter value even if it fires after more state changes.
+    if (map.isStyleLoaded() && map.getLayer(LEAD_CIRCLE)) {
+      apply();
+    } else if (!map.isStyleLoaded()) {
+      map.once('load', apply);
+    } else {
+      // Style loaded but layer not yet — retry after a frame
+      const id = setTimeout(apply, 100);
+      return () => clearTimeout(id);
+    }
   }, [zoneFilter]);
 
   // ── Selected feature state ────────────────────────────────────────────────
