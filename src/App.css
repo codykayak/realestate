@@ -10,8 +10,11 @@
   position: relative;
   flex: 1;
   overflow: hidden;
-  /* Pad top for the absolute-positioned TopBar */
-  margin-top: 52px;
+  margin-top: 56px; /* height of TopBar */
+}
+
+@media (max-width: 640px) {
+  .map-area { margin-top: 60px; }
 }
 
 /* ── MapLibre control overrides ─────────────────────────────────────────── */

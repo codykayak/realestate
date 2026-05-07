@@ -145,9 +145,22 @@
   line-height: 1.4;
 }
 
-@media (max-width: 480px) {
-  .card { padding: 28px 18px 24px; }
-  .title { font-size: 20px; }
-  .dropzone { min-height: 110px; padding: 24px 16px; }
-  .dropText { font-size: 16px; }
+@media (max-width: 640px) {
+  .screen  { padding: 16px 12px; align-items: flex-end; }
+  .card    {
+    padding: 28px 20px 28px;
+    border-radius: 22px;
+    /* Sit above map, slide up from bottom */
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
+    margin-bottom: -1px;
+  }
+  .title      { font-size: 22px; }
+  .subtitle   { font-size: 15px; }
+  .dropzone   { min-height: 130px; padding: 28px 20px; border-radius: 16px; }
+  .dropText   { font-size: 17px; }
+  .dropHint   { font-size: 13px; }
+  .tag        { font-size: 13px; padding: 5px 10px; }
+  .exampleTitle { font-size: 12px; }
+  .exampleHint  { font-size: 12px; }
 }

@@ -1,53 +1,55 @@
 .bar {
   position: absolute;
   top: 0; left: 0; right: 0;
-  height: 52px;
-  background: rgba(13,17,23,0.93);
-  border-bottom: 1px solid rgba(255,255,255,0.08);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+  height: 56px;
+  background: rgba(13,17,23,0.95);
+  border-bottom: 1px solid rgba(255,255,255,0.09);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 12px;
+  padding: 0 14px;
   z-index: 20;
-  gap: 8px;
+  gap: 10px;
 }
 
 .brand {
   display: flex;
   align-items: center;
-  gap: 7px;
+  gap: 8px;
   flex-shrink: 0;
 }
 
 .title {
-  font-size: 15px;
+  font-size: 16px;
   font-weight: 700;
   color: #e6edf3;
   white-space: nowrap;
+  letter-spacing: -0.01em;
 }
 
 .stats {
   display: flex;
   align-items: center;
-  gap: 7px;
+  gap: 8px;
   flex: 1;
   justify-content: center;
 }
 
-.mapped { font-size: 13px; white-space: nowrap; }
-.mappedNum { font-weight: 700; color: #3fb950; }
+.mapped { font-size: 14px; white-space: nowrap; }
+.mappedNum { font-weight: 800; color: #3fb950; }
 .mappedLabel { color: #8b949e; }
 
 .unmapped {
-  font-size: 11px;
+  font-size: 12px;
   color: #f5a623;
-  background: rgba(245,166,35,0.1);
-  border: 1px solid rgba(245,166,35,0.2);
-  border-radius: 5px;
-  padding: 2px 6px;
+  background: rgba(245,166,35,0.12);
+  border: 1px solid rgba(245,166,35,0.25);
+  border-radius: 6px;
+  padding: 3px 8px;
   white-space: nowrap;
+  font-weight: 600;
 }
 
 .controls {
@@ -57,45 +59,42 @@
   flex-shrink: 0;
 }
 
-/* ── Layers button ────────────────────────────────────────────────────── */
+/* ── Layers button ─────────────────────────────────────────────────── */
 .layersBtn {
   display: flex;
   align-items: center;
-  gap: 5px;
-  background: rgba(255,255,255,0.07);
-  border: 1px solid rgba(255,255,255,0.1);
-  border-radius: 8px;
+  gap: 6px;
+  background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(255,255,255,0.14);
+  border-radius: 10px;
   color: #c9d1d9;
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 600;
-  padding: 7px 11px;
+  padding: 0 14px;
   transition: background 0.15s, border-color 0.15s, color 0.15s;
   cursor: pointer;
-  min-height: 34px;
+  height: 38px;
   flex-shrink: 0;
 }
-.layersBtn:hover { background: rgba(255,255,255,0.12); }
+.layersBtn:hover  { background: rgba(255,255,255,0.13); }
 .layersBtn:disabled { opacity: 0.45; cursor: default; }
 .layersBtnOn {
-  border-color: rgba(88,166,255,0.5);
+  border-color: rgba(88,166,255,0.55);
   color: #58a6ff;
-  background: rgba(88,166,255,0.1);
+  background: rgba(88,166,255,0.12);
 }
 
 .zoneLabel {
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 600;
-  color: #c9d1d9;
+  color: inherit;
   white-space: nowrap;
-  min-width: 36px;
-  display: flex;
-  align-items: center;
 }
 
 .zoneSpinner {
   display: inline-block;
-  width: 11px; height: 11px;
-  border: 2px solid rgba(88,166,255,0.2);
+  width: 13px; height: 13px;
+  border: 2px solid rgba(88,166,255,0.25);
   border-top-color: #58a6ff;
   border-radius: 50%;
   animation: spin 0.7s linear infinite;
@@ -103,28 +102,39 @@
 
 @keyframes spin { to { transform: rotate(360deg); } }
 
-/* ── New CSV button ────────────────────────────────────────────────────── */
+/* ── New CSV button ──────────────────────────────────────────────────── */
 .resetBtn {
   display: flex;
   align-items: center;
-  gap: 5px;
-  background: rgba(255,255,255,0.07);
-  border: 1px solid rgba(255,255,255,0.1);
-  border-radius: 8px;
+  gap: 6px;
+  background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(255,255,255,0.14);
+  border-radius: 10px;
   color: #c9d1d9;
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 600;
-  padding: 7px 11px;
+  padding: 0 14px;
   transition: background 0.15s;
   white-space: nowrap;
-  min-height: 34px;
+  height: 38px;
   flex-shrink: 0;
 }
-.resetBtn:hover { background: rgba(255,255,255,0.12); }
+.resetBtn:hover { background: rgba(255,255,255,0.13); }
+
+/* ── Mobile ──────────────────────────────────────────────────────────── */
+@media (max-width: 640px) {
+  .bar     { height: 60px; padding: 0 12px; }
+  .title   { font-size: 17px; }
+  .mapped  { font-size: 15px; }
+  /* Give buttons full finger-friendly height */
+  .layersBtn, .resetBtn { height: 42px; padding: 0 13px; font-size: 14px; }
+}
 
 @media (max-width: 400px) {
   .resetLabel { display: none; }
-  .resetBtn { padding: 7px 9px; }
-  .title { font-size: 14px; }
-  .zoneLabel { display: none; }
+  .resetBtn   { padding: 0 11px; }
+  .title      { font-size: 15px; }
+  /* Hide "Layers" label, keep just the icon */
+  .zoneLabel  { display: none; }
+  .layersBtn  { padding: 0 11px; }
 }

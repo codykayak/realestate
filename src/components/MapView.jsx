@@ -134,9 +134,9 @@ export default function MapView({
         paint: {
           'circle-radius': [
             'interpolate', ['linear'], ['zoom'],
-            10, 5,
-            14, 9,
-            18, 13,
+            10, 7,
+            14, 11,
+            18, 16,
           ],
           'circle-color': [
             'match', ['get', 'status'],

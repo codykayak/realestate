@@ -86,3 +86,19 @@
   background: rgba(255,255,255,0.1);
   color: #c9d1d9;
 }
+
+@media (max-width: 640px) {
+  .card   { padding: 36px 28px; width: 94%; border-radius: 20px; }
+  .title  { font-size: 20px; }
+  .sub    { font-size: 15px; }
+  .pct    { font-size: 15px; }
+  .note   { font-size: 13px; }
+  .skipBtn {
+    padding: 13px 24px;
+    font-size: 15px;
+    border-radius: 12px;
+    min-height: 50px;
+    width: 100%;
+  }
+  .barTrack { height: 8px; }
+}
