@@ -31,25 +31,24 @@ export default function TopBar({
 
       {/* Controls */}
       <div className={styles.controls}>
-        {/* Zoning toggle */}
-        <label className={styles.zoneToggle} title="Show / hide zoning layer">
-          <input
-            type="checkbox"
-            checked={zoningVisible}
-            onChange={onToggleZoning}
-            disabled={zoningLoading}
-          />
-          <span className={styles.track}>
-            <span className={styles.thumb} />
-          </span>
-          <span className={styles.zoneLabel}>
-            {zoningLoading ? (
-              <span className={styles.zoneSpinner} />
-            ) : (
-              'Zones'
-            )}
-          </span>
-        </label>
+        {/* Layers button — opens LayerToggle panel */}
+        <button
+          className={`${styles.layersBtn} ${zoningVisible ? styles.layersBtnOn : ''}`}
+          onClick={onToggleZoning}
+          title="Manage zoning layers"
+          disabled={zoningLoading}
+        >
+          {zoningLoading ? (
+            <span className={styles.zoneSpinner} />
+          ) : (
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+              <polygon points="12 2 2 7 12 12 22 7 12 2" stroke="currentColor" strokeWidth="2" strokeLinejoin="round"/>
+              <polyline points="2 17 12 22 22 17" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              <polyline points="2 12 12 17 22 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+          )}
+          <span className={styles.zoneLabel}>Layers</span>
+        </button>
 
         {/* New CSV */}
         <button className={styles.resetBtn} onClick={onReset} aria-label="Upload new CSV">

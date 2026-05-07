@@ -2,6 +2,7 @@ import { useEffect, useRef } from 'react';
 import maplibregl from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import { ZONE_COLORS, DEFAULT_ZONE_COLOR, ZONE_DESCRIPTIONS } from '../constants/zoning';
+import { buildOrZoneColorExpr, OR_ZONE_COLORS, OR_ZONE_DESCRIPTIONS, DEFAULT_OR_COLOR } from '../constants/orZoning';
 
 const EUGENE = [-123.0868, 44.0521];
 
@@ -15,10 +16,15 @@ const STATUS_COLORS = {
   'Closed':         '#1abc9c',
 };
 
-// Zoning layers
-const ZONE_SRC  = 'eugene-zoning';
-const ZONE_FILL = 'zoning-fill';
-const ZONE_LINE = 'zoning-line';
+// Eugene zoning layers
+const ZONE_SRC    = 'eugene-zoning';
+const ZONE_FILL   = 'zoning-fill';
+const ZONE_LINE   = 'zoning-line';
+
+// Regional (DLCD) zoning layers
+const REG_SRC  = 'regional-zoning';
+const REG_FILL = 'regional-fill';
+const REG_LINE = 'regional-line';
 
 // Lead layer (GeoJSON — GPU rendered, handles 1000+ pins easily)
 const LEAD_SRC    = 'leads-src';
@@ -55,12 +61,16 @@ function leadsToGeojson(leads) {
 export default function MapView({
   leads, selectedId, onSelectLead,
   zoningGeojson, zoningVisible,
-  zoneFilter,   // Set of zone codes to show, or null = show all
+  regionalGeojson, regionalVisible,
+  zoneFilter,
+  onBoundsChange,   // fn({ west,south,east,north }, zoom)
 }) {
   const containerRef  = useRef(null);
   const mapRef        = useRef(null);
   const popupRef      = useRef(null);
   const prevSelected  = useRef(null);
+  const boundsRef     = useRef(onBoundsChange);
+  useEffect(() => { boundsRef.current = onBoundsChange; }, [onBoundsChange]);
 
   // ── Init map ──────────────────────────────────────────────────────────────
   useEffect(() => {
@@ -75,6 +85,17 @@ export default function MapView({
     });
 
     map.addControl(new maplibregl.NavigationControl({ showCompass: false }), 'bottom-right');
+
+    // Fire bounds on every map move (debounced by the hook consumer)
+    const fireBounds = () => {
+      const b = map.getBounds();
+      boundsRef.current?.(
+        { west: b.getWest(), south: b.getSouth(), east: b.getEast(), north: b.getNorth() },
+        map.getZoom(),
+      );
+    };
+    map.on('moveend', fireBounds);
+    map.once('load', fireBounds); // fire once on initial load too
 
     popupRef.current = new maplibregl.Popup({
       closeButton: true, closeOnClick: false,
@@ -294,7 +315,7 @@ export default function MapView({
     else map.once('load', addZoning);
   }, [zoningGeojson]);
 
-  // ── Zoning visibility ─────────────────────────────────────────────────────
+  // ── Eugene zoning visibility ──────────────────────────────────────────────
   useEffect(() => {
     const map = mapRef.current;
     if (!map) return;
@@ -307,6 +328,76 @@ export default function MapView({
     if (map.isStyleLoaded()) apply();
     else map.once('load', apply);
   }, [zoningVisible]);
+
+  // ── Regional (DLCD) zoning source + layers ────────────────────────────────
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map) return;
+
+    function addRegional() {
+      if (!map.getSource(REG_SRC)) {
+        map.addSource(REG_SRC, {
+          type: 'geojson',
+          data: regionalGeojson ?? { type: 'FeatureCollection', features: [] },
+        });
+        // Insert below Eugene layer (so Eugene wins on overlap) but above basemap
+        const before = map.getLayer(ZONE_FILL) ? ZONE_FILL : (map.getLayer(LEAD_HALO) ? LEAD_HALO : undefined);
+        map.addLayer({
+          id: REG_FILL, type: 'fill', source: REG_SRC,
+          paint: { 'fill-color': buildOrZoneColorExpr(), 'fill-opacity': 0.32 },
+        }, before);
+        map.addLayer({
+          id: REG_LINE, type: 'line', source: REG_SRC,
+          paint: { 'line-color': '#ffffff', 'line-opacity': 0.1, 'line-width': 0.5 },
+        }, before);
+
+        // Click popup for regional zones
+        map.on('click', REG_FILL, (e) => {
+          const leadFeats = map.queryRenderedFeatures(e.point, { layers: [LEAD_CIRCLE] });
+          if (leadFeats.length) return;
+          const eugeneFeats = map.queryRenderedFeatures(e.point, { layers: [ZONE_FILL] });
+          if (eugeneFeats.length) return; // let Eugene popup handle it
+          const f = e.features?.[0];
+          if (!f) return;
+          const code  = f.properties.orZCode ?? '';
+          const local = f.properties.localZCode ?? '';
+          const desc  = f.properties.localZDesc || OR_ZONE_DESCRIPTIONS[code] || code;
+          const owner = f.properties.ownerName ?? '';
+          const color = OR_ZONE_COLORS[code] ?? DEFAULT_OR_COLOR;
+          popupRef.current
+            .setLngLat(e.lngLat)
+            .setHTML(
+              `<div class="zp-inner">
+                <span class="zp-badge" style="background:${color}">${local || code}</span>
+                <p class="zp-desc">${desc}</p>
+                <p class="zp-owner">${owner}</p>
+               </div>`
+            )
+            .addTo(map);
+        });
+        map.on('mouseenter', REG_FILL, () => { map.getCanvas().style.cursor = 'pointer'; });
+        map.on('mouseleave', REG_FILL, () => { map.getCanvas().style.cursor = ''; });
+      } else if (regionalGeojson) {
+        map.getSource(REG_SRC).setData(regionalGeojson);
+      }
+    }
+
+    if (map.isStyleLoaded()) addRegional();
+    else map.once('load', addRegional);
+  }, [regionalGeojson]);
+
+  // ── Regional visibility ───────────────────────────────────────────────────
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map) return;
+    const v = regionalVisible ? 'visible' : 'none';
+    function apply() {
+      if (map.getLayer(REG_FILL)) map.setLayoutProperty(REG_FILL, 'visibility', v);
+      if (map.getLayer(REG_LINE)) map.setLayoutProperty(REG_LINE, 'visibility', v);
+    }
+    if (map.isStyleLoaded()) apply();
+    else map.once('load', apply);
+  }, [regionalVisible]);
 
   return <div ref={containerRef} style={{ width: '100%', height: '100%' }} />;
 }

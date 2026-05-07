@@ -57,47 +57,30 @@
   flex-shrink: 0;
 }
 
-/* ── Zone toggle switch ────────────────────────────────────────────────── */
-.zoneToggle {
+/* ── Layers button ────────────────────────────────────────────────────── */
+.layersBtn {
   display: flex;
   align-items: center;
-  gap: 6px;
-  cursor: pointer;
-  user-select: none;
-}
-
-.zoneToggle input {
-  position: absolute;
-  opacity: 0;
-  width: 0;
-  height: 0;
-}
-
-.track {
-  position: relative;
-  display: inline-block;
-  width: 34px;
-  height: 19px;
-  background: #30363d;
-  border-radius: 10px;
+  gap: 5px;
+  background: rgba(255,255,255,0.07);
   border: 1px solid rgba(255,255,255,0.1);
-  transition: background 0.2s;
+  border-radius: 8px;
+  color: #c9d1d9;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 7px 11px;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+  cursor: pointer;
+  min-height: 34px;
   flex-shrink: 0;
 }
-
-.zoneToggle input:checked + .track { background: #1f6feb; }
-.zoneToggle input:disabled + .track { opacity: 0.4; }
-
-.thumb {
-  position: absolute;
-  top: 2px; left: 2px;
-  width: 13px; height: 13px;
-  background: #e6edf3;
-  border-radius: 50%;
-  transition: transform 0.18s ease;
+.layersBtn:hover { background: rgba(255,255,255,0.12); }
+.layersBtn:disabled { opacity: 0.45; cursor: default; }
+.layersBtnOn {
+  border-color: rgba(88,166,255,0.5);
+  color: #58a6ff;
+  background: rgba(88,166,255,0.1);
 }
-
-.zoneToggle input:checked + .track .thumb { transform: translateX(15px); }
 
 .zoneLabel {
   font-size: 12px;
