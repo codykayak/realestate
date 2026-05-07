@@ -43,7 +43,50 @@
 
 @media (max-width: 640px) {
   .maplibregl-ctrl-bottom-right {
-    /* Stay above the bottom sheet handle area */
     bottom: 12px !important;
   }
+}
+
+/* ── Zone popup (MapLibre Popup, dark themed) ────────────────────────────── */
+.zone-popup .maplibregl-popup-content {
+  background: rgba(13,17,23,0.95);
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 9px;
+  padding: 10px 13px;
+  color: #e6edf3;
+  backdrop-filter: blur(8px);
+  box-shadow: 0 6px 20px rgba(0,0,0,0.6);
+}
+
+.zone-popup .maplibregl-popup-tip {
+  border-top-color: rgba(13,17,23,0.95) !important;
+}
+
+.zone-popup .maplibregl-popup-close-button {
+  color: #8b949e;
+  font-size: 16px;
+  top: 4px; right: 6px;
+  background: none;
+}
+
+.zp-inner {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.zp-badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 700;
+  color: #fff;
+  align-self: flex-start;
+}
+
+.zp-desc {
+  font-size: 12px;
+  color: #c9d1d9;
+  line-height: 1.4;
 }

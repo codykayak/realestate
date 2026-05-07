@@ -1,19 +1,17 @@
 .bar {
   position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
+  top: 0; left: 0; right: 0;
   height: 52px;
-  background: rgba(13, 17, 23, 0.93);
+  background: rgba(13,17,23,0.93);
   border-bottom: 1px solid rgba(255,255,255,0.08);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 14px;
+  padding: 0 12px;
   z-index: 20;
-  gap: 10px;
+  gap: 8px;
 }
 
 .brand {
@@ -33,15 +31,12 @@
 .stats {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 7px;
   flex: 1;
   justify-content: center;
 }
 
-.mapped {
-  font-size: 13px;
-  white-space: nowrap;
-}
+.mapped { font-size: 13px; white-space: nowrap; }
 .mappedNum { font-weight: 700; color: #3fb950; }
 .mappedLabel { color: #8b949e; }
 
@@ -51,10 +46,81 @@
   background: rgba(245,166,35,0.1);
   border: 1px solid rgba(245,166,35,0.2);
   border-radius: 5px;
-  padding: 2px 7px;
+  padding: 2px 6px;
   white-space: nowrap;
 }
 
+.controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+/* ── Zone toggle switch ────────────────────────────────────────────────── */
+.zoneToggle {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.zoneToggle input {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.track {
+  position: relative;
+  display: inline-block;
+  width: 34px;
+  height: 19px;
+  background: #30363d;
+  border-radius: 10px;
+  border: 1px solid rgba(255,255,255,0.1);
+  transition: background 0.2s;
+  flex-shrink: 0;
+}
+
+.zoneToggle input:checked + .track { background: #1f6feb; }
+.zoneToggle input:disabled + .track { opacity: 0.4; }
+
+.thumb {
+  position: absolute;
+  top: 2px; left: 2px;
+  width: 13px; height: 13px;
+  background: #e6edf3;
+  border-radius: 50%;
+  transition: transform 0.18s ease;
+}
+
+.zoneToggle input:checked + .track .thumb { transform: translateX(15px); }
+
+.zoneLabel {
+  font-size: 12px;
+  font-weight: 600;
+  color: #c9d1d9;
+  white-space: nowrap;
+  min-width: 36px;
+  display: flex;
+  align-items: center;
+}
+
+.zoneSpinner {
+  display: inline-block;
+  width: 11px; height: 11px;
+  border: 2px solid rgba(88,166,255,0.2);
+  border-top-color: #58a6ff;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ── New CSV button ────────────────────────────────────────────────────── */
 .resetBtn {
   display: flex;
   align-items: center;
@@ -65,16 +131,17 @@
   color: #c9d1d9;
   font-size: 12px;
   font-weight: 600;
-  padding: 8px 12px;
+  padding: 7px 11px;
   transition: background 0.15s;
   white-space: nowrap;
-  min-height: 36px;
+  min-height: 34px;
   flex-shrink: 0;
 }
 .resetBtn:hover { background: rgba(255,255,255,0.12); }
 
 @media (max-width: 400px) {
   .resetLabel { display: none; }
-  .resetBtn { padding: 8px; }
+  .resetBtn { padding: 7px 9px; }
   .title { font-size: 14px; }
+  .zoneLabel { display: none; }
 }

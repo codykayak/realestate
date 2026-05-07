@@ -1,10 +1,15 @@
 import styles from './TopBar.module.css';
 
-export default function TopBar({ leadCount, geocodedCount, onReset }) {
+export default function TopBar({
+  leadCount, geocodedCount,
+  zoningVisible, onToggleZoning, zoningLoading,
+  onReset,
+}) {
   const unmapped = leadCount - geocodedCount;
 
   return (
     <div className={styles.bar}>
+      {/* Brand */}
       <div className={styles.brand}>
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
           <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z" stroke="#58a6ff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
@@ -13,6 +18,7 @@ export default function TopBar({ leadCount, geocodedCount, onReset }) {
         <span className={styles.title}>Seller Map</span>
       </div>
 
+      {/* Lead stats */}
       <div className={styles.stats}>
         <span className={styles.mapped}>
           <span className={styles.mappedNum}>{geocodedCount}</span>
@@ -23,14 +29,38 @@ export default function TopBar({ leadCount, geocodedCount, onReset }) {
         )}
       </div>
 
-      <button className={styles.resetBtn} onClick={onReset} aria-label="Upload new CSV">
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none">
-          <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-          <polyline points="17 8 12 3 7 8" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-          <line x1="12" y1="3" x2="12" y2="15" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-        </svg>
-        <span className={styles.resetLabel}>New CSV</span>
-      </button>
+      {/* Controls */}
+      <div className={styles.controls}>
+        {/* Zoning toggle */}
+        <label className={styles.zoneToggle} title="Show / hide zoning layer">
+          <input
+            type="checkbox"
+            checked={zoningVisible}
+            onChange={onToggleZoning}
+            disabled={zoningLoading}
+          />
+          <span className={styles.track}>
+            <span className={styles.thumb} />
+          </span>
+          <span className={styles.zoneLabel}>
+            {zoningLoading ? (
+              <span className={styles.zoneSpinner} />
+            ) : (
+              'Zones'
+            )}
+          </span>
+        </label>
+
+        {/* New CSV */}
+        <button className={styles.resetBtn} onClick={onReset} aria-label="Upload new CSV">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+            <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+            <polyline points="17 8 12 3 7 8" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+            <line x1="12" y1="3" x2="12" y2="15" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+          </svg>
+          <span className={styles.resetLabel}>New CSV</span>
+        </button>
+      </div>
     </div>
   );
 }
