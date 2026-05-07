@@ -5,21 +5,23 @@ import LeadSidebar from './components/LeadSidebar';
 import GeocodingProgress from './components/GeocodingProgress';
 import TopBar from './components/TopBar';
 import ZoneLegend from './components/ZoneLegend';
+import ZoneFilter from './components/ZoneFilter';
 import { geocodeLeads } from './utils/geocode';
+import { assignZones } from './utils/assignZones';
 import { saveLeads, loadLeads, clearLeads } from './utils/storage';
 import { useZoningData } from './hooks/useZoningData';
 import './App.css';
 
 export default function App() {
-  const [leads, setLeads]                     = useState(null);
-  const [selectedId, setSelectedId]           = useState(null);
-  const [geocoding, setGeocoding]             = useState(false);
-  const [geocodeDone, setGeocodeDone]         = useState(0);
+  const [leads, setLeads]                       = useState(null);
+  const [selectedId, setSelectedId]             = useState(null);
+  const [geocoding, setGeocoding]               = useState(false);
+  const [geocodeDone, setGeocodeDone]           = useState(0);
   const [geocodeSuccesses, setGeocodeSuccesses] = useState(0);
-  const [zoningVisible, setZoningVisible]     = useState(true);
+  const [zoningVisible, setZoningVisible]       = useState(true);
+  const [zoneFilter, setZoneFilter]             = useState(null); // null = all
   const abortRef = useRef(null);
 
-  // Fetch zoning data in background (works even before CSV is loaded)
   const { geojson: zoningGeojson, loading: zoningLoading } = useZoningData();
 
   // Restore leads from localStorage on mount
@@ -33,6 +35,15 @@ export default function App() {
     if (leads) saveLeads(leads);
   }, [leads]);
 
+  // Assign zones whenever BOTH leads and zoningGeojson are ready
+  useEffect(() => {
+    if (!leads || !zoningGeojson) return;
+    // Only assign if some leads don't have a zone yet
+    const needsAssignment = leads.some((l) => l.geocoded && l.zoneCode === undefined);
+    if (!needsAssignment) return;
+    setLeads((prev) => assignZones(prev, zoningGeojson));
+  }, [leads, zoningGeojson]);
+
   const handleLeadsLoaded = useCallback(async ({ leads: parsed }) => {
     const initialLeads = parsed.map((l) => ({
       ...l,
@@ -42,6 +53,7 @@ export default function App() {
 
     setLeads(initialLeads);
     setSelectedId(null);
+    setZoneFilter(null);
     setGeocodeDone(0);
     setGeocodeSuccesses(0);
     setGeocoding(true);
@@ -67,11 +79,8 @@ export default function App() {
     setGeocoding(false);
   }, []);
 
-  const handleSelectLead = useCallback((id) => {
-    setSelectedId((prev) => (prev === id ? null : id));
-  }, []);
-
-  const handleUpdateLead = useCallback((id, patch) => {
+  const handleSelectLead  = useCallback((id) => setSelectedId((p) => (p === id ? null : id)), []);
+  const handleUpdateLead  = useCallback((id, patch) => {
     setLeads((prev) => prev.map((l) => (l.id === id ? { ...l, ...patch } : l)));
   }, []);
 
@@ -83,45 +92,46 @@ export default function App() {
     setGeocoding(false);
     setGeocodeDone(0);
     setGeocodeSuccesses(0);
+    setZoneFilter(null);
   }, []);
 
-  const selectedLead = leads?.find((l) => l.id === selectedId) ?? null;
+  const selectedLead  = leads?.find((l) => l.id === selectedId) ?? null;
   const geocodedCount = leads?.filter((l) => l.geocoded).length ?? 0;
 
-  // ── Upload screen (no CSV loaded yet) ────────────────────────────────────
+  const mapProps = {
+    leads:         leads ?? [],
+    selectedId,
+    onSelectLead:  handleSelectLead,
+    zoningGeojson,
+    zoningVisible,
+    zoneFilter,
+  };
+
+  // ── No CSV yet: show map + zoning in background, upload overlay on top ──
   if (!leads) {
     return (
       <div className="app-shell">
-        {/* Show map + zoning in the background even before CSV upload */}
         <TopBar
-          leadCount={0}
-          geocodedCount={0}
+          leadCount={0} geocodedCount={0}
           zoningVisible={zoningVisible}
           onToggleZoning={() => setZoningVisible((v) => !v)}
           zoningLoading={zoningLoading}
           onReset={null}
         />
         <div className="map-area">
-          <MapView
-            leads={[]}
-            selectedId={null}
-            onSelectLead={() => {}}
-            zoningGeojson={zoningGeojson}
-            zoningVisible={zoningVisible}
-          />
+          <MapView {...mapProps} />
           <ZoneLegend visible={zoningVisible && !zoningLoading} />
+          <UploadScreen onLeadsLoaded={handleLeadsLoaded} />
         </div>
-        <UploadScreen onLeadsLoaded={handleLeadsLoaded} />
       </div>
     );
   }
 
-  // ── Main map view ─────────────────────────────────────────────────────────
+  // ── Main view ─────────────────────────────────────────────────────────────
   return (
     <div className="app-shell">
       <TopBar
-        leadCount={leads.length}
-        geocodedCount={geocodedCount}
+        leadCount={leads.length} geocodedCount={geocodedCount}
         zoningVisible={zoningVisible}
         onToggleZoning={() => setZoningVisible((v) => !v)}
         zoningLoading={zoningLoading}
@@ -129,20 +139,19 @@ export default function App() {
       />
 
       <div className="map-area">
-        <MapView
+        <MapView {...mapProps} />
+
+        <ZoneFilter
           leads={leads}
-          selectedId={selectedId}
-          onSelectLead={handleSelectLead}
-          zoningGeojson={zoningGeojson}
-          zoningVisible={zoningVisible}
+          zoneFilter={zoneFilter}
+          onChange={setZoneFilter}
         />
 
         <ZoneLegend visible={zoningVisible && !zoningLoading} />
 
         {geocoding && (
           <GeocodingProgress
-            done={geocodeDone}
-            total={leads.length}
+            done={geocodeDone} total={leads.length}
             successes={geocodeSuccesses}
             onSkip={handleSkipGeocode}
           />
