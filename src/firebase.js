@@ -2,27 +2,22 @@ import { initializeApp } from 'firebase/app';
 import { getAuth, GoogleAuthProvider } from 'firebase/auth';
 import { getFirestore } from 'firebase/firestore';
 
+// Firebase web config is intentionally public — security comes from
+// Firestore rules + Auth, not from keeping this config private.
 const firebaseConfig = {
-  apiKey:            import.meta.env.VITE_FIREBASE_API_KEY,
-  authDomain:        import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
-  projectId:         import.meta.env.VITE_FIREBASE_PROJECT_ID,
-  storageBucket:     import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
-  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
-  appId:             import.meta.env.VITE_FIREBASE_APP_ID,
+  apiKey:            import.meta.env.VITE_FIREBASE_API_KEY            ?? 'AIzaSyBjh7Pku7t-GXrsZCthCXncXBWYz8zIQYE',
+  authDomain:        import.meta.env.VITE_FIREBASE_AUTH_DOMAIN        ?? 'realestate-map-23692.firebaseapp.com',
+  projectId:         import.meta.env.VITE_FIREBASE_PROJECT_ID        ?? 'realestate-map-23692',
+  storageBucket:     import.meta.env.VITE_FIREBASE_STORAGE_BUCKET    ?? 'realestate-map-23692.firebasestorage.app',
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID ?? '321595206421',
+  appId:             import.meta.env.VITE_FIREBASE_APP_ID            ?? '1:321595206421:web:1e117ba957113d51e0571c',
 };
 
-export const isFirebaseConfigured = Boolean(
-  firebaseConfig.apiKey && firebaseConfig.projectId,
-);
+export const isFirebaseConfigured = true;
 
-let app, auth, db, googleProvider;
+const app            = initializeApp(firebaseConfig);
+export const auth    = getAuth(app);
+export const db      = getFirestore(app);
 
-if (isFirebaseConfigured) {
-  app            = initializeApp(firebaseConfig);
-  auth           = getAuth(app);
-  db             = getFirestore(app);
-  googleProvider = new GoogleAuthProvider();
-  googleProvider.setCustomParameters({ prompt: 'select_account' });
-}
-
-export { auth, db, googleProvider };
+export const googleProvider = new GoogleAuthProvider();
+googleProvider.setCustomParameters({ prompt: 'select_account' });
