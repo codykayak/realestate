@@ -6,15 +6,27 @@
   height: 100dvh;
 }
 
+/* Map view occupies space between TopBar (top) and TabBar (bottom) */
 .map-area {
   position: relative;
   flex: 1;
   overflow: hidden;
-  margin-top: 56px; /* height of TopBar */
+  margin-top: 56px;
+  margin-bottom: 60px; /* TabBar height */
+}
+
+/* Dialer view fills between TopBar and TabBar */
+.dialer-area {
+  flex: 1;
+  overflow: hidden;
+  margin-top: 56px;
+  margin-bottom: 60px;
+  display: flex;
+  flex-direction: column;
 }
 
 @media (max-width: 640px) {
-  .map-area { margin-top: 60px; }
+  .map-area, .dialer-area { margin-top: 60px; margin-bottom: 64px; }
 }
 
 /* ── MapLibre control overrides ─────────────────────────────────────────── */

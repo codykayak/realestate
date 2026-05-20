@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
+import LoginScreen from './components/LoginScreen';
 import UploadScreen from './components/UploadScreen';
 import MapView from './components/MapView';
 import LeadSidebar from './components/LeadSidebar';
@@ -7,190 +8,232 @@ import TopBar from './components/TopBar';
 import ZoneLegend from './components/ZoneLegend';
 import ZoneFilter from './components/ZoneFilter';
 import LayerToggle from './components/LayerToggle';
+import TabBar from './components/TabBar';
+import DialerView from './components/DialerView';
 import { geocodeLeads } from './utils/geocode';
 import { assignZones } from './utils/assignZones';
-import { saveLeads, loadLeads, clearLeads } from './utils/storage';
+import { saveLeads as lsSave, loadLeads as lsLoad, clearLeads as lsClear } from './utils/storage';
 import { useZoningData } from './hooks/useZoningData';
 import { useRegionalZoning } from './hooks/useRegionalZoning';
+import { useAuth } from './hooks/useAuth';
+import { useFirestoreLeads } from './hooks/useFirestoreLeads';
+import { isFirebaseConfigured } from './firebase';
 import './App.css';
 
 export default function App() {
+  const { user, loading: authLoading, error: authError, signInWithGoogle, signOutUser } = useAuth();
+  const uid = user?.uid ?? null;
+  const { loadLeads: fsLoad, saveLeads: fsSave, clearLeads: fsClear, logCall, getTodayCallLogs } = useFirestoreLeads(uid);
+
   const [leads, setLeads]                       = useState(null);
   const [selectedId, setSelectedId]             = useState(null);
   const [geocoding, setGeocoding]               = useState(false);
   const [geocodeDone, setGeocodeDone]           = useState(0);
   const [geocodeSuccesses, setGeocodeSuccesses] = useState(0);
   const [zoneFilter, setZoneFilter]             = useState(null);
-
-  // Layer visibility
   const [eugeneVisible, setEugeneVisible]       = useState(true);
-  const [enabledCounties, setEnabledCounties]   = useState(new Set()); // off by default (loads on demand)
+  const [enabledCounties, setEnabledCounties]   = useState(new Set());
   const [showLayerPanel, setShowLayerPanel]     = useState(false);
-
-  // Map bounds for regional zoning bbox queries
   const [mapBounds, setMapBounds]               = useState(null);
   const [mapZoom, setMapZoom]                   = useState(11);
-
+  const [activeTab, setActiveTab]               = useState('map');
+  const [todayCalls, setTodayCalls]             = useState([]);
   const abortRef = useRef(null);
 
-  // Eugene zoning (full load, as before)
   const { geojson: eugeneGeojson, loading: eugeneLoading } = useZoningData();
+  const { geojson: regionalGeojson, loading: regionalLoading } = useRegionalZoning(mapBounds, mapZoom, enabledCounties);
 
-  // Regional zoning (bbox-filtered, on demand)
-  const { geojson: regionalGeojson, loading: regionalLoading } = useRegionalZoning(
-    mapBounds, mapZoom, enabledCounties,
-  );
-
-  // Restore leads from localStorage on mount
+  // ── Load leads on mount / auth ──────────────────────────────────────────
   useEffect(() => {
-    const saved = loadLeads();
-    if (saved?.length) setLeads(saved);
-  }, []);
+    if (authLoading) return;
+    async function init() {
+      if (uid && isFirebaseConfigured) {
+        const fsLeads = await fsLoad();
+        if (fsLeads?.length) { setLeads(fsLeads); return; }
+      }
+      // Fallback: localStorage
+      const saved = lsLoad();
+      if (saved?.length) setLeads(saved);
+    }
+    init();
+  }, [uid, authLoading]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  // ── Persist leads ────────────────────────────────────────────────────────
   useEffect(() => {
-    if (leads) saveLeads(leads);
-  }, [leads]);
+    if (!leads) return;
+    if (uid && isFirebaseConfigured) fsSave(leads);
+    else lsSave(leads);
+  }, [leads]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Assign Eugene zones to leads when both are ready
+  // ── Zone assignment ──────────────────────────────────────────────────────
   useEffect(() => {
     if (!leads || !eugeneGeojson) return;
-    const needs = leads.some((l) => l.geocoded && l.zoneCode === undefined);
-    if (!needs) return;
-    setLeads((prev) => assignZones(prev, eugeneGeojson));
+    if (leads.some((l) => l.geocoded && l.zoneCode === undefined)) {
+      setLeads((prev) => assignZones(prev, eugeneGeojson));
+    }
   }, [leads, eugeneGeojson]);
 
+  // ── Today's call log (for dialer stats) ─────────────────────────────────
+  useEffect(() => {
+    if (!uid || !isFirebaseConfigured) return;
+    getTodayCallLogs().then(setTodayCalls).catch(() => {});
+  }, [uid]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // ── Lead handlers ────────────────────────────────────────────────────────
   const handleLeadsLoaded = useCallback(async ({ leads: parsed }) => {
-    const initial = parsed.map((l) => ({ ...l, status: l.status || 'New', notes: l.notes || '' }));
+    const initial = parsed.map((l) => ({ ...l, status: l.status || 'New', notes: l.notes || '', callCount: 0 }));
     setLeads(initial);
     setSelectedId(null);
     setZoneFilter(null);
     setGeocodeDone(0);
     setGeocodeSuccesses(0);
     setGeocoding(true);
-
-    const controller = new AbortController();
-    abortRef.current = controller;
-
+    const ctrl = new AbortController();
+    abortRef.current = ctrl;
     const geocoded = await geocodeLeads(
       initial,
-      (done, _total, successes) => { setGeocodeDone(done); setGeocodeSuccesses(successes); },
-      controller.signal,
+      (done, _, successes) => { setGeocodeDone(done); setGeocodeSuccesses(successes); },
+      ctrl.signal,
     );
     setLeads(geocoded);
     setGeocoding(false);
   }, []);
 
-  const handleSkipGeocode  = useCallback(() => { abortRef.current?.abort(); setGeocoding(false); }, []);
-  const handleSelectLead   = useCallback((id) => setSelectedId((p) => (p === id ? null : id)), []);
-  const handleUpdateLead   = useCallback((id, patch) => {
+  const handleSkipGeocode = useCallback(() => { abortRef.current?.abort(); setGeocoding(false); }, []);
+  const handleSelectLead  = useCallback((id) => setSelectedId((p) => (p === id ? null : id)), []);
+  const handleUpdateLead  = useCallback((id, patch) => {
     setLeads((prev) => prev.map((l) => (l.id === id ? { ...l, ...patch } : l)));
   }, []);
-  const handleReset = useCallback(() => {
+
+  const handleReset = useCallback(async () => {
     abortRef.current?.abort();
-    clearLeads();
+    if (uid && isFirebaseConfigured) await fsClear();
+    else lsClear();
     setLeads(null);
     setSelectedId(null);
     setGeocoding(false);
     setGeocodeDone(0);
     setGeocodeSuccesses(0);
     setZoneFilter(null);
-  }, []);
+  }, [uid, fsClear]);
 
-  const handleBoundsChange = useCallback((bounds, zoom) => {
-    setMapBounds(bounds);
-    setMapZoom(zoom);
-  }, []);
+  const handleLogCall = useCallback(async (callData) => {
+    if (uid && isFirebaseConfigured) {
+      await logCall(callData);
+      // Refresh today's stats
+      getTodayCallLogs().then(setTodayCalls).catch(() => {});
+    }
+  }, [uid, logCall, getTodayCallLogs]);
 
+  const handleBoundsChange = useCallback((bounds, zoom) => { setMapBounds(bounds); setMapZoom(zoom); }, []);
   const handleToggleCounty = useCallback((id) => {
     setEnabledCounties((prev) => {
       const next = new Set(prev);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
+      next.has(id) ? next.delete(id) : next.add(id);
       return next;
     });
   }, []);
 
-  const selectedLead  = leads?.find((l) => l.id === selectedId) ?? null;
-  const geocodedCount = leads?.filter((l) => l.geocoded).length ?? 0;
-  const zoningLoading = eugeneLoading;
-  const anyZoningOn   = eugeneVisible || enabledCounties.size > 0;
-
-  const mapProps = {
-    leads:           leads ?? [],
-    selectedId,
-    onSelectLead:    handleSelectLead,
-    zoningGeojson:   eugeneGeojson,
-    zoningVisible:   eugeneVisible,
-    regionalGeojson,
-    regionalVisible: enabledCounties.size > 0,
-    zoneFilter,
-    onBoundsChange:  handleBoundsChange,
-  };
-
-  const topBarProps = {
-    leadCount: leads?.length ?? 0,
-    geocodedCount,
-    zoningVisible: anyZoningOn,
-    onToggleZoning: () => setShowLayerPanel((p) => !p),
-    zoningLoading,
-    onReset: leads ? handleReset : null,
-  };
-
-  if (!leads) {
+  // ── Auth loading ─────────────────────────────────────────────────────────
+  if (authLoading) {
     return (
-      <div className="app-shell">
-        <TopBar {...topBarProps} />
-        <div className="map-area">
-          <MapView {...mapProps} />
-          {showLayerPanel && (
-            <LayerToggle
-              eugeneOn={eugeneVisible}
-              onToggleEugene={() => setEugeneVisible((v) => !v)}
-              enabledCounties={enabledCounties}
-              onToggleCounty={handleToggleCounty}
-              regionalLoading={regionalLoading}
-            />
-          )}
-          <ZoneLegend visible={anyZoningOn && !eugeneLoading} />
-          <UploadScreen onLeadsLoaded={handleLeadsLoaded} />
-        </div>
+      <div style={{ display:'flex', alignItems:'center', justifyContent:'center', height:'100dvh', background:'#0d1117', color:'#8b949e', fontSize:'15px' }}>
+        Loading…
       </div>
     );
   }
 
+  // ── Login gate ───────────────────────────────────────────────────────────
+  if (!user && isFirebaseConfigured) {
+    return <LoginScreen onSignIn={signInWithGoogle} error={authError} />;
+  }
+
+  // ── Shared props ─────────────────────────────────────────────────────────
+  const selectedLead  = leads?.find((l) => l.id === selectedId) ?? null;
+  const geocodedCount = leads?.filter((l) => l.geocoded).length ?? 0;
+  const anyZoningOn   = eugeneVisible || enabledCounties.size > 0;
+
+  const mapProps = {
+    leads: leads ?? [], selectedId, onSelectLead: handleSelectLead,
+    zoningGeojson: eugeneGeojson, zoningVisible: eugeneVisible,
+    regionalGeojson, regionalVisible: enabledCounties.size > 0,
+    zoneFilter, onBoundsChange: handleBoundsChange,
+  };
+
+  const topBarProps = {
+    leadCount: leads?.length ?? 0, geocodedCount,
+    zoningVisible: anyZoningOn,
+    onToggleZoning: () => setShowLayerPanel((p) => !p),
+    zoningLoading: eugeneLoading,
+    onReset: leads ? handleReset : null,
+  };
+
   return (
     <div className="app-shell">
       <TopBar {...topBarProps} />
-      <div className="map-area">
-        <MapView {...mapProps} />
 
-        {showLayerPanel && (
-          <LayerToggle
-            eugeneOn={eugeneVisible}
-            onToggleEugene={() => setEugeneVisible((v) => !v)}
-            enabledCounties={enabledCounties}
-            onToggleCounty={handleToggleCounty}
-            regionalLoading={regionalLoading}
+      {/* ── Map tab ──────────────────────────────────────────────────── */}
+      {activeTab === 'map' && (
+        <div className="map-area">
+          {!leads ? (
+            <>
+              <MapView {...mapProps} />
+              {showLayerPanel && (
+                <LayerToggle
+                  eugeneOn={eugeneVisible} onToggleEugene={() => setEugeneVisible((v) => !v)}
+                  enabledCounties={enabledCounties} onToggleCounty={handleToggleCounty}
+                  regionalLoading={regionalLoading}
+                />
+              )}
+              <ZoneLegend visible={anyZoningOn && !eugeneLoading} />
+              <UploadScreen onLeadsLoaded={handleLeadsLoaded} />
+            </>
+          ) : (
+            <>
+              <MapView {...mapProps} />
+              {showLayerPanel && (
+                <LayerToggle
+                  eugeneOn={eugeneVisible} onToggleEugene={() => setEugeneVisible((v) => !v)}
+                  enabledCounties={enabledCounties} onToggleCounty={handleToggleCounty}
+                  regionalLoading={regionalLoading}
+                />
+              )}
+              <ZoneFilter leads={leads} zoneFilter={zoneFilter} onChange={setZoneFilter} />
+              <ZoneLegend visible={anyZoningOn && !eugeneLoading} />
+              {geocoding && (
+                <GeocodingProgress
+                  done={geocodeDone} total={leads.length}
+                  successes={geocodeSuccesses} onSkip={handleSkipGeocode}
+                />
+              )}
+              <LeadSidebar
+                lead={selectedLead}
+                onClose={() => setSelectedId(null)}
+                onUpdate={handleUpdateLead}
+              />
+            </>
+          )}
+        </div>
+      )}
+
+      {/* ── Dialer tab ───────────────────────────────────────────────── */}
+      {activeTab === 'dialer' && (
+        <div className="dialer-area">
+          <DialerView
+            leads={leads ?? []}
+            onUpdateLead={handleUpdateLead}
+            onLogCall={handleLogCall}
+            todayCalls={todayCalls}
           />
-        )}
+        </div>
+      )}
 
-        <ZoneFilter leads={leads} zoneFilter={zoneFilter} onChange={setZoneFilter} />
-        <ZoneLegend visible={anyZoningOn && !eugeneLoading} />
-
-        {geocoding && (
-          <GeocodingProgress
-            done={geocodeDone} total={leads.length}
-            successes={geocodeSuccesses}
-            onSkip={handleSkipGeocode}
-          />
-        )}
-
-        <LeadSidebar
-          lead={selectedLead}
-          onClose={() => setSelectedId(null)}
-          onUpdate={handleUpdateLead}
-        />
-      </div>
+      <TabBar
+        activeTab={activeTab}
+        onChange={setActiveTab}
+        user={user}
+        onSignOut={signOutUser}
+      />
     </div>
   );
 }
