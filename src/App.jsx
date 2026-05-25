@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import LoginScreen from './components/LoginScreen';
 import UploadScreen from './components/UploadScreen';
 import MapView from './components/MapView';
@@ -21,6 +22,7 @@ import { isFirebaseConfigured } from './firebase';
 import './App.css';
 
 export default function App() {
+  const navigate = useNavigate();
   const { user, loading: authLoading, error: authError, signInWithGoogle, signOutUser } = useAuth();
   const uid = user?.uid ?? null;
   const { loadLeads: fsLoad, saveLeads: fsSave, clearLeads: fsClear, logCall, getTodayCallLogs } = useFirestoreLeads(uid);
@@ -232,7 +234,7 @@ export default function App() {
         activeTab={activeTab}
         onChange={setActiveTab}
         user={user}
-        onSignOut={signOutUser}
+        onSignOut={() => { signOutUser(); navigate('/'); }}
       />
     </div>
   );
