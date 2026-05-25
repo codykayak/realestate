@@ -13,20 +13,21 @@ const STATUS_COLORS = {
 };
 
 const PRIORITY_FIELDS = [
-  { key: 'name',     label: 'Name / Owner' },
-  { key: 'address',  label: 'Address' },
-  { key: 'city',     label: 'City' },
-  { key: 'state',    label: 'State' },
-  { key: 'zip',      label: 'ZIP' },
-  { key: 'phone',    label: 'Phone' },
-  { key: 'email',    label: 'Email' },
-  { key: 'price',    label: 'Est. Value' },
-  { key: 'equity',   label: 'Est. Equity' },
-  { key: 'sqft',     label: 'Sq Ft' },
-  { key: 'beds',     label: 'Beds' },
-  { key: 'baths',    label: 'Baths' },
-  { key: 'distress', label: 'Distress Score' },
-  { key: 'mls',      label: 'MLS #' },
+  { key: 'name',      label: 'Owner / Name' },
+  { key: 'llcowner',  label: 'LLC Owner' },
+  { key: 'relative',  label: 'Possible Relative' },
+  { key: 'address',   label: 'Address' },
+  { key: 'city',      label: 'City' },
+  { key: 'state',     label: 'State' },
+  { key: 'zip',       label: 'ZIP' },
+  { key: 'email',     label: 'Email' },
+  { key: 'price',     label: 'Est. Value' },
+  { key: 'equity',    label: 'Est. Equity' },
+  { key: 'sqft',      label: 'Sq Ft' },
+  { key: 'beds',      label: 'Beds' },
+  { key: 'baths',     label: 'Baths' },
+  { key: 'distress',  label: 'Distress Score' },
+  { key: 'mls',       label: 'MLS #' },
 ];
 
 export default function LeadSidebar({ lead, onClose, onUpdate }) {

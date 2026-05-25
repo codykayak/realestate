@@ -4,36 +4,66 @@ import * as XLSX from 'xlsx';
 // ─── Field aliases ────────────────────────────────────────────────────────────
 // Keys must match what the Firestore / sidebar logic uses as canonical names.
 
+// ─── Field aliases ─────────────────────────────────────────────────────────────
+// Canonical field → list of possible column name variations (case-insensitive,
+// normalized: spaces/dashes/underscores collapsed before matching).
+
 const FIELD_ALIASES = {
-  address: ['address', 'addr', 'street', 'street_address', 'property_address',
-            'situs', 'prop_address', 'site_address', 'location', 'property',
-            'prop_street', 'mailing_address', 'mail_addr'],
-  city:    ['city', 'town', 'municipality', 'situs_city', 'prop_city', 'mail_city'],
-  state:   ['state', 'st', 'province', 'situs_state', 'prop_state', 'mail_state'],
-  zip:     ['zip', 'zipcode', 'zip_code', 'postal', 'postal_code', 'situs_zip', 'mail_zip'],
-  name:    ['name', 'owner', 'owner_name', 'contact', 'seller', 'full_name',
-            'firstname', 'first_name', 'lastname', 'last_name', 'owner1',
-            'owner_1', 'taxpayer', 'grantor', 'borrower'],
-  // 'phone' maps the first phone column found; collectAllPhones gathers the rest.
-  phone:   ['phone', 'phone_number', 'cell', 'mobile', 'telephone', 'tel',
-            'phone1', 'phone_1', 'primary_phone', 'contact_phone',
-            'wireless_1', 'wireless1', 'wireless 1', 'wireless1',
-            'landline_1', 'landline1', 'landline 1',
-            'best_phone', 'owner_phone', 'alt_phone'],
-  email:   ['email', 'email_address', 'e_mail', 'email1'],
-  price:   ['price', 'asking_price', 'list_price', 'arv', 'value', 'assessed_value',
-            'market_value', 'est_value', 'appraised', 'est_market_value',
-            'estimated_value', 'tax_value', 'land_value'],
-  equity:  ['equity', 'est_equity', 'estimated_equity', 'equity_estimate',
-            'est_equity_$', 'equity_$', 'est_equity_dollar'],
-  sqft:    ['sq_ft', 'sqft', 'square_feet', 'sq_feet', 'living_area', 'area',
-            'building_area', 'heated_area'],
+  // Property address — many naming conventions
+  address: [
+    'address', 'addr', 'street', 'street_address', 'property_address',
+    'situs', 'situs_address', 'prop_address', 'prop_street', 'site_address',
+    'mailing_address', 'mail_addr', 'subject_address', 'parcel_address',
+    'location', 'full_address',
+  ],
+  city: [
+    'city', 'town', 'municipality', 'situs_city', 'prop_city', 'mail_city',
+    'property_city', 'subject_city',
+  ],
+  state: [
+    'state', 'st', 'province', 'situs_state', 'prop_state', 'mail_state',
+    'property_state',
+  ],
+  zip: [
+    'zip', 'zipcode', 'zip_code', 'postal', 'postal_code', 'situs_zip',
+    'mail_zip', 'property_zip',
+  ],
+  // Owner / contact name
+  name: [
+    'owner', 'owner_name', 'name', 'contact', 'seller', 'full_name',
+    'firstname', 'first_name', 'lastname', 'last_name',
+    'owner1', 'owner_1', 'taxpayer', 'grantor', 'borrower',
+    'llc_owner', 'llc_owner_name',   // "LLC Owner Name" column
+  ],
+  // Primary phone — collectAllPhones() picks up ALL phone columns regardless
+  phone: [
+    'wireless_1', 'wireless1', 'wireless 1',
+    'landline_1', 'landline1', 'landline 1',
+    'phone', 'phone_number', 'phone_1', 'phone1',
+    'cell', 'cell_1', 'mobile', 'mobile_1',
+    'telephone', 'tel', 'primary_phone', 'contact_phone',
+    'best_phone', 'owner_phone',
+  ],
+  email: ['email', 'email_address', 'e_mail', 'email1', 'contact_email'],
+  price: [
+    'est_value', 'est_market_value', 'estimated_value',
+    'price', 'asking_price', 'list_price', 'arv',
+    'assessed_value', 'market_value', 'tax_value', 'appraised',
+  ],
+  equity: [
+    'est_equity', 'est_equity_$', 'equity', 'estimated_equity',
+    'equity_estimate', 'equity_$',
+  ],
+  sqft:    ['sq_ft', 'sqft', 'square_feet', 'sq_feet', 'living_area', 'building_area'],
   beds:    ['beds', 'bedrooms', 'bd', 'br', 'bed'],
   baths:   ['baths', 'bathrooms', 'ba', 'bath'],
   mls:     ['mls', 'mls_number', 'listing_number', 'listing_id'],
   status:  ['status', 'lead_status', 'stage', 'disposition'],
-  notes:   ['notes', 'note', 'comments', 'comment', 'memo', 'description'],
-  distress:['distress', 'distress_score', 'score', 'priority'],
+  notes:   ['notes', 'note', 'comments', 'comment', 'memo'],
+  distress:['distress_score', 'distress', 'score', 'priority'],
+  // Extra Propradar/skip-trace columns shown in sidebar
+  llcowner:     ['llc_owner_name', 'llc_owner', 'company_name', 'entity_name'],
+  relative:     ['possible_relative', 'relative', 'associated_person'],
 };
 
 function normalize(str) {
@@ -92,49 +122,60 @@ export function extractAddressFromText(text) {
 // ─── Build geocode address from a row ────────────────────────────────────────
 
 function buildAddressForRow(row, lead) {
-  // When State is missing, default to Oregon (this app targets OR properties)
   const stateDefault = 'Oregon';
   const state = (lead.state && lead.state.trim()) || stateDefault;
 
-  // Strategy 1: dedicated address columns
-  const colParts = [lead.address, lead.city, state, lead.zip].filter(Boolean);
-  if (colParts.length >= 2) {
-    const addr = colParts.join(', ');
-    console.log('[buildAddress] columns:', addr);
+  // ── Strategy 1: canonical address + city columns ──────────────────────────
+  if (lead.address && lead.address.trim().length > 4) {
+    const parts = [lead.address.trim(), lead.city, state, lead.zip].filter(Boolean);
+    const addr = parts.join(', ');
+    console.log('[buildAddress] S1-columns:', addr);
     return { address: addr, source: 'columns' };
   }
 
-  if (lead.address?.trim().length > 5) {
-    const addr = [lead.address.trim(), stateDefault].join(', ');
-    console.log('[buildAddress] address-only column:', addr);
-    return { address: addr, source: 'address-column' };
-  }
-
-  // Strategy 2: scan each cell for embedded street address
+  // ── Strategy 2: scan all column values for a street address ──────────────
+  // Check every cell — address may be in a column named "Property Address",
+  // "Situs Address", "Subject Property", etc., not matched by fieldMap.
   const cellValues = Object.values(row).map((v) => String(v ?? '').trim()).filter(Boolean);
 
+  // First pass: look for values that look like a full address (has state/zip)
   for (const val of cellValues) {
+    if (!/\d{5}/.test(val) && !/\b[A-Z]{2}\b/.test(val)) continue; // skip non-address looking values
     const extracted = extractAddressFromText(val);
     if (extracted) {
-      const hasLocation = /\b[A-Z]{2}\b/.test(extracted) || /\d{5}/.test(extracted);
-      let final = extracted;
-      if (!hasLocation) {
-        const extra = cellValues.find((v) => v !== val && (/\b[A-Z]{2}\s+\d{5}\b/.test(v) || /\b\d{5}\b/.test(v)));
-        final = extra ? `${extracted}, ${extra}` : `${extracted}, ${stateDefault}`;
-      }
-      console.log('[buildAddress] cell-scan:', final);
-      return { address: final, source: 'cell-scan' };
+      console.log('[buildAddress] S2-full-address-cell:', extracted);
+      return { address: extracted, source: 'cell-full' };
     }
   }
 
-  // Strategy 3: full-row concat
-  const concat = cellValues.join(' ');
-  const fromConcat = extractAddressFromText(concat);
+  // Second pass: any cell with a street number + name pattern
+  for (const val of cellValues) {
+    const extracted = extractAddressFromText(val);
+    if (!extracted) continue;
+    // Supplement with city if we have it
+    const hasLocation = /\b[A-Z]{2}\b/.test(extracted) || /\d{5}/.test(extracted);
+    let final = extracted;
+    if (!hasLocation) {
+      const cityZip = cellValues.find((v) =>
+        v !== val && (/\b[A-Z]{2}\s+\d{5}\b/.test(v) || /\b\d{5}\b/.test(v)),
+      );
+      const cityGuess = lead.city ? lead.city.trim() : '';
+      if (cityZip) final = `${extracted}, ${cityZip}`;
+      else if (cityGuess) final = `${extracted}, ${cityGuess}, ${stateDefault}`;
+      else final = `${extracted}, ${stateDefault}`;
+    }
+    console.log('[buildAddress] S2-cell-scan:', final);
+    return { address: final, source: 'cell-scan' };
+  }
+
+  // ── Strategy 3: concatenate all short cells and scan ─────────────────────
+  const shortCells = cellValues.filter((v) => v.length < 80);
+  const fromConcat = extractAddressFromText(shortCells.join(' '));
   if (fromConcat) {
     const final = /\b[A-Z]{2}\b/.test(fromConcat) || /\d{5}/.test(fromConcat)
       ? fromConcat
       : `${fromConcat}, ${stateDefault}`;
-    console.log('[buildAddress] concat:', final);
+    console.log('[buildAddress] S3-concat:', final);
     return { address: final, source: 'concat' };
   }
 
