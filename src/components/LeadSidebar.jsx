@@ -30,7 +30,7 @@ const PRIORITY_FIELDS = [
   { key: 'mls',       label: 'MLS #' },
 ];
 
-export default function LeadSidebar({ lead, onClose, onUpdate }) {
+export default function LeadSidebar({ lead, onClose, onUpdate, onViewInSheets }) {
   const sheetRef = useRef(null);
 
   if (!lead) return null;
@@ -176,10 +176,19 @@ export default function LeadSidebar({ lead, onClose, onUpdate }) {
             />
           </div>
 
-          {/* Mobile back button — always visible at bottom of sheet */}
-          <button className={styles.backBtn} onClick={onClose}>
-            ← Back to Map
-          </button>
+          {/* View in Sheets + Back buttons */}
+          <div className={styles.bottomBtns}>
+            <button className={styles.sheetsBtn} onClick={onViewInSheets}>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+                <rect x="3" y="3" width="18" height="18" rx="2" stroke="currentColor" strokeWidth="2"/>
+                <path d="M3 9h18M9 21V9" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+              </svg>
+              View in Sheets
+            </button>
+            <button className={styles.backBtn} onClick={onClose}>
+              ← Back to Map
+            </button>
+          </div>
         </div>
       </aside>
     </>

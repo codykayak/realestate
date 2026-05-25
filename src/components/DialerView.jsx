@@ -11,8 +11,9 @@ const OUTCOMES = [
 
 const DAILY_GOAL = 100;
 
-export default function DialerView({ leads, onUpdateLead, onLogCall, todayCalls }) {
+export default function DialerView({ leads, onUpdateLead, onLogCall, todayCalls, onViewInSheets, jumpToId }) {
   const [idx, setIdx]             = useState(0);
+  const [jumped, setJumped]       = useState(false);
   const [note, setNote]           = useState('');
   const [calling, setCalling]     = useState(false);
   const [lastOutcome, setLastOutcome] = useState(null);
@@ -40,6 +41,16 @@ export default function DialerView({ leads, onUpdateLead, onLogCall, todayCalls 
   const todayCount   = todayCalls?.length ?? 0;
   const todayInterested = todayCalls?.filter((c) => c.outcome === 'interested').length ?? 0;
   const pct = Math.min(100, Math.round((todayCount / DAILY_GOAL) * 100));
+
+  // Jump to a specific lead when coming from Sheets view
+  useEffect(() => {
+    if (!jumpToId || jumped) return;
+    const queueIdx = queue.findIndex((l) => l.id === jumpToId);
+    if (queueIdx !== -1) { setIdx(queueIdx); setJumped(true); }
+  }, [jumpToId, queue, jumped]);
+
+  // Reset jump flag when jumpToId changes
+  useEffect(() => { setJumped(false); }, [jumpToId]);
 
   // Sync note when lead changes
   useEffect(() => {
@@ -138,7 +149,7 @@ export default function DialerView({ leads, onUpdateLead, onLogCall, todayCalls 
   return (
     <div className={styles.wrap}>
       {/* ── Session stats bar ─────────────────────────────────────────── */}
-      <div className={styles.statsBar}>
+      <div className={styles.statsBar} style={{ flexWrap: 'wrap' }}>
         <div className={styles.statsLeft}>
           <span className={styles.statItem}>
             <span className={styles.statNum}>{todayCount}</span>
@@ -157,6 +168,16 @@ export default function DialerView({ leads, onUpdateLead, onLogCall, todayCalls 
             <div className={styles.goalFill} style={{ width: `${pct}%` }} />
           </div>
         </div>
+        {onViewInSheets && (
+          <button className={styles.sheetsBtn} onClick={() => onViewInSheets(lead?.id)}>
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none">
+              <rect x="3" y="3" width="18" height="18" rx="2" stroke="currentColor" strokeWidth="2"/>
+              <path d="M3 9h18M9 21V9" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+            </svg>
+            Sheets
+          </button>
+        )}
+
         <button
           className={`${styles.filterBtn} ${filterStatus !== 'all' ? styles.filterActive : ''}`}
           onClick={() => setShowFilter((v) => !v)}

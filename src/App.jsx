@@ -11,6 +11,7 @@ import ZoneFilter from './components/ZoneFilter';
 import LayerToggle from './components/LayerToggle';
 import TabBar from './components/TabBar';
 import DialerView from './components/DialerView';
+import SheetsView from './components/SheetsView';
 import { geocodeLeads } from './utils/geocode';
 import { assignZones } from './utils/assignZones';
 import { saveLeads as lsSave, loadLeads as lsLoad, clearLeads as lsClear } from './utils/storage';
@@ -40,6 +41,7 @@ export default function App() {
   const [mapZoom, setMapZoom]                   = useState(11);
   const [activeTab, setActiveTab]               = useState('map');
   const [todayCalls, setTodayCalls]             = useState([]);
+  const [dialerJumpId, setDialerJumpId]         = useState(null); // jump dialer to specific lead
   const abortRef = useRef(null);
 
   const { geojson: eugeneGeojson, loading: eugeneLoading } = useZoningData();
@@ -128,6 +130,24 @@ export default function App() {
   }, [uid, logCall, getTodayCallLogs]);
 
   const handleBoundsChange = useCallback((bounds, zoom) => { setMapBounds(bounds); setMapZoom(zoom); }, []);
+
+  // Navigate from Sheets or Sidebar → Dialer for a specific lead
+  const handleDialLead = useCallback((id) => {
+    setDialerJumpId(id);
+    setActiveTab('dialer');
+  }, []);
+
+  // Navigate from Dialer or Sidebar → Sheets (highlight that lead)
+  const handleViewInSheets = useCallback((id) => {
+    if (id != null) setSelectedId(id);
+    setActiveTab('sheets');
+  }, []);
+
+  // Navigate from Sheets → Map (select + fly to that lead)
+  const handleViewOnMap = useCallback((id) => {
+    setSelectedId(id);
+    setActiveTab('map');
+  }, []);
   const handleToggleCounty = useCallback((id) => {
     setEnabledCounties((prev) => {
       const next = new Set(prev);
@@ -212,9 +232,23 @@ export default function App() {
                 lead={selectedLead}
                 onClose={() => setSelectedId(null)}
                 onUpdate={handleUpdateLead}
+                onViewInSheets={() => handleViewInSheets(selectedLead?.id)}
               />
             </>
           )}
+        </div>
+      )}
+
+      {/* ── Sheets tab ───────────────────────────────────────────────── */}
+      {activeTab === 'sheets' && (
+        <div className="dialer-area">
+          <SheetsView
+            leads={leads ?? []}
+            selectedId={selectedId}
+            onDialLead={handleDialLead}
+            onSelectLead={handleSelectLead}
+            onViewOnMap={handleViewOnMap}
+          />
         </div>
       )}
 
@@ -226,6 +260,8 @@ export default function App() {
             onUpdateLead={handleUpdateLead}
             onLogCall={handleLogCall}
             todayCalls={todayCalls}
+            jumpToId={dialerJumpId}
+            onViewInSheets={handleViewInSheets}
           />
         </div>
       )}

@@ -61,6 +61,24 @@
   transition: width 0.4s ease;
 }
 
+.sheetsBtn {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 8px;
+  color: #c9d1d9;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 6px 10px;
+  cursor: pointer;
+  min-height: 32px;
+  white-space: nowrap;
+  transition: background 0.15s;
+}
+.sheetsBtn:hover { background: rgba(255,255,255,0.1); }
+
 .filterBtn {
   display: flex;
   align-items: center;
