@@ -108,19 +108,35 @@ export default function LeadSidebar({ lead, onClose, onUpdate }) {
             </select>
           </div>
 
-          {/* Quick action buttons for phone / email */}
-          {(lead.phone || lead.email) && (
-            <div className={styles.actions}>
-              {lead.phone && (
-                <a href={`tel:${lead.phone}`} className={styles.actionBtn} style={{ background: 'rgba(59,183,126,0.12)', borderColor: 'rgba(59,183,126,0.3)', color: '#3fb950' }}>
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-                    <path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 9.81a19.79 19.79 0 01-3.07-8.68A2 2 0 012 .99h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L6.09 8.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+          {/* Phone numbers — multi-phone (wireless/landline) or single */}
+          {(lead.phones?.length > 0 || lead.phone || lead.email) && (
+            <div className={styles.phonesBlock}>
+              {lead.phones?.length > 0 ? (
+                <div className={styles.phoneList}>
+                  {lead.phones.map(({ label, number }) => (
+                    <a key={label} href={`tel:${number.replace(/\D/g, '')}`}
+                      className={styles.phoneRow}>
+                      <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor" className={styles.phoneIcon}>
+                        <path d="M22 16.92v3a2 2 0 01-2.18 2A19.79 19.79 0 013.07 9.81a19.79 19.79 0 01-3.07-8.68A2 2 0 012 .99h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L6.09 8.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"/>
+                      </svg>
+                      <span className={styles.phoneLabel}>{label}</span>
+                      <span className={styles.phoneNum}>{number}</span>
+                      <span className={styles.callTag}>Call</span>
+                    </a>
+                  ))}
+                </div>
+              ) : lead.phone ? (
+                <a href={`tel:${lead.phone}`} className={styles.actionBtn}
+                  style={{ background:'rgba(59,183,126,0.12)', borderColor:'rgba(59,183,126,0.3)', color:'#3fb950' }}>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M22 16.92v3a2 2 0 01-2.18 2A19.79 19.79 0 013.07 9.81a19.79 19.79 0 01-3.07-8.68A2 2 0 012 .99h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L6.09 8.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"/>
                   </svg>
-                  Call
+                  Call {lead.phone}
                 </a>
-              )}
+              ) : null}
               {lead.email && (
-                <a href={`mailto:${lead.email}`} className={styles.actionBtn} style={{ background: 'rgba(88,166,255,0.1)', borderColor: 'rgba(88,166,255,0.25)', color: '#58a6ff' }}>
+                <a href={`mailto:${lead.email}`} className={styles.actionBtn}
+                  style={{ background:'rgba(88,166,255,0.1)', borderColor:'rgba(88,166,255,0.25)', color:'#58a6ff' }}>
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
                     <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
                     <polyline points="22,6 12,13 2,6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>

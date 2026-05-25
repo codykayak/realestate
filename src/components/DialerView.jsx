@@ -19,9 +19,13 @@ export default function DialerView({ leads, onUpdateLead, onLogCall, todayCalls 
   const [filterStatus, setFilterStatus] = useState('all'); // 'all' | 'New' | 'Contacted' | ...
   const [showFilter, setShowFilter] = useState(false);
 
-  // Filter leads to those with a phone number
+  function hasPhone(l) {
+    return l.phones?.length > 0 || !!l.phone?.trim();
+  }
+
+  // Filter leads to those with at least one phone number
   const queue = useMemo(() => {
-    let q = leads.filter((l) => l.phone?.trim());
+    let q = leads.filter(hasPhone);
     if (filterStatus !== 'all') q = q.filter((l) => l.status === filterStatus);
     // Sort: fewest calls first, then by id
     return q.sort((a, b) => (a.callCount ?? 0) - (b.callCount ?? 0) || a.id - b.id);
@@ -142,8 +146,8 @@ export default function DialerView({ leads, onUpdateLead, onLogCall, todayCalls 
           <div className={styles.filterDrop}>
             {['all', 'New', 'Contacted', 'Negotiating', 'Dead', 'Closed'].map((s) => {
               const count = s === 'all'
-                ? leads.filter((l) => l.phone?.trim()).length
-                : leads.filter((l) => l.phone?.trim() && l.status === s).length;
+                ? leads.filter(hasPhone).length
+                : leads.filter((l) => hasPhone(l) && l.status === s).length;
               return (
                 <button
                   key={s}
@@ -226,20 +230,60 @@ export default function DialerView({ leads, onUpdateLead, onLogCall, todayCalls 
         )}
       </div>
 
-      {/* ── Phone + Call button ────────────────────────────────────────── */}
+      {/* ── Phone + Call buttons ──────────────────────────────────────── */}
       <div className={styles.phoneSection}>
-        <p className={styles.phoneNumber}>{formatPhone(lead.phone)}</p>
-        <a
-          href={`tel:${lead.phone.replace(/\D/g, '')}`}
-          className={`${styles.callBtn} ${calling ? styles.callBtnActive : ''}`}
-          onClick={handleCall}
-        >
-          <svg width="26" height="26" viewBox="0 0 24 24" fill="none">
-            <path d="M22 16.92v3a2 2 0 01-2.18 2A19.79 19.79 0 013.07 9.81a19.79 19.79 0 01-3.07-8.68A2 2 0 012 .99h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L6.09 8.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"
-              fill="white" stroke="white" strokeWidth="0.5"/>
-          </svg>
-          {calling ? 'Calling…' : 'CALL'}
-        </a>
+        {/* Multi-phone: show all numbers as tap-to-call rows */}
+        {lead.phones?.length > 0 ? (
+          <div className={styles.multiPhoneList}>
+            {lead.phones.map(({ label, number }) => {
+              const digits = number.replace(/\D/g, '');
+              const isActive = calling && lead.phone === number;
+              return (
+                <a
+                  key={label}
+                  href={`tel:${digits}`}
+                  className={`${styles.multiPhoneRow} ${isActive ? styles.multiPhoneActive : ''}`}
+                  onClick={() => {
+                    setCalling(true);
+                    const count = (lead.callCount ?? 0) + 1;
+                    onUpdateLead(lead.id, {
+                      phone:        number,
+                      callCount:    count,
+                      lastCalledAt: new Date().toISOString(),
+                      status:       lead.status === 'New' ? 'Contacted' : lead.status,
+                    });
+                  }}
+                >
+                  <div className={styles.multiPhoneLeft}>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                      <path d="M22 16.92v3a2 2 0 01-2.18 2A19.79 19.79 0 013.07 9.81a19.79 19.79 0 01-3.07-8.68A2 2 0 012 .99h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L6.09 8.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"/>
+                    </svg>
+                    <span className={styles.multiPhoneLabel}>{label}</span>
+                  </div>
+                  <span className={styles.multiPhoneNum}>{formatPhone(number)}</span>
+                  <span className={styles.multiPhoneCall}>
+                    {isActive ? 'Calling…' : 'CALL'}
+                  </span>
+                </a>
+              );
+            })}
+          </div>
+        ) : (
+          /* Single phone fallback */
+          <>
+            <p className={styles.phoneNumber}>{formatPhone(lead.phone)}</p>
+            <a
+              href={`tel:${(lead.phone || '').replace(/\D/g, '')}`}
+              className={`${styles.callBtn} ${calling ? styles.callBtnActive : ''}`}
+              onClick={handleCall}
+            >
+              <svg width="26" height="26" viewBox="0 0 24 24" fill="white">
+                <path d="M22 16.92v3a2 2 0 01-2.18 2A19.79 19.79 0 013.07 9.81a19.79 19.79 0 01-3.07-8.68A2 2 0 012 .99h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L6.09 8.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"/>
+              </svg>
+              {calling ? 'Calling…' : 'CALL'}
+            </a>
+          </>
+        )}
       </div>
 
       {/* ── Outcome buttons ───────────────────────────────────────────── */}

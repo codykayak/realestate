@@ -138,6 +138,42 @@
 }
 .statusSelect option { background: #161b22; color: #e6edf3; }
 
+/* ── Phone list (multi-number) ───────────────────────────────────────────── */
+.phonesBlock { display: flex; flex-direction: column; gap: 8px; }
+
+.phoneList {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  border: 1px solid rgba(63,185,80,0.2);
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.phoneRow {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 10px 13px;
+  text-decoration: none;
+  color: #c9d1d9;
+  background: rgba(63,185,80,0.05);
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+  transition: background 0.15s;
+  min-height: 44px;
+}
+.phoneRow:last-child { border-bottom: none; }
+.phoneRow:hover { background: rgba(63,185,80,0.12); color: #3fb950; }
+
+.phoneIcon { color: #3fb950; flex-shrink: 0; }
+.phoneLabel { font-size: 11px; color: #8b949e; min-width: 68px; flex-shrink: 0; font-weight: 600; text-transform: capitalize; }
+.phoneNum   { flex: 1; font-size: 14px; font-weight: 600; font-variant-numeric: tabular-nums; }
+.callTag {
+  font-size: 11px; font-weight: 700; color: #3fb950;
+  background: rgba(63,185,80,0.15); border-radius: 4px; padding: 2px 7px;
+  flex-shrink: 0;
+}
+
 /* ── Action buttons ──────────────────────────────────────────────────────── */
 .actions { display: flex; gap: 10px; }
 

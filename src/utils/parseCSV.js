@@ -14,8 +14,11 @@ const FIELD_ALIASES = {
   name:    ['name', 'owner', 'owner_name', 'contact', 'seller', 'full_name',
             'firstname', 'first_name', 'lastname', 'last_name', 'owner1',
             'owner_1', 'taxpayer', 'grantor', 'borrower'],
+  // 'phone' maps only the FIRST/primary phone column.
+  // All wireless_* and landline_* columns are collected separately in rowToLead.
   phone:   ['phone', 'phone_number', 'cell', 'mobile', 'telephone', 'tel',
-            'phone1', 'phone_1', 'primary_phone', 'contact_phone'],
+            'phone1', 'phone_1', 'primary_phone', 'contact_phone',
+            'wireless_1', 'wireless1', 'wireless 1'],
   email:   ['email', 'email_address', 'e_mail', 'email1'],
   price:   ['price', 'asking_price', 'list_price', 'arv', 'value', 'assessed_value',
             'market_value', 'est_value', 'appraised', 'est_market_value',
@@ -137,29 +140,72 @@ function buildAddressForRow(row, lead) {
   return null;
 }
 
+// ─── Phone number helpers ─────────────────────────────────────────────────────
+
+// Column patterns that represent phone numbers (checked against every header)
+const PHONE_COL_RE = /^(wireless|landline|cell|mobile|phone|telephone)\s*\d*$/i;
+
+function cleanPhone(val) {
+  if (!val) return '';
+  const s = String(val).replace(/[^\d+\-().x ]/g, '').trim();
+  // Must have at least 7 digits to be a real number
+  return s.replace(/\D/g, '').length >= 7 ? s : '';
+}
+
+function collectAllPhones(row, headers) {
+  // Returns array of { label, number } for every non-empty phone column
+  const phones = [];
+  for (const header of headers) {
+    if (!PHONE_COL_RE.test(String(header).trim())) continue;
+    const val = cleanPhone(row[header]);
+    if (val) {
+      // Pretty label: "Wireless 1", "Landline 2", etc.
+      const label = String(header).trim().replace(/\b\w/g, c => c.toUpperCase());
+      phones.push({ label, number: val });
+    }
+  }
+  return phones;
+}
+
 // ─── Row → lead object ────────────────────────────────────────────────────────
 
 function rowToLead(row, idx, headers, fieldMap) {
   const lead = {
-    id:       idx,
-    _raw:     row,
-    _headers: headers,
-    notes:    '',
-    status:   'New',
-    geocoded: null,
+    id:        idx,
+    _raw:      row,
+    _headers:  headers,
+    notes:     '',
+    status:    'New',
+    geocoded:  null,
     callCount: 0,
   };
 
   for (const [canonical, originalHeader] of Object.entries(fieldMap)) {
     if (!canonical.startsWith('_raw_')) {
       const val = row[originalHeader];
-      // Format currency fields nicely
+
       if ((canonical === 'price' || canonical === 'equity') && typeof val === 'number') {
+        // Format currency as $123,456
         lead[canonical] = `$${Math.round(val).toLocaleString()}`;
+      } else if (canonical === 'zip') {
+        // Strip commas from ZIP codes: "97,402" → "97402"
+        lead[canonical] = val != null ? String(val).replace(/,/g, '').trim() : '';
       } else {
         lead[canonical] = val != null ? String(val).trim() : '';
       }
     }
+  }
+
+  // ── Collect ALL phone numbers (wireless 1-3, landline 1-3, etc.) ──────────
+  const allPhones = collectAllPhones(row, headers);
+
+  if (allPhones.length > 0) {
+    // Primary phone = first one found (for dialer / tel: links)
+    if (!lead.phone || !cleanPhone(lead.phone)) {
+      lead.phone = allPhones[0].number;
+    }
+    // Store the full list for the sidebar and dialer multi-number display
+    lead.phones = allPhones;
   }
 
   const result = buildAddressForRow(row, lead);
@@ -167,7 +213,7 @@ function rowToLead(row, idx, headers, fieldMap) {
   lead._addressSource     = result?.source  ?? 'none';
 
   if (!lead._addressForGeocode) {
-    console.warn(`[parseFile] Row ${idx}: no address found.`, Object.values(row).map(v => String(v).slice(0, 30)));
+    console.warn(`[parseFile] Row ${idx}: no address.`, Object.values(row).map(v => String(v).slice(0, 30)));
   }
 
   return lead;

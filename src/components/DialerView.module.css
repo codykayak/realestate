@@ -241,8 +241,8 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 14px;
-  padding: 20px 16px 8px;
+  gap: 12px;
+  padding: 14px 14px 6px;
   flex-shrink: 0;
 }
 
@@ -252,6 +252,48 @@
   color: #e6edf3;
   letter-spacing: 0.04em;
   font-variant-numeric: tabular-nums;
+}
+
+/* Multi-phone rows (wireless 1/2/3, landline 1/2/3) */
+.multiPhoneList {
+  width: 100%;
+  border: 1px solid rgba(63,185,80,.2);
+  border-radius: 14px;
+  overflow: hidden;
+}
+
+.multiPhoneRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 11px 14px;
+  text-decoration: none;
+  color: #c9d1d9;
+  background: rgba(63,185,80,.04);
+  border-bottom: 1px solid rgba(255,255,255,.05);
+  transition: background .15s;
+  min-height: 50px;
+}
+.multiPhoneRow:last-child { border-bottom: none; }
+.multiPhoneRow:hover, .multiPhoneRow:active { background: rgba(63,185,80,.14); }
+.multiPhoneActive { background: rgba(88,166,255,.12) !important; }
+
+.multiPhoneLeft {
+  display: flex; align-items: center; gap: 7px;
+  color: #3fb950; flex-shrink: 0; min-width: 106px;
+}
+.multiPhoneLabel {
+  font-size: 12px; font-weight: 700; color: #3fb950; text-transform: capitalize;
+}
+.multiPhoneNum {
+  flex: 1; font-size: 15px; font-weight: 700;
+  color: #e6edf3; font-variant-numeric: tabular-nums;
+}
+.multiPhoneCall {
+  flex-shrink: 0; font-size: 11px; font-weight: 800;
+  color: #fff; background: linear-gradient(135deg,#238636,#3fb950);
+  border-radius: 6px; padding: 5px 11px; letter-spacing: .04em;
+  white-space: nowrap;
 }
 
 .callBtn {
