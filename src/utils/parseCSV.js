@@ -236,8 +236,8 @@ function rowToLead(row, idx, headers, fieldMap) {
         // Strip commas: "97,402" → "97402"
         lead[canonical] = String(val).replace(/,/g, '').trim();
       } else if (canonical === 'sqft' || canonical === 'beds' || canonical === 'baths' || canonical === 'distress') {
-        // Keep numeric fields readable (strip trailing .0)
-        const num = parseFloat(val);
+        // Strip commas from formatted numbers ("1,080" → "1080"), drop trailing .0
+        const num = typeof val === 'number' ? val : parseFloat(String(val).replace(/,/g, ''));
         lead[canonical] = !isNaN(num) ? (Number.isInteger(num) ? String(num) : num.toFixed(1)) : String(val).trim();
       } else {
         lead[canonical] = String(val).trim();
