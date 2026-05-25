@@ -20,7 +20,9 @@ export default function DialerView({ leads, onUpdateLead, onLogCall, todayCalls 
   const [showFilter, setShowFilter] = useState(false);
 
   function hasPhone(l) {
-    return l.phones?.length > 0 || !!l.phone?.trim();
+    if (l.phones?.length > 0) return true;
+    if (l.phone && l.phone.replace(/\D/g, '').length >= 7) return true;
+    return false;
   }
 
   // Filter leads to those with at least one phone number
@@ -89,20 +91,44 @@ export default function DialerView({ leads, onUpdateLead, onLogCall, todayCalls 
 
   // ── Empty state ───────────────────────────────────────────────────────────
   if (total === 0) {
+    const totalLeads      = leads.length;
+    const withAnyPhone    = leads.filter((l) => l.phone || l.phones?.length).length;
+    const filterMismatch  = filterStatus !== 'all' && leads.filter(hasPhone).length > 0;
+
     return (
       <div className={styles.wrap}>
         <div className={styles.emptyState}>
-          <div className={styles.emptyIcon}>📋</div>
-          <h2>No leads with phone numbers</h2>
-          <p>
-            {leads.length === 0
-              ? 'Upload a CSV first, then come back to start dialing.'
-              : 'Your current filter has no leads with phone numbers. Try "All Leads".'}
-          </p>
-          {leads.length > 0 && filterStatus !== 'all' && (
-            <button className={styles.resetFilterBtn} onClick={() => setFilterStatus('all')}>
-              Show all leads
-            </button>
+          <div className={styles.emptyIcon}>
+            {totalLeads === 0 ? '📋' : withAnyPhone === 0 ? '📵' : '🔍'}
+          </div>
+          {totalLeads === 0 ? (
+            <>
+              <h2>No leads loaded</h2>
+              <p>Upload a CSV or Excel file from the Map tab first, then come back to start dialing.</p>
+            </>
+          ) : filterMismatch ? (
+            <>
+              <h2>No {filterStatus} leads with phones</h2>
+              <p>Try a different status filter or switch to All Leads.</p>
+              <button className={styles.resetFilterBtn} onClick={() => setFilterStatus('all')}>
+                Show all leads
+              </button>
+            </>
+          ) : (
+            <>
+              <h2>Phone numbers not detected</h2>
+              <p>
+                {totalLeads} properties loaded but no phone numbers were found.
+                Make sure your file has columns named like:
+              </p>
+              <div className={styles.emptyHints}>
+                <span>Wireless 1</span><span>Wireless 2</span><span>Landline 1</span>
+                <span>Phone 1</span><span>Cell Phone 1</span><span>Mobile 1</span>
+              </div>
+              <p style={{ fontSize: 13, marginTop: 8 }}>
+                Check the browser console (F12) for column names that were detected.
+              </p>
+            </>
           )}
         </div>
       </div>

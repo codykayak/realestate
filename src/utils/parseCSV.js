@@ -14,11 +14,12 @@ const FIELD_ALIASES = {
   name:    ['name', 'owner', 'owner_name', 'contact', 'seller', 'full_name',
             'firstname', 'first_name', 'lastname', 'last_name', 'owner1',
             'owner_1', 'taxpayer', 'grantor', 'borrower'],
-  // 'phone' maps only the FIRST/primary phone column.
-  // All wireless_* and landline_* columns are collected separately in rowToLead.
+  // 'phone' maps the first phone column found; collectAllPhones gathers the rest.
   phone:   ['phone', 'phone_number', 'cell', 'mobile', 'telephone', 'tel',
             'phone1', 'phone_1', 'primary_phone', 'contact_phone',
-            'wireless_1', 'wireless1', 'wireless 1'],
+            'wireless_1', 'wireless1', 'wireless 1', 'wireless1',
+            'landline_1', 'landline1', 'landline 1',
+            'best_phone', 'owner_phone', 'alt_phone'],
   email:   ['email', 'email_address', 'e_mail', 'email1'],
   price:   ['price', 'asking_price', 'list_price', 'arv', 'value', 'assessed_value',
             'market_value', 'est_value', 'appraised', 'est_market_value',
@@ -142,28 +143,70 @@ function buildAddressForRow(row, lead) {
 
 // ─── Phone number helpers ─────────────────────────────────────────────────────
 
-// Column patterns that represent phone numbers (checked against every header)
-const PHONE_COL_RE = /^(wireless|landline|cell|mobile|phone|telephone)\s*\d*$/i;
+/**
+ * Does this column header name suggest it contains phone numbers?
+ * Very permissive — catches all real-world skip-trace export formats:
+ * "Phone 1", "Phone Number 2", "Cell Phone 1", "Primary Phone",
+ * "wireless_1", "wireless_2", "Landline 1", "Owner Phone", "Best Phone", etc.
+ */
+function isPhoneColumn(header) {
+  // Strip all non-alpha chars and lowercase for flexible comparison
+  const h = String(header).toLowerCase().replace(/[^a-z]/g, '');
+  return (
+    h.includes('phone')    ||
+    h.includes('wireless') ||
+    h.includes('landline') ||
+    h.includes('mobile')   ||
+    h.startsWith('cell')   ||   // cell, cellphone, cell1
+    h === 'tel'            ||
+    h.startsWith('telephone')
+  );
+}
+
+/**
+ * Does this value look like a US phone number (10 or 11 digits)?
+ * Used as a data-based fallback to catch phone columns with unexpected names.
+ */
+function looksLikePhone(val) {
+  if (!val) return false;
+  const s = String(val).trim();
+  if (!s || s === '0') return false;
+  // Must contain only digits + common phone separators
+  if (/[^0-9\s\-\.\(\)\+x\/]/.test(s)) return false;
+  const digits = s.replace(/\D/g, '');
+  return (digits.length === 10) || (digits.length === 11 && digits[0] === '1');
+}
 
 function cleanPhone(val) {
   if (!val) return '';
   const s = String(val).replace(/[^\d+\-().x ]/g, '').trim();
-  // Must have at least 7 digits to be a real number
   return s.replace(/\D/g, '').length >= 7 ? s : '';
 }
 
 function collectAllPhones(row, headers) {
-  // Returns array of { label, number } for every non-empty phone column
   const phones = [];
+  const seen = new Set();
+
   for (const header of headers) {
-    if (!PHONE_COL_RE.test(String(header).trim())) continue;
-    const val = cleanPhone(row[header]);
-    if (val) {
-      // Pretty label: "Wireless 1", "Landline 2", etc.
-      const label = String(header).trim().replace(/\b\w/g, c => c.toUpperCase());
-      phones.push({ label, number: val });
-    }
+    const rawVal = row[header];
+    const strVal = String(rawVal ?? '').trim();
+    if (!strVal || strVal === '0') continue;
+
+    // Phase 1: column name suggests it's a phone
+    // Phase 2: column name doesn't look like phone, but VALUE is a 10-digit number
+    const nameMatch = isPhoneColumn(header);
+    const dataMatch = !nameMatch && looksLikePhone(strVal);
+
+    if (!nameMatch && !dataMatch) continue;
+
+    const cleaned = cleanPhone(strVal);
+    if (!cleaned || seen.has(cleaned)) continue;
+
+    seen.add(cleaned);
+    const label = String(header).trim().replace(/\b\w/g, c => c.toUpperCase());
+    phones.push({ label, number: cleaned });
   }
+
   return phones;
 }
 
@@ -200,12 +243,15 @@ function rowToLead(row, idx, headers, fieldMap) {
   const allPhones = collectAllPhones(row, headers);
 
   if (allPhones.length > 0) {
-    // Primary phone = first one found (for dialer / tel: links)
+    // Always ensure lead.phone is set to the first valid number
+    const firstValid = allPhones[0].number;
     if (!lead.phone || !cleanPhone(lead.phone)) {
-      lead.phone = allPhones[0].number;
+      lead.phone = firstValid;
     }
-    // Store the full list for the sidebar and dialer multi-number display
     lead.phones = allPhones;
+    console.log(`[parseFile] Row ${idx}: found ${allPhones.length} phone(s):`, allPhones.map(p => `${p.label}=${p.number}`).join(', '));
+  } else {
+    console.warn(`[parseFile] Row ${idx}: no phones detected. Headers scanned:`, headers.join(', '));
   }
 
   const result = buildAddressForRow(row, lead);

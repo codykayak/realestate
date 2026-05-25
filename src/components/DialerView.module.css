@@ -439,7 +439,24 @@
 
 .emptyIcon  { font-size: 48px; }
 .emptyState h2 { font-size: 18px; font-weight: 700; color: #e6edf3; }
-.emptyState p  { font-size: 14px; color: #8b949e; line-height: 1.5; max-width: 280px; }
+.emptyState p  { font-size: 14px; color: #8b949e; line-height: 1.6; max-width: 300px; text-align: center; }
+
+.emptyHints {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  justify-content: center;
+  margin-top: 4px;
+}
+.emptyHints span {
+  background: rgba(88,166,255,0.1);
+  border: 1px solid rgba(88,166,255,0.2);
+  color: #58a6ff;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 3px 9px;
+  border-radius: 5px;
+}
 
 .resetFilterBtn {
   background: rgba(88,166,255,0.1);
