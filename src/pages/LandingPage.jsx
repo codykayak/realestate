@@ -6,7 +6,7 @@ import styles from './LandingPage.module.css';
 
 const IMG = {
   hero:      '/Template/nwinvestor hero background invester properties oregon.png',
-  logo:      '/Template/nwinvestor logo.png',
+  logo:      '/Template/NW Investor logo.png',
   seller:    '/Template/happy house seller for cash eugene springfield.png',
   sellerAlt: '/Template/happy seller hose chash eugene spring field off market.png',
   mapApp:    '/Template/nwinvestor map application.png',
@@ -43,7 +43,7 @@ export default function LandingPage() {
   const [alertSent,  setAlertSent]  = useState(false);
   const [invForm,    setInvForm]    = useState({ name: '', email: '', phone: '', message: '' });
   const [invSent,    setInvSent]    = useState(false);
-  const [offerForm,  setOfferForm]  = useState({ name: '', phone: '', address: '' });
+  const [offerForm,  setOfferForm]  = useState({ name: '', phone: '', address: '', details: '' });
   const [offerSent,  setOfferSent]  = useState(false);
 
   const handleAlert = (e) => { e.preventDefault(); setAlertSent(true); };
@@ -312,13 +312,25 @@ export default function LandingPage() {
               <div className={styles.sentBox}>✅ We received your request! We'll call or email within 24 hours.</div>
             ) : (
               <form className={styles.offerForm} onSubmit={handleOffer}>
+                {/* Row 1: name + phone */}
                 <input className={styles.offerInput} placeholder="Your name *" required
                   value={offerForm.name} onChange={e => setOfferForm({...offerForm, name: e.target.value})} />
                 <input className={styles.offerInput} placeholder="Phone number *" type="tel" required
                   value={offerForm.phone} onChange={e => setOfferForm({...offerForm, phone: e.target.value})} />
-                <input className={styles.offerInput} placeholder="Property address *" required
+                {/* Row 2: address — full width */}
+                <input className={styles.offerInputFull} placeholder="Property address *" required
                   value={offerForm.address} onChange={e => setOfferForm({...offerForm, address: e.target.value})} />
-                <button type="submit" className={styles.offerSubmit}>Get My No-Obligation Cash Offer →</button>
+                {/* Row 3: property description — full width */}
+                <textarea
+                  className={styles.offerTextarea}
+                  placeholder="Tell us a little about the property — or leave blank"
+                  value={offerForm.details ?? ''}
+                  onChange={e => setOfferForm({...offerForm, details: e.target.value})}
+                />
+                {/* Row 4: submit — full width */}
+                <button type="submit" className={styles.offerSubmit}>
+                  Get My No-Obligation Cash Offer →
+                </button>
               </form>
             )}
             <p className={styles.offerNote}>No spam. No pressure. We respond within 24 hours.</p>
