@@ -308,30 +308,66 @@ function parseXLSX(file) {
 
 // ─── CSV parser ───────────────────────────────────────────────────────────────
 
+/**
+ * Some exporters (Propradar, etc.) wrap every row in extra double quotes,
+ * producing a single-column CSV where each "value" is the entire row:
+ *   "Address,City,SqFt,..."
+ *   "1755 W 15TH AVE,EUGENE,1380,..."
+ *
+ * Detect and unwrap this pattern before parsing normally.
+ */
+function unwrapSingleColumnCSV(text) {
+  const lines = text.split(/\r?\n/).filter((l) => l.trim());
+  // Check: every non-empty line starts and ends with a double quote
+  const allWrapped = lines.every((l) => l.startsWith('"') && l.endsWith('"'));
+  if (!allWrapped) return text; // normal CSV, no change
+
+  console.log('[parseCSV] Detected single-column wrapped CSV — unwrapping...');
+
+  // Strip outer quotes from each line and unescape internal "" → "
+  const unwrapped = lines.map((l) => {
+    const inner = l.slice(1, -1);          // strip outer " ... "
+    return inner.replace(/""/g, '"');       // "" → " inside the row
+  });
+
+  return unwrapped.join('\n');
+}
+
 function parseCSVFile(file) {
   return new Promise((resolve, reject) => {
-    Papa.parse(file, {
-      header:        true,
-      skipEmptyLines: true,
-      transformHeader: (h) => h.trim(),
-      transform:     (v) => (typeof v === 'string' ? v.trim() : v),
-      complete: ({ data, meta, errors }) => {
-        if (!data.length && errors.length) return reject(new Error(errors[0].message));
+    // Read as text first so we can pre-process if needed
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      let text = e.target.result;
 
-        const headers  = meta.fields ?? [];
-        const fieldMap = mapHeaders(headers);
+      // Fix single-column wrapped CSVs
+      text = unwrapSingleColumnCSV(text);
 
-        console.log('[parseCSV] Rows:', data.length, '| Headers:', headers);
-        console.log('[parseCSV] Field mapping:', JSON.stringify(fieldMap));
+      Papa.parse(text, {
+        header:          true,
+        skipEmptyLines:  true,
+        transformHeader: (h) => h.trim(),
+        transform:       (v) => (typeof v === 'string' ? v.trim() : v),
+        complete: ({ data, meta, errors }) => {
+          if (!data.length && errors.length) return reject(new Error(errors[0].message));
 
-        const leads = data.map((row, idx) => rowToLead(row, idx, headers, fieldMap));
-        const found = leads.filter((l) => l._addressForGeocode).length;
-        console.log(`[parseCSV] Done — ${found}/${leads.length} addresses extracted`);
+          const headers  = meta.fields ?? [];
+          const fieldMap = mapHeaders(headers);
 
-        resolve({ leads, fieldMap, headers });
-      },
-      error: (err) => { console.error('[parseCSV]', err); reject(err); },
-    });
+          console.log('[parseCSV] Rows:', data.length, '| Headers:', headers);
+          console.log('[parseCSV] Field mapping:', JSON.stringify(fieldMap));
+
+          const leads = data.map((row, idx) => rowToLead(row, idx, headers, fieldMap));
+          const found = leads.filter((l) => l._addressForGeocode).length;
+          console.log(`[parseCSV] Done — ${found}/${leads.length} addresses extracted`);
+
+          resolve({ leads, fieldMap, headers });
+        },
+        error: (err) => { console.error('[parseCSV]', err); reject(err); },
+      });
+    };
+    reader.onerror = () => reject(new Error('Failed to read CSV file.'));
+    reader.readAsText(file, 'utf-8');
   });
 }
 
