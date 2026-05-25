@@ -60,8 +60,11 @@ export default function LeadSidebar({ lead, onClose, onUpdate }) {
       <div className={styles.backdrop} onClick={onClose} />
 
       <aside className={styles.sheet} ref={sheetRef}>
-        {/* Drag handle (mobile visual cue) */}
-        <div className={styles.handle} />
+        {/* Drag handle — tappable on mobile to close */}
+        <div className={styles.handleBar} onClick={onClose} role="button" aria-label="Close">
+          <div className={styles.handle} />
+          <span className={styles.handleClose}>✕ Close</span>
+        </div>
 
         {/* Header row */}
         <div className={styles.header}>
@@ -172,6 +175,11 @@ export default function LeadSidebar({ lead, onClose, onUpdate }) {
               rows={4}
             />
           </div>
+
+          {/* Mobile back button — always visible at bottom of sheet */}
+          <button className={styles.backBtn} onClick={onClose}>
+            ← Back to Map
+          </button>
         </div>
       </aside>
     </>

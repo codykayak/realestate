@@ -251,6 +251,33 @@
 .notes:focus { border-color: #58a6ff; outline: none; }
 .notes::placeholder { color: #6e7681; }
 
+/* ── Mobile back button ──────────────────────────────────────────────────── */
+.backBtn {
+  display: none; /* shown only on mobile via media query */
+}
+
+@media (max-width: 640px) {
+  .backBtn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    background: rgba(88,166,255,0.1);
+    border: 1px solid rgba(88,166,255,0.25);
+    border-radius: 14px;
+    color: #58a6ff;
+    font-size: 17px;
+    font-weight: 700;
+    padding: 16px;
+    min-height: 56px;
+    cursor: pointer;
+    margin-top: 4px;
+    transition: background 0.15s;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .backBtn:active { background: rgba(88,166,255,0.2); }
+}
+
 /* ═══════════════════════════════════════════════════════════════════════════
    MOBILE: bottom sheet — covers ~85% of screen so content is readable
    ═══════════════════════════════════════════════════════════════════════════ */
@@ -277,13 +304,31 @@
     to   { transform: translateY(0); }
   }
 
+  /* Drag handle bar — tappable to close on mobile */
+  .handleBar {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 10px 16px 6px;
+    cursor: pointer;
+    flex-shrink: 0;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .handleClose {
+    font-size: 12px;
+    font-weight: 700;
+    color: rgba(255,255,255,0.35);
+    letter-spacing: 0.06em;
+    margin-top: 4px;
+    text-transform: uppercase;
+  }
+
   /* Larger drag handle */
   .handle {
-    display: block;
     width: 44px; height: 5px;
     background: rgba(255,255,255,0.25);
     border-radius: 3px;
-    margin: 12px auto 4px;
+    margin: 0 auto;
     flex-shrink: 0;
   }
 

@@ -682,7 +682,18 @@
   .invSubmitBtn{ width:100%; padding:17px; font-size:17px; }
   .footerGrid  { grid-template-columns:1fr; gap:28px; }
   .investorSignupBox { padding:24px 20px; }
-  .faqAffidavit{ flex-direction:column; }
+  .affidavitWrap {
+    flex-direction: column;
+    gap: 16px;
+  }
+  .affidavitImgLarge {
+    width: 100%;
+    height: 200px;
+    object-fit: cover;
+    border-radius: 10px;
+  }
+  .affidavitCaption strong { font-size: 17px; }
+  .affidavitCaption p      { font-size: 14px; }
   .affidavitImgLarge { width:100%; height:180px; }
   .trustSection{ padding:56px 0; }
   .areasSection{ padding:56px 0; }
