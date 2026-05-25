@@ -2,24 +2,35 @@ import { useRef, useState } from 'react';
 import { parseCSV } from '../utils/parseCSV';
 import styles from './UploadScreen.module.css';
 
+const ACCEPTED_TYPES = ['.csv', '.xlsx', '.xls', '.xlsm'];
+
+function isAcceptedFile(file) {
+  const name = file.name.toLowerCase();
+  return ACCEPTED_TYPES.some((ext) => name.endsWith(ext));
+}
+
 export default function UploadScreen({ onLeadsLoaded }) {
   const inputRef = useRef(null);
   const [dragging, setDragging] = useState(false);
-  const [error, setError] = useState(null);
+  const [error,   setError]   = useState(null);
   const [loading, setLoading] = useState(false);
 
   async function handleFile(file) {
-    if (!file || !file.name.toLowerCase().endsWith('.csv')) {
-      setError('Please upload a CSV file.');
+    if (!file || !isAcceptedFile(file)) {
+      setError('Please upload a CSV or Excel (.xlsx) file.');
       return;
     }
     setError(null);
     setLoading(true);
     try {
       const result = await parseCSV(file);
+      if (!result.leads.length) {
+        setError('The file appears to be empty or has no data rows.');
+        return;
+      }
       onLeadsLoaded(result);
     } catch (e) {
-      setError(e.message ?? 'Failed to parse CSV.');
+      setError(e.message ?? 'Failed to parse file. Check the format and try again.');
     } finally {
       setLoading(false);
     }
@@ -28,6 +39,8 @@ export default function UploadScreen({ onLeadsLoaded }) {
   function onInputChange(e) {
     const file = e.target.files?.[0];
     if (file) handleFile(file);
+    // Reset so the same file can be re-uploaded
+    e.target.value = '';
   }
 
   function onDrop(e) {
@@ -42,12 +55,13 @@ export default function UploadScreen({ onLeadsLoaded }) {
       <div className={styles.card}>
         <div className={styles.logo}>
           <svg width="40" height="40" viewBox="0 0 24 24" fill="none">
-            <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z" stroke="#58a6ff" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+            <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"
+              stroke="#58a6ff" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
             <circle cx="12" cy="10" r="3" stroke="#58a6ff" strokeWidth="1.5"/>
           </svg>
         </div>
         <h1 className={styles.title}>Motivated Seller Map</h1>
-        <p className={styles.subtitle}>Upload a CSV of leads to plot them on the map</p>
+        <p className={styles.subtitle}>Upload a CSV or Excel file to plot leads on the map</p>
 
         <div
           className={`${styles.dropzone} ${dragging ? styles.dragging : ''}`}
@@ -62,12 +76,15 @@ export default function UploadScreen({ onLeadsLoaded }) {
           <input
             ref={inputRef}
             type="file"
-            accept=".csv"
+            accept=".csv,.xlsx,.xls,.xlsm"
             className={styles.fileInput}
             onChange={onInputChange}
           />
           {loading ? (
-            <span className={styles.spinner} />
+            <div className={styles.loadingState}>
+              <span className={styles.spinner} />
+              <p className={styles.loadingText}>Reading file…</p>
+            </div>
           ) : (
             <>
               <svg width="32" height="32" viewBox="0 0 24 24" fill="none" className={styles.uploadIcon}>
@@ -76,9 +93,11 @@ export default function UploadScreen({ onLeadsLoaded }) {
                 <line x1="12" y1="3" x2="12" y2="15" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
               </svg>
               <p className={styles.dropText}>
-                {dragging ? 'Drop it here' : 'Drag & drop your CSV or click to browse'}
+                {dragging ? 'Drop it here' : 'Drag & drop or tap to browse'}
               </p>
-              <p className={styles.dropHint}>Flexible column names — address, name, phone, price, and more</p>
+              <p className={styles.dropHint}>
+                Supports CSV and Excel (.xlsx) — works with Propradar, PropStream, and other exports
+              </p>
             </>
           )}
         </div>
@@ -86,13 +105,17 @@ export default function UploadScreen({ onLeadsLoaded }) {
         {error && <p className={styles.error}>{error}</p>}
 
         <div className={styles.exampleBox}>
-          <p className={styles.exampleTitle}>Supported columns (any order, any name variation):</p>
+          <p className={styles.exampleTitle}>Detected columns (any name variation):</p>
           <div className={styles.tags}>
-            {['address', 'city', 'state', 'zip', 'name / owner', 'phone', 'email', 'price', 'equity', 'status', 'notes'].map((t) => (
+            {['Address','City','State','ZIP','Owner / Name','Phone','Email',
+              'Est Value','Est Equity','Sq Ft','Beds','Baths','Distress Score'].map((t) => (
               <span key={t} className={styles.tag}>{t}</span>
             ))}
           </div>
-          <p className={styles.exampleHint}>All other columns are preserved and shown in the detail panel.</p>
+          <p className={styles.exampleHint}>
+            All columns are shown in the detail panel. If your file has no State column,
+            Oregon is assumed automatically.
+          </p>
         </div>
       </div>
     </div>

@@ -1,6 +1,8 @@
 import Papa from 'papaparse';
+import * as XLSX from 'xlsx';
 
-// ─── Canonical field aliases ──────────────────────────────────────────────────
+// ─── Field aliases ────────────────────────────────────────────────────────────
+// Keys must match what the Firestore / sidebar logic uses as canonical names.
 
 const FIELD_ALIASES = {
   address: ['address', 'addr', 'street', 'street_address', 'property_address',
@@ -12,18 +14,29 @@ const FIELD_ALIASES = {
   name:    ['name', 'owner', 'owner_name', 'contact', 'seller', 'full_name',
             'firstname', 'first_name', 'lastname', 'last_name', 'owner1',
             'owner_1', 'taxpayer', 'grantor', 'borrower'],
-  phone:   ['phone', 'phone_number', 'cell', 'mobile', 'telephone', 'tel', 'phone1'],
+  phone:   ['phone', 'phone_number', 'cell', 'mobile', 'telephone', 'tel',
+            'phone1', 'phone_1', 'primary_phone', 'contact_phone'],
   email:   ['email', 'email_address', 'e_mail', 'email1'],
   price:   ['price', 'asking_price', 'list_price', 'arv', 'value', 'assessed_value',
-            'market_value', 'est_value', 'appraised'],
-  equity:  ['equity', 'est_equity', 'estimated_equity', 'equity_estimate'],
+            'market_value', 'est_value', 'appraised', 'est_market_value',
+            'estimated_value', 'tax_value', 'land_value'],
+  equity:  ['equity', 'est_equity', 'estimated_equity', 'equity_estimate',
+            'est_equity_$', 'equity_$', 'est_equity_dollar'],
+  sqft:    ['sq_ft', 'sqft', 'square_feet', 'sq_feet', 'living_area', 'area',
+            'building_area', 'heated_area'],
+  beds:    ['beds', 'bedrooms', 'bd', 'br', 'bed'],
+  baths:   ['baths', 'bathrooms', 'ba', 'bath'],
   mls:     ['mls', 'mls_number', 'listing_number', 'listing_id'],
   status:  ['status', 'lead_status', 'stage', 'disposition'],
   notes:   ['notes', 'note', 'comments', 'comment', 'memo', 'description'],
+  distress:['distress', 'distress_score', 'score', 'priority'],
 };
 
 function normalize(str) {
-  return str.toLowerCase().replace(/[\s\-_./()+]+/g, '_').replace(/^_+|_+$/g, '');
+  return String(str ?? '')
+    .toLowerCase()
+    .replace(/[\s\-_./$()+]+/g, '_')
+    .replace(/^_+|_+$/g, '');
 }
 
 function matchField(header, aliases) {
@@ -37,6 +50,7 @@ function matchField(header, aliases) {
 function mapHeaders(headers) {
   const mapping = {};
   for (const header of headers) {
+    if (header == null || String(header).trim() === '') continue;
     for (const [canonical, aliases] of Object.entries(FIELD_ALIASES)) {
       if (!mapping[canonical] && matchField(header, aliases)) {
         mapping[canonical] = header;
@@ -50,166 +64,191 @@ function mapHeaders(headers) {
   return mapping;
 }
 
-// ─── Address extraction ───────────────────────────────────────────────────────
+// ─── Address extraction from free-text ────────────────────────────────────────
 
-// PO Box patterns — we skip these (not mappable property addresses)
 const PO_BOX_RE = /\bP\.?\s*O\.?\s*Box\b/i;
 
-/**
- * Core strategy: find where a US street number begins (1–5 digits followed
- * by a letter), then return everything from that point.
- * This handles blobs like "John Smith 123 Oak St Eugene OR 97401" perfectly —
- * Nominatim is excellent at parsing addresses that have trailing extra info.
- */
 export function extractAddressFromText(text) {
   if (!text) return null;
   const str = String(text).trim();
   if (str.length < 6) return null;
-
-  // Skip mailing/PO Box addresses
   if (PO_BOX_RE.test(str)) return null;
 
-  // Find first occurrence of: 1-5 digit house number at a word boundary
-  // followed by a space and a letter (the start of a street name)
   const match = str.match(/\b(\d{1,5})\s+([A-Za-z])/);
   if (!match) return null;
 
-  // Sanity: skip pure year references (1995 Ford, 2020 etc with no street name context)
   const num = parseInt(match[1], 10);
-  if (num > 99999 || (num >= 1800 && num <= 2100 && str.length < 20)) return null;
+  if (num >= 1800 && num <= 2100 && str.length < 20) return null;
 
-  // Return from the house number to end of string — let Nominatim handle parsing
   const fromStreet = str.slice(match.index).trim();
-
-  // Must have at least a number + word, not just "123 A"
   if (fromStreet.length < 8) return null;
-
-  console.log('[extractAddress] Found:', JSON.stringify(fromStreet), 'in', JSON.stringify(str.slice(0, 60)));
   return fromStreet;
 }
 
-/**
- * Given all cell values in a row, try to build the best geocodable address.
- * Returns { address, source } or null.
- */
+// ─── Build geocode address from a row ────────────────────────────────────────
+
 function buildAddressForRow(row, lead) {
-  // ── Strategy 1: dedicated columns ────────────────────────────────────────
-  const colParts = [lead.address, lead.city, lead.state, lead.zip].filter(Boolean);
+  // When State is missing, default to Oregon (this app targets OR properties)
+  const stateDefault = 'Oregon';
+  const state = (lead.state && lead.state.trim()) || stateDefault;
+
+  // Strategy 1: dedicated address columns
+  const colParts = [lead.address, lead.city, state, lead.zip].filter(Boolean);
   if (colParts.length >= 2) {
     const addr = colParts.join(', ');
-    console.log('[buildAddress] Strategy 1 (columns):', addr);
+    console.log('[buildAddress] columns:', addr);
     return { address: addr, source: 'columns' };
   }
 
-  // If we have an address column but no city/state, still try it
-  if (lead.address && lead.address.trim().length > 5) {
-    console.log('[buildAddress] Strategy 1b (address-only column):', lead.address);
-    return { address: lead.address.trim(), source: 'address-column' };
+  if (lead.address?.trim().length > 5) {
+    const addr = [lead.address.trim(), stateDefault].join(', ');
+    console.log('[buildAddress] address-only column:', addr);
+    return { address: addr, source: 'address-column' };
   }
 
-  // ── Strategy 2: scan each cell value for embedded street address ──────────
+  // Strategy 2: scan each cell for embedded street address
   const cellValues = Object.values(row).map((v) => String(v ?? '').trim()).filter(Boolean);
 
-  // Try each cell individually first
   for (const val of cellValues) {
     const extracted = extractAddressFromText(val);
     if (extracted) {
-      // If the cell also has city/state/zip context after the address, great.
-      // Otherwise try to supplement from other cells.
       const hasLocation = /\b[A-Z]{2}\b/.test(extracted) || /\d{5}/.test(extracted);
       let final = extracted;
       if (!hasLocation) {
-        // Look for city/state/zip in other cells
-        const extra = cellValues
-          .filter((v) => v !== val)
-          .find((v) => /\b[A-Z]{2}\s+\d{5}\b/.test(v) || /\b\d{5}\b/.test(v));
-        if (extra) final = extracted + ', ' + extra;
+        const extra = cellValues.find((v) => v !== val && (/\b[A-Z]{2}\s+\d{5}\b/.test(v) || /\b\d{5}\b/.test(v)));
+        final = extra ? `${extracted}, ${extra}` : `${extracted}, ${stateDefault}`;
       }
-      console.log('[buildAddress] Strategy 2 (cell scan):', final);
+      console.log('[buildAddress] cell-scan:', final);
       return { address: final, source: 'cell-scan' };
     }
   }
 
-  // ── Strategy 3: concat all cells and scan ────────────────────────────────
+  // Strategy 3: full-row concat
   const concat = cellValues.join(' ');
   const fromConcat = extractAddressFromText(concat);
   if (fromConcat) {
-    console.log('[buildAddress] Strategy 3 (row concat):', fromConcat);
-    return { address: fromConcat, source: 'concat' };
-  }
-
-  // ── Strategy 4: if any single cell looks like a full address blob,
-  //    send the whole thing to Nominatim (it's surprisingly good) ───────────
-  for (const val of cellValues) {
-    if (val.length > 15 && /\d/.test(val) && /[A-Za-z]/.test(val)) {
-      // Has both digits and letters — worth trying
-      console.log('[buildAddress] Strategy 4 (full-cell fallback):', val.slice(0, 80));
-      return { address: val, source: 'full-cell' };
-    }
+    const final = /\b[A-Z]{2}\b/.test(fromConcat) || /\d{5}/.test(fromConcat)
+      ? fromConcat
+      : `${fromConcat}, ${stateDefault}`;
+    console.log('[buildAddress] concat:', final);
+    return { address: final, source: 'concat' };
   }
 
   return null;
 }
 
-// ─── Main CSV parser ──────────────────────────────────────────────────────────
+// ─── Row → lead object ────────────────────────────────────────────────────────
 
-export function parseCSV(file) {
+function rowToLead(row, idx, headers, fieldMap) {
+  const lead = {
+    id:       idx,
+    _raw:     row,
+    _headers: headers,
+    notes:    '',
+    status:   'New',
+    geocoded: null,
+    callCount: 0,
+  };
+
+  for (const [canonical, originalHeader] of Object.entries(fieldMap)) {
+    if (!canonical.startsWith('_raw_')) {
+      const val = row[originalHeader];
+      // Format currency fields nicely
+      if ((canonical === 'price' || canonical === 'equity') && typeof val === 'number') {
+        lead[canonical] = `$${Math.round(val).toLocaleString()}`;
+      } else {
+        lead[canonical] = val != null ? String(val).trim() : '';
+      }
+    }
+  }
+
+  const result = buildAddressForRow(row, lead);
+  lead._addressForGeocode = result?.address ?? '';
+  lead._addressSource     = result?.source  ?? 'none';
+
+  if (!lead._addressForGeocode) {
+    console.warn(`[parseFile] Row ${idx}: no address found.`, Object.values(row).map(v => String(v).slice(0, 30)));
+  }
+
+  return lead;
+}
+
+// ─── XLSX parser ─────────────────────────────────────────────────────────────
+
+function parseXLSX(file) {
   return new Promise((resolve, reject) => {
-    // Try with headers first
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const data = new Uint8Array(e.target.result);
+        const workbook = XLSX.read(data, { type: 'array' });
+        const sheetName = workbook.SheetNames[0];
+        const sheet = workbook.Sheets[sheetName];
+
+        // Convert to array of objects (header row = keys)
+        const rows = XLSX.utils.sheet_to_json(sheet, {
+          defval: '',       // empty cells → ''
+          raw:    false,    // parse numbers as strings where needed
+          rawNumbers: true, // keep numbers as numbers for currency
+        });
+
+        if (!rows.length) return reject(new Error('Spreadsheet appears to be empty.'));
+
+        const headers = Object.keys(rows[0]);
+        const fieldMap = mapHeaders(headers);
+
+        console.log('[parseXLSX] Rows:', rows.length, '| Headers:', headers);
+        console.log('[parseXLSX] Field mapping:', JSON.stringify(fieldMap));
+
+        const leads = rows.map((row, idx) => rowToLead(row, idx, headers, fieldMap));
+        const found = leads.filter((l) => l._addressForGeocode).length;
+        console.log(`[parseXLSX] Done — ${found}/${leads.length} addresses extracted`);
+
+        resolve({ leads, fieldMap, headers });
+      } catch (err) {
+        reject(new Error(`Failed to parse spreadsheet: ${err.message}`));
+      }
+    };
+    reader.onerror = () => reject(new Error('Failed to read file.'));
+    reader.readAsArrayBuffer(file);
+  });
+}
+
+// ─── CSV parser ───────────────────────────────────────────────────────────────
+
+function parseCSVFile(file) {
+  return new Promise((resolve, reject) => {
     Papa.parse(file, {
-      header: true,
+      header:        true,
       skipEmptyLines: true,
       transformHeader: (h) => h.trim(),
-      transform: (v) => (typeof v === 'string' ? v.trim() : v),
+      transform:     (v) => (typeof v === 'string' ? v.trim() : v),
       complete: ({ data, meta, errors }) => {
-        if (!data.length && errors.length) {
-          return reject(new Error(errors[0].message));
-        }
+        if (!data.length && errors.length) return reject(new Error(errors[0].message));
 
-        const headers = meta.fields ?? [];
+        const headers  = meta.fields ?? [];
         const fieldMap = mapHeaders(headers);
 
         console.log('[parseCSV] Rows:', data.length, '| Headers:', headers);
         console.log('[parseCSV] Field mapping:', JSON.stringify(fieldMap));
 
-        const leads = data.map((row, idx) => {
-          const lead = {
-            id: idx,
-            _raw: row,
-            _headers: headers,
-            notes: '',
-            status: 'New',
-            geocoded: null,
-          };
-
-          // Populate canonical fields from matched headers
-          for (const [canonical, originalHeader] of Object.entries(fieldMap)) {
-            if (!canonical.startsWith('_raw_')) {
-              lead[canonical] = row[originalHeader] ?? '';
-            }
-          }
-
-          const result = buildAddressForRow(row, lead);
-          lead._addressForGeocode = result?.address ?? '';
-          lead._addressSource = result?.source ?? 'none';
-
-          if (!lead._addressForGeocode) {
-            console.warn(`[parseCSV] Row ${idx}: no address found. Values:`,
-              Object.values(row).map((v) => String(v).slice(0, 40)));
-          }
-
-          return lead;
-        });
-
+        const leads = data.map((row, idx) => rowToLead(row, idx, headers, fieldMap));
         const found = leads.filter((l) => l._addressForGeocode).length;
         console.log(`[parseCSV] Done — ${found}/${leads.length} addresses extracted`);
 
         resolve({ leads, fieldMap, headers });
       },
-      error: (err) => {
-        console.error('[parseCSV] Error:', err);
-        reject(err);
-      },
+      error: (err) => { console.error('[parseCSV]', err); reject(err); },
     });
   });
+}
+
+// ─── Unified entry point ──────────────────────────────────────────────────────
+
+export function parseCSV(file) {
+  const name = file.name.toLowerCase();
+  if (name.endsWith('.xlsx') || name.endsWith('.xls') || name.endsWith('.xlsm')) {
+    return parseXLSX(file);
+  }
+  return parseCSVFile(file);
 }
