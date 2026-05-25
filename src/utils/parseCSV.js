@@ -226,15 +226,21 @@ function rowToLead(row, idx, headers, fieldMap) {
   for (const [canonical, originalHeader] of Object.entries(fieldMap)) {
     if (!canonical.startsWith('_raw_')) {
       const val = row[originalHeader];
+      if (val == null || val === '') { lead[canonical] = ''; continue; }
 
-      if ((canonical === 'price' || canonical === 'equity') && typeof val === 'number') {
-        // Format currency as $123,456
-        lead[canonical] = `$${Math.round(val).toLocaleString()}`;
+      if ((canonical === 'price' || canonical === 'equity')) {
+        // Accept numeric or string dollar values, format as $123,456
+        const num = typeof val === 'number' ? val : parseFloat(String(val).replace(/[$,]/g, ''));
+        lead[canonical] = !isNaN(num) ? `$${Math.round(num).toLocaleString()}` : String(val).trim();
       } else if (canonical === 'zip') {
-        // Strip commas from ZIP codes: "97,402" → "97402"
-        lead[canonical] = val != null ? String(val).replace(/,/g, '').trim() : '';
+        // Strip commas: "97,402" → "97402"
+        lead[canonical] = String(val).replace(/,/g, '').trim();
+      } else if (canonical === 'sqft' || canonical === 'beds' || canonical === 'baths' || canonical === 'distress') {
+        // Keep numeric fields readable (strip trailing .0)
+        const num = parseFloat(val);
+        lead[canonical] = !isNaN(num) ? (Number.isInteger(num) ? String(num) : num.toFixed(1)) : String(val).trim();
       } else {
-        lead[canonical] = val != null ? String(val).trim() : '';
+        lead[canonical] = String(val).trim();
       }
     }
   }
@@ -266,6 +272,7 @@ function rowToLead(row, idx, headers, fieldMap) {
 }
 
 // ─── XLSX parser ─────────────────────────────────────────────────────────────
+// Reads as array-of-arrays so NO columns or rows are dropped due to blank cells.
 
 function parseXLSX(file) {
   return new Promise((resolve, reject) => {
@@ -273,30 +280,68 @@ function parseXLSX(file) {
     reader.onload = (e) => {
       try {
         const data = new Uint8Array(e.target.result);
-        const workbook = XLSX.read(data, { type: 'array' });
+
+        // cellDates:false keeps dates as serial numbers so we don't choke
+        const workbook = XLSX.read(data, { type: 'array', cellDates: false });
         const sheetName = workbook.SheetNames[0];
         const sheet = workbook.Sheets[sheetName];
 
-        // Convert to array of objects (header row = keys)
-        const rows = XLSX.utils.sheet_to_json(sheet, {
-          defval: '',       // empty cells → ''
-          raw:    false,    // parse numbers as strings where needed
-          rawNumbers: true, // keep numbers as numbers for currency
+        // ── Read as array-of-arrays (header:1) ──────────────────────────────
+        // This is the most reliable mode — never drops columns due to blank
+        // headers, never skips rows that have some blank cells.
+        const aoa = XLSX.utils.sheet_to_json(sheet, {
+          header:    1,     // return [ [row1values...], [row2values...], ... ]
+          defval:    '',    // fill blank cells with '' instead of undefined
+          blankrows: false, // skip rows that are entirely empty
+          raw:       true,  // keep numbers as numbers (for currency columns)
         });
 
-        if (!rows.length) return reject(new Error('Spreadsheet appears to be empty.'));
+        if (!aoa.length) return reject(new Error('Spreadsheet appears to be empty.'));
 
-        const headers = Object.keys(rows[0]);
-        const fieldMap = mapHeaders(headers);
+        // Row 0 is the header row
+        const rawHeaders = aoa[0].map((h) => (h != null ? String(h).trim() : ''));
 
-        console.log('[parseXLSX] Rows:', rows.length, '| Headers:', headers);
+        // Find the last column that has a non-empty header
+        let lastCol = rawHeaders.length - 1;
+        while (lastCol >= 0 && !rawHeaders[lastCol]) lastCol--;
+        // But keep ALL columns, even blank-header ones, so data aligns
+        // (blank headers get a placeholder name like __Col_5__)
+        const headers = rawHeaders.map((h, i) => h || `__Col_${i + 1}__`);
+
+        const dataAoa = aoa.slice(1); // everything after header row
+
+        // Convert each row-array → object keyed by header
+        const rowObjects = dataAoa.map((rowArr) => {
+          const obj = {};
+          for (let i = 0; i < headers.length; i++) {
+            const v = rowArr[i];
+            obj[headers[i]] = v != null ? v : '';
+          }
+          return obj;
+        });
+
+        // Filter out rows where every value is blank (safety net)
+        const nonEmptyRows = rowObjects.filter((row) =>
+          Object.values(row).some((v) => v !== '' && v != null),
+        );
+
+        if (!nonEmptyRows.length) return reject(new Error('No data rows found.'));
+
+        // Only pass named headers (not placeholder ones) to field mapping
+        const namedHeaders = headers.filter((h) => !h.startsWith('__Col_'));
+        const fieldMap = mapHeaders(namedHeaders);
+
+        console.log('[parseXLSX] Rows:', nonEmptyRows.length, '| All headers:', headers);
+        console.log('[parseXLSX] Named headers:', namedHeaders);
         console.log('[parseXLSX] Field mapping:', JSON.stringify(fieldMap));
 
-        const leads = rows.map((row, idx) => rowToLead(row, idx, headers, fieldMap));
+        const leads = nonEmptyRows.map((row, idx) =>
+          rowToLead(row, idx, headers, fieldMap),
+        );
         const found = leads.filter((l) => l._addressForGeocode).length;
         console.log(`[parseXLSX] Done — ${found}/${leads.length} addresses extracted`);
 
-        resolve({ leads, fieldMap, headers });
+        resolve({ leads, fieldMap, headers: namedHeaders });
       } catch (err) {
         reject(new Error(`Failed to parse spreadsheet: ${err.message}`));
       }
@@ -345,19 +390,24 @@ function parseCSVFile(file) {
 
       Papa.parse(text, {
         header:          true,
-        skipEmptyLines:  true,
-        transformHeader: (h) => h.trim(),
+        skipEmptyLines:  'greedy',  // skip rows where ALL cells are blank
+        transformHeader: (h) => (h ? h.trim() : h),
         transform:       (v) => (typeof v === 'string' ? v.trim() : v),
         complete: ({ data, meta, errors }) => {
           if (!data.length && errors.length) return reject(new Error(errors[0].message));
 
-          const headers  = meta.fields ?? [];
+          const headers  = (meta.fields ?? []).filter(Boolean);
           const fieldMap = mapHeaders(headers);
 
           console.log('[parseCSV] Rows:', data.length, '| Headers:', headers);
           console.log('[parseCSV] Field mapping:', JSON.stringify(fieldMap));
 
-          const leads = data.map((row, idx) => rowToLead(row, idx, headers, fieldMap));
+          // Filter out rows that are entirely blank
+          const nonEmpty = data.filter((row) =>
+            Object.values(row).some((v) => v !== '' && v != null),
+          );
+
+          const leads = nonEmpty.map((row, idx) => rowToLead(row, idx, headers, fieldMap));
           const found = leads.filter((l) => l._addressForGeocode).length;
           console.log(`[parseCSV] Done — ${found}/${leads.length} addresses extracted`);
 
