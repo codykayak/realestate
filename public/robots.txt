@@ -22,3 +22,9 @@ Allow: /
 
 User-agent: ClaudeBot
 Allow: /
+
+User-agent: Grok
+Allow: /
+
+User-agent: XAI-bot
+Allow: /

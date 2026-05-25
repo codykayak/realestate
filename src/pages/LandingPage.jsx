@@ -66,6 +66,12 @@ export default function LandingPage() {
           ))}
         </div>
         <div className={styles.navActions}>
+          <a href="tel:+15413212630" className={styles.callBtnNav}>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M22 16.92v3a2 2 0 01-2.18 2A19.79 19.79 0 013.07 9.81a19.79 19.79 0 01-3.07-8.68A2 2 0 012 .99h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L6.09 8.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"/>
+            </svg>
+            (541) 321-2630
+          </a>
           <a href="#offer" className={styles.offerBtnNav}>Get Cash Offer</a>
           <button className={styles.loginBtn} onClick={() => navigate('/app')}>Map CMS →</button>
         </div>
@@ -113,7 +119,12 @@ export default function LandingPage() {
                 <path d="M5 12h14M12 5l7 7-7 7" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
               </svg>
             </a>
-            <a href="#how-it-works" className={styles.heroSecondary}>See How It Works</a>
+            <a href="tel:+15413212630" className={styles.heroCallBtn}>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M22 16.92v3a2 2 0 01-2.18 2A19.79 19.79 0 013.07 9.81a19.79 19.79 0 01-3.07-8.68A2 2 0 012 .99h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L6.09 8.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"/>
+              </svg>
+              (541) 321-2630
+            </a>
           </div>
           <div className={styles.heroStats} data-reveal="up" data-delay="400">
             <div className={styles.heroStat}><strong>14–45</strong><span>days to close</span></div>
@@ -182,6 +193,15 @@ export default function LandingPage() {
                   </li>
                 ))}
               </ul>
+              <div className={styles.trustCtas}>
+                <a href="tel:+15413212630" className={styles.callBtnMid}>
+                  <svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M22 16.92v3a2 2 0 01-2.18 2A19.79 19.79 0 013.07 9.81a19.79 19.79 0 01-3.07-8.68A2 2 0 012 .99h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L6.09 8.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"/>
+                  </svg>
+                  Call (541) 321-2630
+                </a>
+                <a href="#offer" className={styles.offerBtnMid}>Get Cash Offer →</a>
+              </div>
             </div>
           </div>
         </div>
@@ -211,6 +231,15 @@ export default function LandingPage() {
               </div>
             ))}
           </div>
+          <div className={styles.areasCta} data-reveal="up" data-delay="400">
+            <p className={styles.areasCtaText}>Buying in any of these areas? Let's talk.</p>
+            <a href="tel:+15413212630" className={styles.callBtnAreas}>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M22 16.92v3a2 2 0 01-2.18 2A19.79 19.79 0 013.07 9.81a19.79 19.79 0 01-3.07-8.68A2 2 0 012 .99h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L6.09 8.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"/>
+              </svg>
+              Call (541) 321-2630
+            </a>
+          </div>
         </div>
       </section>
 
@@ -239,13 +268,15 @@ export default function LandingPage() {
             <div className={styles.faqRight}>
               <div className={styles.faqList}>
                 {FAQS.map((faq, i) => (
-                  <div key={i} className={`${styles.faqItem} ${openFaq === i ? styles.faqOpen : ''}`}
-                    data-reveal="right" data-delay={i * 80}>
-                    <button className={styles.faqQ} onClick={() => setOpenFaq(openFaq === i ? null : i)}>
-                      <span>{faq.q}</span>
-                      <span className={styles.faqChevron}>{openFaq === i ? '−' : '+'}</span>
-                    </button>
-                    {openFaq === i && <p className={styles.faqA}>{faq.a}</p>}
+                  /* Wrapper handles the reveal animation; faqItem handles open/close styling */
+                  <div key={i} data-reveal="up" data-delay={i * 90}>
+                    <div className={`${styles.faqItem} ${openFaq === i ? styles.faqOpen : ''}`}>
+                      <button className={styles.faqQ} onClick={() => setOpenFaq(openFaq === i ? null : i)}>
+                        <span>{faq.q}</span>
+                        <span className={styles.faqChevron}>{openFaq === i ? '−' : '+'}</span>
+                      </button>
+                      {openFaq === i && <p className={styles.faqA}>{faq.a}</p>}
+                    </div>
                   </div>
                 ))}
               </div>
@@ -255,8 +286,10 @@ export default function LandingPage() {
       </section>
 
       {/* ── OFFER CTA ────────────────────────────────────────────────────── */}
-      <section id="offer" className={styles.offerSection}>
-        <div className={styles.container}>
+      <section id="offer" className={styles.offerSection}
+        style={{ backgroundImage: `url('${IMG.hero}')` }}>
+        <div className={styles.offerSectionOverlay} />
+        <div className={styles.container} style={{ position: 'relative', zIndex: 2 }}>
           <div className={styles.offerCard} data-reveal="up">
             <div className={styles.offerGlow} />
             <h2 className={styles.offerTitle}>Ready to Move Forward?</h2>
@@ -264,6 +297,17 @@ export default function LandingPage() {
               If you've inherited a property in Eugene, Springfield, Corvallis, Roseburg, Bend, Florence,
               or anywhere in Lane, Benton, Douglas, or Deschutes County — we can help.
             </p>
+
+            {/* Call us CTA */}
+            <a href="tel:+15413212630" className={styles.callBtnLarge}>
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+                <path d="M22 16.92v3a2 2 0 01-2.18 2A19.79 19.79 0 013.07 9.81a19.79 19.79 0 01-3.07-8.68A2 2 0 012 .99h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L6.09 8.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"
+                  fill="currentColor"/>
+              </svg>
+              Call Us Now: (541) 321-2630
+            </a>
+            <p className={styles.offerOrText}>or fill out the form below</p>
+
             {offerSent ? (
               <div className={styles.sentBox}>✅ We received your request! We'll call or email within 24 hours.</div>
             ) : (
@@ -413,7 +457,7 @@ export default function LandingPage() {
             </div>
             <div className={styles.footerCol}>
               <h4>Contact</h4>
-              <a href="tel:+15413001400">(541) 300-1400</a>
+              <a href="tel:+15413212630">(541) 321-2630</a>
               <a href="mailto:info@nwinvestor.com">info@nwinvestor.com</a>
               <p>Eugene, Oregon</p>
             </div>

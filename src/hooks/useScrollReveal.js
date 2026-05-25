@@ -1,11 +1,5 @@
 import { useEffect } from 'react';
 
-/**
- * Watches all [data-reveal] elements and adds the .revealed class
- * when they enter the viewport. Supports directional variants:
- *   data-reveal="up" | "left" | "right" | "scale"
- * Optional data-delay="150" adds a CSS transition-delay in ms.
- */
 export function useScrollReveal() {
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -13,23 +7,29 @@ export function useScrollReveal() {
         entries.forEach((entry) => {
           if (!entry.isIntersecting) return;
           const el = entry.target;
-          const delay = el.dataset.delay ? `${el.dataset.delay}ms` : '0ms';
-          el.style.transitionDelay = delay;
+          const delay = el.dataset.delay ? parseInt(el.dataset.delay, 10) : 0;
+
+          // Apply delay then reveal
+          el.style.transitionDelay = `${delay}ms`;
           el.classList.add('revealed');
+
+          // After animation fully completes, remove the delay and transition
+          // so future class changes (e.g. accordion open/close) are instant
+          setTimeout(() => {
+            el.style.transitionDelay = '0ms';
+            el.style.transition = 'none'; // freeze — no more opacity/transform transitions on this element
+          }, delay + 800);
+
           observer.unobserve(el);
         });
       },
-      { threshold: 0.12, rootMargin: '0px 0px -40px 0px' },
+      { threshold: 0.1, rootMargin: '0px 0px -32px 0px' },
     );
 
-    // Observe after a short tick so elements are painted
     const id = setTimeout(() => {
       document.querySelectorAll('[data-reveal]').forEach((el) => observer.observe(el));
-    }, 50);
+    }, 60);
 
-    return () => {
-      clearTimeout(id);
-      observer.disconnect();
-    };
+    return () => { clearTimeout(id); observer.disconnect(); };
   }, []);
 }
