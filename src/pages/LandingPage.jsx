@@ -108,7 +108,17 @@ export default function LandingPage() {
       )}
 
       {/* ── HERO ─────────────────────────────────────────────────────────── */}
-      <section className={styles.hero} style={{ backgroundImage: `url('${IMG.hero}')` }}>
+      <section className={styles.hero}>
+        {/* Video background — muted, autoplay, loop, no controls */}
+        <video
+          className={styles.heroBgVideo}
+          src={IMG.video}
+          autoPlay
+          muted
+          loop
+          playsInline
+          poster={IMG.hero}
+        />
         <div className={styles.heroOverlay} />
         <div className={styles.heroContent}>
           <div className={styles.heroBadge}>Oregon's Trusted Cash Buyer</div>
