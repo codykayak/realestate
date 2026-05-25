@@ -3,7 +3,7 @@ import styles from './TopBar.module.css';
 export default function TopBar({
   leadCount, geocodedCount,
   zoningVisible, onToggleZoning, zoningLoading,
-  onReset,
+  onReset, onResumeGeocoding, bgGeocoding,
 }) {
   const unmapped = leadCount - geocodedCount;
 
@@ -25,7 +25,20 @@ export default function TopBar({
           <span className={styles.mappedLabel}> pinned</span>
         </span>
         {unmapped > 0 && (
-          <span className={styles.unmapped}>{unmapped} missing</span>
+          bgGeocoding ? (
+            <span className={styles.geocodingBadge}>
+              <span className={styles.miniSpinner} />
+              mapping…
+            </span>
+          ) : (
+            <button
+              className={styles.unmappedBtn}
+              onClick={onResumeGeocoding}
+              title="Tap to finish mapping remaining addresses"
+            >
+              {unmapped} missing — tap to finish
+            </button>
+          )
         )}
       </div>
 

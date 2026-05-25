@@ -3,9 +3,9 @@
   flex-direction: column;
   width: 100%;
   height: 100dvh;
-  /* Lock the map app to full viewport — landing page scrolls freely */
   overflow: hidden;
   overscroll-behavior: none;
+  position: relative; /* anchor for the BgGeocodingBanner */
 }
 
 /* Map view occupies space between TopBar (top) and TabBar (bottom) */

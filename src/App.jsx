@@ -12,6 +12,7 @@ import LayerToggle from './components/LayerToggle';
 import TabBar from './components/TabBar';
 import DialerView from './components/DialerView';
 import SheetsView from './components/SheetsView';
+import BgGeocodingBanner from './components/BgGeocodingBanner';
 import { geocodeLeads } from './utils/geocode';
 import { assignZones } from './utils/assignZones';
 import { saveLeads as lsSave, loadLeads as lsLoad, clearLeads as lsClear } from './utils/storage';
@@ -41,7 +42,12 @@ export default function App() {
   const [mapZoom, setMapZoom]                   = useState(11);
   const [activeTab, setActiveTab]               = useState('map');
   const [todayCalls, setTodayCalls]             = useState([]);
-  const [dialerJumpId, setDialerJumpId]         = useState(null); // jump dialer to specific lead
+  const [dialerJumpId, setDialerJumpId]         = useState(null);
+  // Background (non-blocking) geocoding for "X missing → tap to finish"
+  const [bgGeocoding, setBgGeocoding]           = useState(false);
+  const [bgDone, setBgDone]                     = useState(0);
+  const [bgTotal, setBgTotal]                   = useState(0);
+  const bgAbortRef                              = useRef(null);
   const abortRef = useRef(null);
 
   const { geojson: eugeneGeojson, loading: eugeneLoading } = useZoningData();
@@ -131,6 +137,39 @@ export default function App() {
 
   const handleBoundsChange = useCallback((bounds, zoom) => { setMapBounds(bounds); setMapZoom(zoom); }, []);
 
+  // Resume geocoding for unresolved addresses (background, non-blocking)
+  const handleResumeGeocoding = useCallback(async () => {
+    if (bgGeocoding || !leads) return;
+    const pending = leads.filter((l) => !l.geocoded && l._addressForGeocode);
+    if (!pending.length) return;
+
+    setBgGeocoding(true);
+    setBgDone(0);
+    setBgTotal(pending.length);
+
+    const ctrl = new AbortController();
+    bgAbortRef.current = ctrl;
+
+    const results = await geocodeLeads(
+      pending,
+      (done) => setBgDone(done),
+      ctrl.signal,
+    );
+
+    if (!ctrl.signal.aborted) {
+      // Merge geocoded results back into the full leads array
+      const byId = Object.fromEntries(results.map((l) => [l.id, l]));
+      setLeads((prev) => prev.map((l) => byId[l.id] ?? l));
+    }
+
+    setBgGeocoding(false);
+  }, [bgGeocoding, leads]);
+
+  const handleStopBgGeocoding = useCallback(() => {
+    bgAbortRef.current?.abort();
+    setBgGeocoding(false);
+  }, []);
+
   // Navigate from Sheets or Sidebar → Dialer for a specific lead
   const handleDialLead = useCallback((id) => {
     setDialerJumpId(id);
@@ -182,17 +221,30 @@ export default function App() {
     zoneFilter, onBoundsChange: handleBoundsChange,
   };
 
+  const unmappedCount = (leads?.length ?? 0) - geocodedCount;
+
   const topBarProps = {
     leadCount: leads?.length ?? 0, geocodedCount,
     zoningVisible: anyZoningOn,
     onToggleZoning: () => setShowLayerPanel((p) => !p),
     zoningLoading: eugeneLoading,
     onReset: leads ? handleReset : null,
+    onResumeGeocoding: unmappedCount > 0 && !bgGeocoding ? handleResumeGeocoding : undefined,
+    bgGeocoding,
   };
 
   return (
     <div className="app-shell">
       <TopBar {...topBarProps} />
+
+      {/* ── Background geocoding banner — floats above all tabs ──────── */}
+      {bgGeocoding && (
+        <BgGeocodingBanner
+          done={bgDone}
+          total={bgTotal}
+          onCancel={handleStopBgGeocoding}
+        />
+      )}
 
       {/* ── Map tab ──────────────────────────────────────────────────── */}
       {activeTab === 'map' && (
