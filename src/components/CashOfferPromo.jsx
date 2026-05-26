@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom';
 import ResponsiveImage from './ResponsiveImage';
 import { IMG } from '../constants/images';
-import { HOME_OFFER_HREF } from '../constants/routes';
+import OfferLink from './OfferLink';
 import styles from '../pages/LandingPage.module.css';
 import extra from '../pages/marketing-pages.module.css';
 
@@ -27,7 +27,7 @@ export default function CashOfferPromo() {
               <Link to="/cash-offer-calculator" className={styles.offerBtnMid}>
                 Open Cash Offer Calculator →
               </Link>
-              <a href={HOME_OFFER_HREF} className={styles.investorPrimaryBtn}>Speak to an investor</a>
+              <OfferLink className={styles.investorPrimaryBtn}>Get My Cash Offer</OfferLink>
             </div>
             <p className={extra.disclaimer}>
               Estimates use available data — not a final appraisal or binding offer.

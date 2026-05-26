@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom';
+import OfferLink from '../components/OfferLink';
 import SeoHead from '../components/SeoHead';
 import { SITE_URL } from '../constants/images';
 import styles from './LandingPage.module.css';
@@ -30,7 +31,10 @@ export default function SellingVsCash() {
             </tbody>
           </table>
         </div>
-        <Link to="/cash-offer-calculator" className={styles.offerBtnMid}>Try Cash Calculator →</Link>
+        <div className={extra.ctaRow}>
+          <OfferLink className={styles.offerBtnMid}>Get My Cash Offer →</OfferLink>
+          <Link to="/cash-offer-calculator" className={styles.callBtnMid}>Cash Calculator →</Link>
+        </div>
       </div>
     </>
   );

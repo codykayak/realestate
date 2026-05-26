@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import SeoHead from '../components/SeoHead';
 import ResponsiveImage from '../components/ResponsiveImage';
 import { IMG, PHONE_DISPLAY, PHONE_TEL, SITE_URL } from '../constants/images';
-import { HOME_OFFER_HREF } from '../constants/routes';
+import OfferLink from '../components/OfferLink';
 import { estimateFromInputs, formatMoney } from '../utils/estimateValue';
 import styles from './LandingPage.module.css';
 import extra from './marketing-pages.module.css';
@@ -208,9 +208,9 @@ export default function CashOfferCalculator() {
                 <a href={`tel:${PHONE_TEL}`} className={styles.offerBtnMid}>
                   Call {PHONE_DISPLAY}
                 </a>
-                <a href={HOME_OFFER_HREF} className={styles.investorPrimaryBtn}>
+                <OfferLink className={styles.investorPrimaryBtn}>
                   Get My No-Obligation Cash Offer →
-                </a>
+                </OfferLink>
               </div>
               <p className={extra.disclaimer}>
                 This is an estimate based on existing data — not a final comp or binding offer.

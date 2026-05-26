@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom';
 import SeoHead from '../components/SeoHead';
 import ResponsiveImage from '../components/ResponsiveImage';
 import { IMG, SITE_URL } from '../constants/images';
-import { HOME_OFFER_HREF } from '../constants/routes';
+import OfferLink from '../components/OfferLink';
 import styles from './LandingPage.module.css';
 import extra from './marketing-pages.module.css';
 
@@ -35,7 +35,7 @@ export default function ProbateGuide() {
             </div>
           ))}
         </div>
-        <a href={HOME_OFFER_HREF} className={styles.offerBtnMid}>Tell Us About the Property →</a>
+        <OfferLink className={styles.offerBtnMid}>Tell Us About the Property →</OfferLink>
       </div>
     </>
   );

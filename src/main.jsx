@@ -1,6 +1,7 @@
 import { StrictMode, lazy, Suspense } from 'react';
 import { createRoot } from 'react-dom/client';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import ScrollToTop from './components/ScrollToTop';
 import LandingPage from './pages/LandingPage';
 import MarketingLayout from './layout/MarketingLayout';
 import CashOfferCalculator from './pages/CashOfferCalculator';
@@ -23,6 +24,7 @@ function MapLoading() {
 createRoot(document.getElementById('root')).render(
   <StrictMode>
     <BrowserRouter>
+      <ScrollToTop />
       <Routes>
         {/* Home: original full page (nav/footer/hero unchanged) */}
         <Route path="/" element={<LandingPage />} />

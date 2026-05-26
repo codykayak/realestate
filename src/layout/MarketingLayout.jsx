@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import CashOfferPromo from '../components/CashOfferPromo';
 import { IMG, PHONE_DISPLAY, PHONE_TEL } from '../constants/images';
-import { HOME_OFFER_HREF } from '../constants/routes';
+import OfferLink from '../components/OfferLink';
 import styles from '../pages/LandingPage.module.css';
 
 export default function MarketingLayout() {
@@ -31,7 +31,7 @@ export default function MarketingLayout() {
         <div className={styles.navActions}>
           <a href={`tel:${PHONE_TEL}`} className={styles.callBtnNav}>{PHONE_DISPLAY}</a>
           <Link to="/cash-offer-calculator" className={styles.offerBtnNav}>Cash Calculator</Link>
-          <a href={HOME_OFFER_HREF} className={styles.offerBtnNav}>Get Cash Offer</a>
+          <OfferLink className={styles.offerBtnNav}>Get Cash Offer</OfferLink>
           <button type="button" className={styles.loginBtn} onClick={() => navigate('/app')}>
             Map CMS →
           </button>
@@ -49,7 +49,7 @@ export default function MarketingLayout() {
           <Link to="/cash-offer-calculator" onClick={() => setMenuOpen(false)}>Cash Calculator</Link>
           <Link to="/testimonials" onClick={() => setMenuOpen(false)}>Reviews</Link>
           <Link to="/probate-inherited-house-guide" onClick={() => setMenuOpen(false)}>Probate Guide</Link>
-          <a href={HOME_OFFER_HREF} className={styles.mobileOfferBtn} onClick={() => setMenuOpen(false)}>Get Cash Offer</a>
+          <OfferLink className={styles.mobileOfferBtn} onClick={() => setMenuOpen(false)}>Get Cash Offer</OfferLink>
           <button type="button" className={styles.mobileLoginBtn} onClick={() => { setMenuOpen(false); navigate('/app'); }}>
             Map CMS →
           </button>
@@ -74,17 +74,17 @@ export default function MarketingLayout() {
               <Link to="/selling-vs-cash-offer">Cash vs Listing</Link>
               <Link to="/probate-inherited-house-guide">Probate Guide</Link>
               <Link to="/testimonials">Testimonials</Link>
-              <a href={HOME_OFFER_HREF}>Get Cash Offer</a>
+              <OfferLink>Get Cash Offer</OfferLink>
             </div>
             <div className={styles.footerCol}>
               <h4>Cities</h4>
-              <Link to="/we-buy-houses/eugene-or">Eugene</Link>
-              <Link to="/we-buy-houses/springfield-or">Springfield</Link>
-              <Link to="/we-buy-houses/corvallis-or">Corvallis</Link>
-              <Link to="/we-buy-houses/bend-or">Bend</Link>
-              <Link to="/we-buy-houses/lebanon-or">Lebanon</Link>
-              <Link to="/we-buy-houses/roseburg-or">Roseburg</Link>
-              <Link to="/we-buy-houses/florence-or">Florence</Link>
+              <Link to="/we-buy-houses/eugene-or" onClick={() => window.scrollTo(0, 0)}>Eugene</Link>
+              <Link to="/we-buy-houses/springfield-or" onClick={() => window.scrollTo(0, 0)}>Springfield</Link>
+              <Link to="/we-buy-houses/corvallis-or" onClick={() => window.scrollTo(0, 0)}>Corvallis</Link>
+              <Link to="/we-buy-houses/bend-or" onClick={() => window.scrollTo(0, 0)}>Bend</Link>
+              <Link to="/we-buy-houses/lebanon-or" onClick={() => window.scrollTo(0, 0)}>Lebanon</Link>
+              <Link to="/we-buy-houses/roseburg-or" onClick={() => window.scrollTo(0, 0)}>Roseburg</Link>
+              <Link to="/we-buy-houses/florence-or" onClick={() => window.scrollTo(0, 0)}>Florence</Link>
             </div>
             <div className={styles.footerCol}>
               <h4>Contact</h4>

@@ -2,7 +2,7 @@ import { Link, useParams, Navigate } from 'react-router-dom';
 import SeoHead from '../components/SeoHead';
 import ResponsiveImage from '../components/ResponsiveImage';
 import { CITY_IMAGES, IMG, PHONE_TEL, PHONE_DISPLAY, SITE_URL } from '../constants/images';
-import { HOME_OFFER_HREF } from '../constants/routes';
+import OfferLink from '../components/OfferLink';
 import { getCityBySlug } from '../data/cities';
 import styles from './LandingPage.module.css';
 import extra from './marketing-pages.module.css';
@@ -36,7 +36,8 @@ export default function CityWeBuyHouses() {
           <h1 className={styles.sectionTitle}>We Buy Houses in {city.name}, Oregon</h1>
           <p className={styles.sectionSub}>Fast, fair, as-is cash purchases. No repairs or commissions.</p>
           <div className={extra.ctaRow}>
-            <Link to="/cash-offer-calculator" className={styles.offerBtnMid}>Cash Calculator →</Link>
+            <OfferLink className={styles.offerBtnMid}>Get My Cash Offer →</OfferLink>
+            <Link to="/cash-offer-calculator" className={styles.callBtnMid}>Cash Calculator →</Link>
             <a href={`tel:${PHONE_TEL}`} className={styles.callBtnMid}>{PHONE_DISPLAY}</a>
           </div>
         </div>
@@ -49,7 +50,7 @@ export default function CityWeBuyHouses() {
         <h3>Why a cash sale can make sense</h3>
         <p>{city.whyCash}</p>
         <p>ZIP areas: {city.zipSamples.join(', ')}.</p>
-        <a href={HOME_OFFER_HREF} className={styles.offerBtnMid}>Get My Cash Offer in {city.name} →</a>
+        <OfferLink className={styles.offerBtnMid}>Get My Cash Offer in {city.name} →</OfferLink>
       </div>
     </>
   );

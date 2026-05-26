@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { cities } from '../data/cities';
-import { HOME_OFFER_HREF } from '../constants/routes';
+import OfferLink from '../components/OfferLink';
 import { useScrollReveal } from '../hooks/useScrollReveal';
 import { useScrollToOffer } from '../hooks/useScrollToOffer';
 import { useParallax } from '../hooks/useParallax';
@@ -77,7 +77,7 @@ export default function LandingPage() {
             (541) 321-2630
           </a>
           <Link to="/cash-offer-calculator" className={styles.navLink}>Cash Calculator</Link>
-          <a href={HOME_OFFER_HREF} className={styles.offerBtnNav}>Get Cash Offer</a>
+          <OfferLink className={styles.offerBtnNav}>Get Cash Offer</OfferLink>
           <button className={styles.loginBtn} onClick={() => navigate('/app')}>Map CMS →</button>
         </div>
         <button className={styles.hamburger} onClick={() => setMenuOpen(v => !v)} aria-label="Menu">
@@ -91,7 +91,7 @@ export default function LandingPage() {
             <a key={href} href={href} onClick={() => setMenuOpen(false)}>{label}</a>
           ))}
           <Link to="/cash-offer-calculator" onClick={() => setMenuOpen(false)}>Cash Calculator</Link>
-          <a href={HOME_OFFER_HREF} className={styles.mobileOfferBtn} onClick={() => setMenuOpen(false)}>Get Cash Offer</a>
+          <OfferLink className={styles.mobileOfferBtn} onClick={() => setMenuOpen(false)}>Get Cash Offer</OfferLink>
           <button className={styles.mobileLoginBtn} onClick={() => { setMenuOpen(false); navigate('/app'); }}>Sign In to Map →</button>
         </div>
       )}
@@ -119,12 +119,12 @@ export default function LandingPage() {
             Close in as little as <strong>14 days.</strong>
           </p>
           <div className={styles.heroCtas} data-reveal="up" data-delay="300">
-            <a href={HOME_OFFER_HREF} className={styles.heroPrimary}>
+            <OfferLink className={styles.heroPrimary}>
               Get My Cash Offer
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
                 <path d="M5 12h14M12 5l7 7-7 7" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
               </svg>
-            </a>
+            </OfferLink>
             <a href="tel:+15413212630" className={styles.heroCallBtn}>
               <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
                 <path d="M22 16.92v3a2 2 0 01-2.18 2A19.79 19.79 0 013.07 9.81a19.79 19.79 0 01-3.07-8.68A2 2 0 012 .99h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L6.09 8.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"/>
@@ -206,7 +206,7 @@ export default function LandingPage() {
                   </svg>
                   Call (541) 321-2630
                 </a>
-                <a href={HOME_OFFER_HREF} className={styles.offerBtnMid}>Get Cash Offer →</a>
+                <OfferLink className={styles.offerBtnMid}>Get Cash Offer →</OfferLink>
               </div>
             </div>
           </div>
@@ -239,7 +239,13 @@ export default function LandingPage() {
           </div>
           <div className={styles.areasCardGrid} style={{ marginTop: 20 }}>
             {cities.map((c) => (
-              <Link key={c.slug} to={`/we-buy-houses/${c.slug}`} className={styles.areaCard} data-reveal="up">
+              <Link
+                key={c.slug}
+                to={`/we-buy-houses/${c.slug}`}
+                className={styles.areaCard}
+                data-reveal="up"
+                onClick={() => window.scrollTo(0, 0)}
+              >
                 <strong className={styles.areaCounty}>We Buy Houses — {c.name}</strong>
                 <p className={styles.areaCities}>Local cash buyer →</p>
               </Link>
@@ -476,7 +482,7 @@ export default function LandingPage() {
               <Link to="/probate-inherited-house-guide">Probate Guide</Link>
               <Link to="/selling-vs-cash-offer">Cash vs Listing</Link>
               <Link to="/testimonials">Reviews</Link>
-              <a href={HOME_OFFER_HREF}>Get a Cash Offer</a>
+              <OfferLink>Get a Cash Offer</OfferLink>
               <a href="#areas">Areas We Buy</a>
             </div>
             <div className={styles.footerCol}>
