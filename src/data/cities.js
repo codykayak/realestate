@@ -11,7 +11,7 @@ export const cities = [
     zipSamples: ['97401', '97402', '97403', '97404', '97405', '97408'],
     heroAlt: 'We buy houses in Eugene Oregon for cash',
     metaDescription:
-      'Sell your Eugene house fast for cash. NW Investor buys as-is homes, inherited properties, and probate situations in Lane County. No repairs, no commissions.',
+      'Sell your Eugene house fast for cash. Macro Real Estate Investing buys as-is homes, inherited properties, and probate situations in Lane County. No repairs, no commissions.',
     marketContext: `Eugene's market has cooled compared to the bidding-war years of 2021–2022. Median sold prices in early 2026 are running below the prior year's Q1 peak (around $479k vs ~$500k year-over-year in one local summary), and homes are sitting longer — often 30–45+ days when priced ambitiously. Buyers are negotiating again. If you need to sell quickly because of inheritance, divorce, relocation, or a property that needs work, waiting for the "perfect" retail buyer can cost months and thousands in holding costs.`,
     sellerPainPoints: [
       'Older homes near the university or in flood-adjacent areas often need updates buyers demand in inspections.',
@@ -50,7 +50,7 @@ export const cities = [
       'Out-of-area heirs after a parent passing face Benton County probate timelines.',
       'Job relocation with a dated Corvallis rental can trap owners in management costs.',
     ],
-    whyCash: `NW Investor provides a straightforward cash path in Corvallis — one sign-off, one closing date, no open-house cycle.`,
+    whyCash: `Macro Real Estate Investing provides a straightforward cash path in Corvallis — one sign-off, one closing date, no open-house cycle.`,
   },
   {
     slug: 'bend-or',

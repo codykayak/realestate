@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom';
 import SeoHead from '../components/SeoHead';
 import ResponsiveImage from '../components/ResponsiveImage';
+import { BRAND_NAME } from '../constants/brand';
 import { IMG, SITE_URL } from '../constants/images';
 import OfferLink from '../components/OfferLink';
 import styles from './LandingPage.module.css';
@@ -20,7 +21,7 @@ const STEPS = [
 export default function ProbateGuide() {
   return (
     <>
-      <SeoHead title="Probate & Inherited House Guide Oregon | NW Investor" description="Sell inherited property in Oregon. We coordinate paperwork with title." path="/probate-inherited-house-guide" jsonLd={{ '@context': 'https://schema.org', '@type': 'HowTo', name: 'Sell Inherited House Oregon', url: `${SITE_URL}/probate-inherited-house-guide` }} />
+      <SeoHead title={`Probate & Inherited House Guide Oregon | ${BRAND_NAME}`} description="Sell inherited property in Oregon. We coordinate paperwork with title." path="/probate-inherited-house-guide" jsonLd={{ '@context': 'https://schema.org', '@type': 'HowTo', name: 'Sell Inherited House Oregon', url: `${SITE_URL}/probate-inherited-house-guide` }} />
       <div className={`${styles.container} ${extra.innerPage}`}>
         <p className={extra.breadcrumb}><Link to="/">Home</Link> / Probate Guide</p>
         <h1 className={styles.sectionTitle}>Probate & Inherited House Guide</h1>

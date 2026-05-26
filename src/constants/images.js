@@ -1,8 +1,10 @@
+import { BRAND_LOGO } from './brand';
+
 /** Template assets under public/Template — matches production filenames. */
 
 export const IMG = {
   hero: '/Template/nwinvestor hero background invester properties oregon.png',
-  logo: '/Template/NW Investor logo.png',
+  logo: BRAND_LOGO,
   seller: '/Template/happy house seller for cash eugene springfield.png',
   sellerAlt: '/Template/happy seller hose chash eugene spring field off market.png',
   mapApp: '/Template/nwinvestor map application.png',

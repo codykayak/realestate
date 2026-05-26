@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import CashOfferPromo from '../components/CashOfferPromo';
+import { BRAND_NAME, CONTACT_EMAIL } from '../constants/brand';
 import { IMG, PHONE_DISPLAY, PHONE_TEL } from '../constants/images';
 import OfferLink from '../components/OfferLink';
 import styles from '../pages/LandingPage.module.css';
@@ -18,7 +19,7 @@ export default function MarketingLayout() {
     <div className={styles.page}>
       <nav className={styles.nav}>
         <Link to="/" className={styles.navLogo} onClick={() => setMenuOpen(false)}>
-          <img src={IMG.logo} alt="NW Investor" className={styles.logoImg} />
+          <img src={IMG.logo} alt={BRAND_NAME} className={styles.logoImg} />
         </Link>
         <div className={styles.navLinks}>
           <a href={homeHash('#how-it-works')} className={styles.navLink}>How It Works</a>
@@ -65,7 +66,7 @@ export default function MarketingLayout() {
         <div className={styles.container}>
           <div className={styles.footerGrid}>
             <div className={styles.footerBrand}>
-              <img src={IMG.logo} alt="NW Investor" className={styles.footerLogo} />
+              <img src={IMG.logo} alt={BRAND_NAME} className={styles.footerLogo} />
               <p className={styles.footerTagline}>Oregon&apos;s trusted cash home buyer.</p>
             </div>
             <div className={styles.footerCol}>
@@ -89,12 +90,12 @@ export default function MarketingLayout() {
             <div className={styles.footerCol}>
               <h4>Contact</h4>
               <a href={`tel:${PHONE_TEL}`}>{PHONE_DISPLAY}</a>
-              <a href="mailto:info@nwinvestor.com">info@nwinvestor.com</a>
+              <a href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a>
               <Link to="/app">Map CMS</Link>
             </div>
           </div>
           <div className={styles.footerBottom}>
-            <p>© {new Date().getFullYear()} NW Investor Real Estate · Eugene, Oregon</p>
+            <p>© {new Date().getFullYear()} {BRAND_NAME} · Eugene, Oregon</p>
           </div>
         </div>
       </footer>

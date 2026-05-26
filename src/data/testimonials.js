@@ -9,7 +9,7 @@ export const testimonials = [
     rating: 5,
     date: 'March 2026',
     headline: 'Closed our mother\'s estate in 28 days',
-    body: 'Three siblings, one outdated house near Main Street. NW Investor handled title with the heirship affidavit path our attorney recommended. Fair offer, no pressure to accept the first number — they explained the math. We signed and had funds distributed within a month.',
+    body: 'Three siblings, one outdated house near Main Street. Macro Real Estate Investing handled title with the heirship affidavit path our attorney recommended. Fair offer, no pressure to accept the first number — they explained the math. We signed and had funds distributed within a month.',
     caseType: 'Inherited / multi-heir',
   },
   {
@@ -42,7 +42,7 @@ export const testimonials = [
     rating: 5,
     date: 'November 2025',
     headline: 'Clean break, one closing date',
-    body: 'Both parties needed a certain date for the dissolution. NW Investor hit the date, title handled the split proceeds per our agreement, and we avoided months of showings while still living in the home.',
+    body: 'Both parties needed a certain date for the dissolution. Macro Real Estate Investing hit the date, title handled the split proceeds per our agreement, and we avoided months of showings while still living in the home.',
     caseType: 'Timeline-critical',
   },
   {
@@ -62,7 +62,7 @@ export const caseStudies = [
   {
     title: 'Lane County — 4 heirs, back taxes, 32-day close',
     summary:
-      'Eugene property with $8,400 delinquent taxes and no probate yet opened. Attorney guided small-estate path; NW Investor paid taxes at closing and netted heirs $214,000 after liens.',
+      'Eugene property with $8,400 delinquent taxes and no probate yet opened. Attorney guided small-estate path; Macro Real Estate Investing paid taxes at closing and netted heirs $214,000 after liens.',
     bullets: ['As-is with roof moss and garage contents', 'No realtor fees', 'Single mobile notary for two out-of-state heirs'],
   },
   {

@@ -1,5 +1,7 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { BRAND_NAME, CONTACT_EMAIL } from '../constants/brand';
+import { IMG as TEMPLATE_IMG } from '../constants/images';
 import { cities } from '../data/cities';
 import OfferLink from '../components/OfferLink';
 import { useScrollReveal } from '../hooks/useScrollReveal';
@@ -8,15 +10,11 @@ import { useParallax } from '../hooks/useParallax';
 import styles from './LandingPage.module.css';
 
 const IMG = {
-  hero:      '/Template/nwinvestor hero background invester properties oregon.png',
-  logo:      '/Template/NW Investor logo.png',
+  ...TEMPLATE_IMG,
   seller:    '/Template/happy house seller for cash eugene springfield.png',
   sellerAlt: '/Template/happy seller hose chash eugene spring field off market.png',
-  mapApp:    '/Template/nwinvestor map application.png',
-  mapInv:    '/Template/investor map application nw investor.png',
   cityMap:   '/Template/we buy house Eugene springfield corvallis Bend Rosburg florance oregon.png',
   affidavit: '/Template/affidavit of heirship oregon .png',
-  video:     '/Template/nwinvestor real estate properties oregon.mp4',
 };
 
 const FAQS = [
@@ -60,7 +58,7 @@ export default function LandingPage() {
       {/* ── NAV ──────────────────────────────────────────────────────────── */}
       <nav className={styles.nav}>
         <a href="/" className={styles.navLogo}>
-          <img src={IMG.logo} alt="NW Investor" className={styles.logoImg} />
+          <img src={IMG.logo} alt={BRAND_NAME} className={styles.logoImg} />
         </a>
         <div className={styles.navLinks}>
           {['#how-it-works','#areas','#faq','#investors','#alerts'].map((href, i) => (
@@ -173,7 +171,7 @@ export default function LandingPage() {
             {/* Full-bleed image with glow */}
             <div className={styles.trustImageWrap} data-reveal="left">
               <img ref={trustParallax} src={IMG.seller}
-                alt="Happy seller with Northwest Investor Real Estate after cash sale in Eugene Oregon"
+                alt={`Happy seller with ${BRAND_NAME} after cash sale in Eugene Oregon`}
                 className={styles.trustImage} />
               <div className={styles.trustImageGlow} />
               <div className={styles.trustBadge}>
@@ -186,7 +184,7 @@ export default function LandingPage() {
             </div>
 
             <div className={styles.trustContent} data-reveal="right">
-              <div className={styles.sectionLabel}>Why NW Investor</div>
+              <div className={styles.sectionLabel}>Why {BRAND_NAME}</div>
               <h2 className={styles.sectionTitle}>We Specialize in<br />Inherited Properties</h2>
               <p className={styles.trustBody}>
                 Dealing with an inherited property is emotionally and legally complex.
@@ -362,7 +360,7 @@ export default function LandingPage() {
       <section id="investors" className={styles.investorSection}>
         <div className={styles.container}>
           <div className={styles.sectionLabel} data-reveal="up">Investor Portal</div>
-          <h2 className={styles.sectionTitle} data-reveal="up" data-delay="80">Partner With NW Investor</h2>
+          <h2 className={styles.sectionTitle} data-reveal="up" data-delay="80">Partner With {BRAND_NAME}</h2>
           <p className={styles.sectionSub} data-reveal="up" data-delay="140">
             Access off-market deals, zoning data, and our proprietary map CMS — built for serious investors in the Pacific Northwest.
           </p>
@@ -371,7 +369,7 @@ export default function LandingPage() {
             {/* Join network card */}
             <div className={styles.investorCard} data-reveal="left">
               <div className={styles.investorCardImgWrap}>
-                <img src={IMG.mapInv} alt="NW Investor property intelligence platform"
+                <img src={IMG.mapInv} alt={`${BRAND_NAME} property intelligence platform`}
                   className={styles.investorCardImg} />
                 <div className={styles.investorCardImgGlow} />
               </div>
@@ -387,7 +385,7 @@ export default function LandingPage() {
 
             {/* Map CMS card — large background image */}
             <div className={styles.investorMapCard} data-reveal="right">
-              <img src={IMG.mapApp} alt="NW Investor map CMS zoning data Oregon"
+              <img src={IMG.mapApp} alt={`${BRAND_NAME} map CMS zoning data Oregon`}
                 className={styles.investorMapCardImg} />
               <div className={styles.investorMapCardOverlay} />
               <div className={styles.investorMapCardBody}>
@@ -471,7 +469,7 @@ export default function LandingPage() {
         <div className={styles.container}>
           <div className={styles.footerGrid}>
             <div className={styles.footerBrand}>
-              <img src={IMG.logo} alt="NW Investor Real Estate" className={styles.footerLogo} />
+              <img src={IMG.logo} alt={BRAND_NAME} className={styles.footerLogo} />
               <p className={styles.footerTagline}>Oregon's trusted cash home buyer. Fast, fair, and transparent.</p>
             </div>
             <div className={styles.footerCol}>
@@ -494,12 +492,12 @@ export default function LandingPage() {
             <div className={styles.footerCol}>
               <h4>Contact</h4>
               <a href="tel:+15413212630">(541) 321-2630</a>
-              <a href="mailto:info@nwinvestor.com">info@nwinvestor.com</a>
+              <a href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a>
               <p>Eugene, Oregon</p>
             </div>
           </div>
           <div className={styles.footerBottom}>
-            <p>© {new Date().getFullYear()} NW Investor Real Estate · Eugene, Oregon</p>
+            <p>© {new Date().getFullYear()} {BRAND_NAME} · Eugene, Oregon</p>
             <p>We buy houses as-is. No repairs required. Not a licensed real estate brokerage.</p>
           </div>
         </div>

@@ -2,7 +2,7 @@
 
 const NOMINATIM    = 'https://nominatim.openstreetmap.org/search';
 const DELAY_MS     = 1100;
-const USER_AGENT   = 'MotivatedSellerMap/1.0 (nwinvestor.com real estate lead tool)';
+const USER_AGENT   = 'MotivatedSellerMap/1.0 (Macro Real Estate Investing lead tool)';
 
 // Bounding box for western Oregon + surrounding area.
 // Biases Nominatim results toward this region without hard-excluding other states.

@@ -1,6 +1,7 @@
 import { Link, useParams, Navigate } from 'react-router-dom';
 import SeoHead from '../components/SeoHead';
 import ResponsiveImage from '../components/ResponsiveImage';
+import { BRAND_NAME } from '../constants/brand';
 import { CITY_IMAGES, IMG, PHONE_TEL, PHONE_DISPLAY, SITE_URL } from '../constants/images';
 import OfferLink from '../components/OfferLink';
 import { getCityBySlug } from '../data/cities';
@@ -17,7 +18,7 @@ export default function CityWeBuyHouses() {
   return (
     <>
       <SeoHead
-        title={`We Buy Houses in ${city.name}, OR | NW Investor`}
+        title={`We Buy Houses in ${city.name}, OR | ${BRAND_NAME}`}
         description={city.metaDescription}
         path={`/we-buy-houses/${city.slug}`}
         jsonLd={{

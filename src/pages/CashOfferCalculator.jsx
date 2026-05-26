@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import SeoHead from '../components/SeoHead';
 import ResponsiveImage from '../components/ResponsiveImage';
+import { BRAND_NAME } from '../constants/brand';
 import { IMG, PHONE_DISPLAY, PHONE_TEL, SITE_URL } from '../constants/images';
 import OfferLink from '../components/OfferLink';
 import { estimateFromInputs, formatMoney } from '../utils/estimateValue';
@@ -29,13 +30,13 @@ export default function CashOfferCalculator() {
   return (
     <>
       <SeoHead
-        title="Instant Cash Offer Calculator | NW Investor Oregon"
+        title={`Instant Cash Offer Calculator | ${BRAND_NAME} Oregon`}
         description="Free Oregon cash home offer calculator. Enter any address or city for estimated market value and cash offer ranges."
         path="/cash-offer-calculator"
         jsonLd={{
           '@context': 'https://schema.org',
           '@type': 'WebApplication',
-          name: 'NW Investor Instant Cash Offer Calculator',
+          name: `${BRAND_NAME} Instant Cash Offer Calculator`,
           url: `${SITE_URL}/cash-offer-calculator`,
         }}
       />

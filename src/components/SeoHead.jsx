@@ -1,9 +1,9 @@
 import { useEffect } from 'react';
-import { SITE_URL } from '../constants/images';
+import { IMG, SITE_URL } from '../constants/images';
 
 export default function SeoHead({ title, description, path = '/', keywords = '', jsonLd = null }) {
   const canonical = `${SITE_URL}${path.startsWith('/') ? path : `/${path}`}`;
-  const ogImage = `${SITE_URL}/Template/nwinvestor hero background invester properties oregon.png`;
+  const ogImage = `${SITE_URL}${IMG.hero}`;
 
   useEffect(() => {
     document.title = title;

@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom';
+import { BRAND_NAME } from '../constants/brand';
 import OfferLink from '../components/OfferLink';
 import SeoHead from '../components/SeoHead';
 import { testimonials, caseStudies } from '../data/testimonials';
@@ -8,7 +9,7 @@ import extra from './marketing-pages.module.css';
 export default function Testimonials() {
   return (
     <>
-      <SeoHead title="Testimonials & Case Studies | NW Investor" description="Oregon homeowner stories — fast cash sales, probate, as-is." path="/testimonials" />
+      <SeoHead title={`Testimonials & Case Studies | ${BRAND_NAME}`} description="Oregon homeowner stories — fast cash sales, probate, as-is." path="/testimonials" />
       <div className={`${styles.container} ${extra.innerPage}`}>
         <p className={extra.breadcrumb}><Link to="/">Home</Link> / Testimonials</p>
         <h1 className={styles.sectionTitle}>Homeowner Stories & Case Studies</h1>
