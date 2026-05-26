@@ -1,10 +1,7 @@
 User-agent: *
 Allow: /
 
-# Sitemap location
-Sitemap: https://realestate.aibhive.com/sitemap.xml
-
-Disallow: /app
+Sitemap: https://www.macrorei.com/sitemap.xml
 
 # Allow AI crawlers explicitly
 User-agent: GPTBot
