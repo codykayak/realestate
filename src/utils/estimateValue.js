@@ -27,8 +27,12 @@ export function estimateFromInputs({
   condition = 'average',
   yearBuilt = '',
 }) {
+  const locationText = `${address} ${city}`.trim();
   const cityKey = Object.keys(CITY_MEDIAN).find(
-    (k) => city.toLowerCase().includes(k.toLowerCase()) || address.toLowerCase().includes(k.toLowerCase()),
+    (k) =>
+      city.toLowerCase().includes(k.toLowerCase()) ||
+      address.toLowerCase().includes(k.toLowerCase()) ||
+      locationText.toLowerCase().includes(k.toLowerCase()),
   );
   let base = cityKey ? CITY_MEDIAN[cityKey] : DEFAULT_MEDIAN;
 
@@ -74,7 +78,7 @@ export function estimateFromInputs({
     marketHigh,
     cashLow,
     cashHigh: Math.max(cashHigh, cashLow + 5000),
-    cityDetected: cityKey || (city || 'Oregon'),
+    cityDetected: cityKey || city.trim() || (address ? 'Your area' : 'Oregon'),
     zip,
   };
 }

@@ -74,7 +74,7 @@ export default function LandingPage() {
             (541) 321-2630
           </a>
           <Link to="/cash-offer-calculator" className={styles.navLink}>Cash Calculator</Link>
-          <a href="#offer" className={styles.offerBtnNav}>Get Cash Offer</a>
+          <a href="/#offer" className={styles.offerBtnNav}>Get Cash Offer</a>
           <button className={styles.loginBtn} onClick={() => navigate('/app')}>Map CMS →</button>
         </div>
         <button className={styles.hamburger} onClick={() => setMenuOpen(v => !v)} aria-label="Menu">
@@ -88,7 +88,7 @@ export default function LandingPage() {
             <a key={href} href={href} onClick={() => setMenuOpen(false)}>{label}</a>
           ))}
           <Link to="/cash-offer-calculator" onClick={() => setMenuOpen(false)}>Cash Calculator</Link>
-          <a href="#offer"   className={styles.mobileOfferBtn} onClick={() => setMenuOpen(false)}>Get Cash Offer</a>
+          <a href="/#offer" className={styles.mobileOfferBtn} onClick={() => setMenuOpen(false)}>Get Cash Offer</a>
           <button className={styles.mobileLoginBtn} onClick={() => { setMenuOpen(false); navigate('/app'); }}>Sign In to Map →</button>
         </div>
       )}
@@ -116,7 +116,7 @@ export default function LandingPage() {
             Close in as little as <strong>14 days.</strong>
           </p>
           <div className={styles.heroCtas} data-reveal="up" data-delay="300">
-            <a href="#offer" className={styles.heroPrimary}>
+            <a href="/#offer" className={styles.heroPrimary}>
               Get My Cash Offer
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
                 <path d="M5 12h14M12 5l7 7-7 7" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
@@ -203,7 +203,7 @@ export default function LandingPage() {
                   </svg>
                   Call (541) 321-2630
                 </a>
-                <a href="#offer" className={styles.offerBtnMid}>Get Cash Offer →</a>
+                <a href="/#offer" className={styles.offerBtnMid}>Get Cash Offer →</a>
               </div>
             </div>
           </div>
@@ -473,7 +473,7 @@ export default function LandingPage() {
               <Link to="/probate-inherited-house-guide">Probate Guide</Link>
               <Link to="/selling-vs-cash-offer">Cash vs Listing</Link>
               <Link to="/testimonials">Reviews</Link>
-              <a href="#offer">Get a Cash Offer</a>
+              <a href="/#offer">Get a Cash Offer</a>
               <a href="#areas">Areas We Buy</a>
             </div>
             <div className={styles.footerCol}>

@@ -115,10 +115,47 @@
 
 .calcPromoImg {
   width: 100%;
+  height: auto;
   border-radius: 16px;
   border: 1px solid var(--nw-border);
-  max-height: 280px;
-  object-fit: cover;
+  object-fit: contain;
+  background: var(--nw-card);
+}
+
+.calcPageIntro {
+  display: grid;
+  grid-template-columns: minmax(260px, 420px) 1fr;
+  gap: 36px;
+  align-items: start;
+  margin: 28px 0 8px;
+}
+
+.calcPageImg {
+  width: 100%;
+  height: auto;
+  max-width: 100%;
+  object-fit: contain;
+  object-position: center top;
+  border-radius: 16px;
+  border: 1px solid var(--nw-border);
+  background: var(--nw-card);
+  display: block;
+}
+
+.calcPageIntroText {
+  min-width: 0;
+}
+
+.calcBullets {
+  margin: 16px 0 0;
+  padding-left: 1.2rem;
+  color: var(--nw-muted);
+  font-size: 16px;
+  line-height: 1.65;
+}
+
+.calcBullets li {
+  margin-bottom: 8px;
 }
 
 .calcPromoTitle {
@@ -214,8 +251,14 @@
 @media (max-width: 768px) {
   .grid2,
   .calcPromoGrid,
+  .calcPageIntro,
   .formGrid,
   .resultGrid {
     grid-template-columns: 1fr;
+  }
+
+  .calcPageImg {
+    max-width: 100%;
+    margin: 0 auto;
   }
 }

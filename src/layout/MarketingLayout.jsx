@@ -10,7 +10,8 @@ export default function MarketingLayout() {
   const navigate = useNavigate();
   const isHome = location.pathname === '/';
 
-  const hash = (id) => (isHome ? id : `/${id}`);
+  /** Always use /#offer so the home submission form loads from any page */
+  const hash = (id) => (id.startsWith('/') ? id : `/${id}`);
 
   return (
     <div className={styles.page}>
