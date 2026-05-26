@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import CashOfferPromo from '../components/CashOfferPromo';
 import { IMG, PHONE_DISPLAY, PHONE_TEL } from '../constants/images';
+import { HOME_OFFER_HREF } from '../constants/routes';
 import styles from '../pages/LandingPage.module.css';
 
 export default function MarketingLayout() {
@@ -10,8 +11,8 @@ export default function MarketingLayout() {
   const navigate = useNavigate();
   const isHome = location.pathname === '/';
 
-  /** Always use /#offer so the home submission form loads from any page */
-  const hash = (id) => (id.startsWith('/') ? id : `/${id}`);
+  /** In-page anchors on home; from other routes use /#section so the home page loads first */
+  const homeHash = (id) => (isHome ? id : `/${id}`);
 
   return (
     <div className={styles.page}>
@@ -20,9 +21,9 @@ export default function MarketingLayout() {
           <img src={IMG.logo} alt="NW Investor" className={styles.logoImg} />
         </Link>
         <div className={styles.navLinks}>
-          <a href={hash('#how-it-works')} className={styles.navLink}>How It Works</a>
-          <a href={hash('#areas')} className={styles.navLink}>Areas</a>
-          <a href={hash('#faq')} className={styles.navLink}>FAQ</a>
+          <a href={homeHash('#how-it-works')} className={styles.navLink}>How It Works</a>
+          <a href={homeHash('#areas')} className={styles.navLink}>Areas</a>
+          <a href={homeHash('#faq')} className={styles.navLink}>FAQ</a>
           <Link to="/testimonials" className={styles.navLink}>Reviews</Link>
           <Link to="/probate-inherited-house-guide" className={styles.navLink}>Probate</Link>
           <Link to="/selling-vs-cash-offer" className={styles.navLink}>Cash vs Listing</Link>
@@ -30,7 +31,7 @@ export default function MarketingLayout() {
         <div className={styles.navActions}>
           <a href={`tel:${PHONE_TEL}`} className={styles.callBtnNav}>{PHONE_DISPLAY}</a>
           <Link to="/cash-offer-calculator" className={styles.offerBtnNav}>Cash Calculator</Link>
-          <a href={hash('#offer')} className={styles.offerBtnNav}>Get Cash Offer</a>
+          <a href={HOME_OFFER_HREF} className={styles.offerBtnNav}>Get Cash Offer</a>
           <button type="button" className={styles.loginBtn} onClick={() => navigate('/app')}>
             Map CMS →
           </button>
@@ -42,13 +43,13 @@ export default function MarketingLayout() {
 
       {menuOpen && (
         <div className={styles.mobileMenu}>
-          <a href={hash('#how-it-works')} onClick={() => setMenuOpen(false)}>How It Works</a>
-          <a href={hash('#areas')} onClick={() => setMenuOpen(false)}>Areas We Buy</a>
-          <a href={hash('#faq')} onClick={() => setMenuOpen(false)}>FAQ</a>
+          <a href={homeHash('#how-it-works')} onClick={() => setMenuOpen(false)}>How It Works</a>
+          <a href={homeHash('#areas')} onClick={() => setMenuOpen(false)}>Areas We Buy</a>
+          <a href={homeHash('#faq')} onClick={() => setMenuOpen(false)}>FAQ</a>
           <Link to="/cash-offer-calculator" onClick={() => setMenuOpen(false)}>Cash Calculator</Link>
           <Link to="/testimonials" onClick={() => setMenuOpen(false)}>Reviews</Link>
           <Link to="/probate-inherited-house-guide" onClick={() => setMenuOpen(false)}>Probate Guide</Link>
-          <a href={hash('#offer')} className={styles.mobileOfferBtn} onClick={() => setMenuOpen(false)}>Get Cash Offer</a>
+          <a href={HOME_OFFER_HREF} className={styles.mobileOfferBtn} onClick={() => setMenuOpen(false)}>Get Cash Offer</a>
           <button type="button" className={styles.mobileLoginBtn} onClick={() => { setMenuOpen(false); navigate('/app'); }}>
             Map CMS →
           </button>
@@ -73,7 +74,7 @@ export default function MarketingLayout() {
               <Link to="/selling-vs-cash-offer">Cash vs Listing</Link>
               <Link to="/probate-inherited-house-guide">Probate Guide</Link>
               <Link to="/testimonials">Testimonials</Link>
-              <a href={hash('#offer')}>Get Cash Offer</a>
+              <a href={HOME_OFFER_HREF}>Get Cash Offer</a>
             </div>
             <div className={styles.footerCol}>
               <h4>Cities</h4>

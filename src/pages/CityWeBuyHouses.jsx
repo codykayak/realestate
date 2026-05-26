@@ -2,6 +2,7 @@ import { Link, useParams, Navigate } from 'react-router-dom';
 import SeoHead from '../components/SeoHead';
 import ResponsiveImage from '../components/ResponsiveImage';
 import { CITY_IMAGES, IMG, PHONE_TEL, PHONE_DISPLAY, SITE_URL } from '../constants/images';
+import { HOME_OFFER_HREF } from '../constants/routes';
 import { getCityBySlug } from '../data/cities';
 import styles from './LandingPage.module.css';
 import extra from './marketing-pages.module.css';
@@ -48,7 +49,7 @@ export default function CityWeBuyHouses() {
         <h3>Why a cash sale can make sense</h3>
         <p>{city.whyCash}</p>
         <p>ZIP areas: {city.zipSamples.join(', ')}.</p>
-        <a href="/#offer" className={styles.offerBtnMid}>Get My Cash Offer in {city.name} →</a>
+        <a href={HOME_OFFER_HREF} className={styles.offerBtnMid}>Get My Cash Offer in {city.name} →</a>
       </div>
     </>
   );
