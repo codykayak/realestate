@@ -2,7 +2,9 @@ User-agent: *
 Allow: /
 
 # Sitemap location
-Sitemap: https://nwinvestor.com/sitemap.xml
+Sitemap: https://realestate.aibhive.com/sitemap.xml
+
+Disallow: /app
 
 # Allow AI crawlers explicitly
 User-agent: GPTBot

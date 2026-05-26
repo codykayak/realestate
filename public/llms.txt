@@ -1,0 +1,19 @@
+# NW Investor — https://realestate.aibhive.com
+
+Marketing site for Oregon cash home purchases. Investor Map CMS: /app (not for public SEO).
+
+## Pages
+- / — Home
+- /cash-offer-calculator
+- /selling-vs-cash-offer
+- /probate-inherited-house-guide
+- /testimonials
+- /we-buy-houses/eugene-or
+- /we-buy-houses/springfield-or
+- /we-buy-houses/corvallis-or
+- /we-buy-houses/bend-or
+- /we-buy-houses/lebanon-or
+- /we-buy-houses/roseburg-or
+- /we-buy-houses/florence-or
+
+Contact: (541) 321-2630

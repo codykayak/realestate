@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import { cities } from '../data/cities';
 import { useScrollReveal } from '../hooks/useScrollReveal';
 import { useParallax } from '../hooks/useParallax';
 import styles from './LandingPage.module.css';
@@ -72,6 +73,7 @@ export default function LandingPage() {
             </svg>
             (541) 321-2630
           </a>
+          <Link to="/cash-offer-calculator" className={styles.navLink}>Cash Calculator</Link>
           <a href="#offer" className={styles.offerBtnNav}>Get Cash Offer</a>
           <button className={styles.loginBtn} onClick={() => navigate('/app')}>Map CMS →</button>
         </div>
@@ -85,6 +87,7 @@ export default function LandingPage() {
           {[['#how-it-works','How It Works'],['#areas','Areas We Buy'],['#faq','FAQ'],['#investors','Investors'],['#alerts','Get Alerts']].map(([href, label]) => (
             <a key={href} href={href} onClick={() => setMenuOpen(false)}>{label}</a>
           ))}
+          <Link to="/cash-offer-calculator" onClick={() => setMenuOpen(false)}>Cash Calculator</Link>
           <a href="#offer"   className={styles.mobileOfferBtn} onClick={() => setMenuOpen(false)}>Get Cash Offer</a>
           <button className={styles.mobileLoginBtn} onClick={() => { setMenuOpen(false); navigate('/app'); }}>Sign In to Map →</button>
         </div>
@@ -229,6 +232,14 @@ export default function LandingPage() {
                   <p className={styles.areaCities}>{a.cities}</p>
                 </div>
               </div>
+            ))}
+          </div>
+          <div className={styles.areasCardGrid} style={{ marginTop: 20 }}>
+            {cities.map((c) => (
+              <Link key={c.slug} to={`/we-buy-houses/${c.slug}`} className={styles.areaCard} data-reveal="up">
+                <strong className={styles.areaCounty}>We Buy Houses — {c.name}</strong>
+                <p className={styles.areaCities}>Local cash buyer →</p>
+              </Link>
             ))}
           </div>
           <div className={styles.areasCta} data-reveal="up" data-delay="400">
@@ -458,6 +469,10 @@ export default function LandingPage() {
               <h4>Sellers</h4>
               <a href="#how-it-works">How It Works</a>
               <a href="#faq">Inherited Property FAQ</a>
+              <Link to="/cash-offer-calculator">Cash Offer Calculator</Link>
+              <Link to="/probate-inherited-house-guide">Probate Guide</Link>
+              <Link to="/selling-vs-cash-offer">Cash vs Listing</Link>
+              <Link to="/testimonials">Reviews</Link>
               <a href="#offer">Get a Cash Offer</a>
               <a href="#areas">Areas We Buy</a>
             </div>
