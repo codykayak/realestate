@@ -13,7 +13,7 @@ import TabBar from './components/TabBar';
 import DialerView from './components/DialerView';
 import SheetsView from './components/SheetsView';
 import BgGeocodingBanner from './components/BgGeocodingBanner';
-import { geocodeLeads } from './utils/geocode';
+import { geocodeLeads, geocodeAddress } from './utils/geocode';
 import { assignZones } from './utils/assignZones';
 import { saveLeads as lsSave, loadLeads as lsLoad, clearLeads as lsClear } from './utils/storage';
 import { useZoningData } from './hooks/useZoningData';
@@ -137,11 +137,23 @@ export default function App() {
 
   const handleBoundsChange = useCallback((bounds, zoom) => { setMapBounds(bounds); setMapZoom(zoom); }, []);
 
-  // Resume geocoding for unresolved addresses (background, non-blocking)
+  // Resume geocoding — processes one lead at a time, updates the map
+  // immediately after each address resolves (no waiting for all to finish).
   const handleResumeGeocoding = useCallback(async () => {
     if (bgGeocoding || !leads) return;
-    const pending = leads.filter((l) => !l.geocoded && l._addressForGeocode);
-    if (!pending.length) return;
+
+    // Leads that still need geocoding — must have an address to try
+    const pending = leads.filter((l) => !l.geocoded && l._addressForGeocode?.trim());
+
+    console.log('[resumeGeocode] Pending leads:', pending.length);
+    if (pending.length === 0) {
+      console.warn('[resumeGeocode] No pending leads found. Checking why...');
+      // Debug: show a sample of leads and their geocode status
+      leads.slice(0, 5).forEach((l) => {
+        console.log(`  Lead ${l.id}: geocoded=${JSON.stringify(l.geocoded)}, addr=${l._addressForGeocode}`);
+      });
+      return;
+    }
 
     setBgGeocoding(true);
     setBgDone(0);
@@ -150,19 +162,37 @@ export default function App() {
     const ctrl = new AbortController();
     bgAbortRef.current = ctrl;
 
-    const results = await geocodeLeads(
-      pending,
-      (done) => setBgDone(done),
-      ctrl.signal,
-    );
+    for (let i = 0; i < pending.length; i++) {
+      if (ctrl.signal.aborted) {
+        console.log('[resumeGeocode] Stopped after', i, 'leads');
+        break;
+      }
 
-    if (!ctrl.signal.aborted) {
-      // Merge geocoded results back into the full leads array
-      const byId = Object.fromEntries(results.map((l) => [l.id, l]));
-      setLeads((prev) => prev.map((l) => byId[l.id] ?? l));
+      const lead = pending[i];
+      console.log(`[resumeGeocode] ${i + 1}/${pending.length}: "${lead._addressForGeocode}"`);
+
+      const geo = await geocodeAddress(lead._addressForGeocode);
+
+      if (geo) {
+        console.log(`[resumeGeocode] ✓ ${lead._addressForGeocode} → ${geo.lat}, ${geo.lng}`);
+        // Update this single lead immediately — pin appears on map right away
+        setLeads((prev) =>
+          prev.map((l) => l.id === lead.id ? { ...l, geocoded: geo } : l),
+        );
+      } else {
+        console.warn(`[resumeGeocode] ✗ Failed: "${lead._addressForGeocode}"`);
+      }
+
+      setBgDone(i + 1);
+
+      // Respect Nominatim rate limit (1 req/sec)
+      if (i < pending.length - 1 && !ctrl.signal.aborted) {
+        await new Promise((r) => setTimeout(r, 1100));
+      }
     }
 
     setBgGeocoding(false);
+    console.log('[resumeGeocode] Complete');
   }, [bgGeocoding, leads]);
 
   const handleStopBgGeocoding = useCallback(() => {
