@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { BRAND_NAME, CONTACT_EMAIL } from '../constants/brand';
+import { sendFormToContact } from '../utils/sendToContact';
 import { IMG as TEMPLATE_IMG } from '../constants/images';
 import { cities } from '../data/cities';
 import OfferLink from '../components/OfferLink';
@@ -48,9 +49,45 @@ export default function LandingPage() {
   const [offerForm,  setOfferForm]  = useState({ name: '', phone: '', address: '', details: '' });
   const [offerSent,  setOfferSent]  = useState(false);
 
-  const handleAlert = (e) => { e.preventDefault(); setAlertSent(true); };
-  const handleInv   = (e) => { e.preventDefault(); setInvSent(true); };
-  const handleOffer = (e) => { e.preventDefault(); setOfferSent(true); };
+  const handleAlert = (e) => {
+    e.preventDefault();
+    sendFormToContact({
+      subject: 'Property alerts signup — MacroREI',
+      fields: {
+        Name: alertForm.name,
+        Email: alertForm.email,
+        Phone: alertForm.phone,
+        Area: alertForm.area || 'All areas',
+      },
+    });
+    setAlertSent(true);
+  };
+  const handleInv = (e) => {
+    e.preventDefault();
+    sendFormToContact({
+      subject: 'Investor application — MacroREI',
+      fields: {
+        Name: invForm.name,
+        Email: invForm.email,
+        Phone: invForm.phone,
+        'Markets of interest': invForm.message,
+      },
+    });
+    setInvSent(true);
+  };
+  const handleOffer = (e) => {
+    e.preventDefault();
+    sendFormToContact({
+      subject: 'Cash offer request — MacroREI',
+      fields: {
+        Name: offerForm.name,
+        Phone: offerForm.phone,
+        'Property address': offerForm.address,
+        Details: offerForm.details,
+      },
+    });
+    setOfferSent(true);
+  };
 
   return (
     <div className={styles.page}>
@@ -351,7 +388,9 @@ export default function LandingPage() {
                 </button>
               </form>
             )}
-            <p className={styles.offerNote}>No spam. No pressure. We respond within 24 hours.</p>
+            <p className={styles.offerNote}>
+              No spam. No pressure. Submitting opens your email to send to {CONTACT_EMAIL} — we respond within 24 hours.
+            </p>
           </div>
         </div>
       </section>
@@ -405,7 +444,9 @@ export default function LandingPage() {
           {/* Investor signup form */}
           <div id="investor-signup" className={styles.investorSignupBox} data-reveal="up">
             <h3 className={styles.investorSignupTitle}>Investor Application</h3>
-            <p className={styles.investorSignupSub}>Tell us about yourself and we'll be in touch within 1 business day.</p>
+            <p className={styles.investorSignupSub}>
+              Tell us about yourself — submit opens your email to {CONTACT_EMAIL}. We'll be in touch within 1 business day.
+            </p>
             {invSent ? (
               <div className={styles.sentBox}>✅ Application received! We'll contact you within 1 business day.</div>
             ) : (
@@ -436,7 +477,9 @@ export default function LandingPage() {
             <div className={styles.alertIcon}>🔔</div>
             <div className={styles.alertContent}>
               <h3 className={styles.alertTitle}>Get New Property Alerts</h3>
-              <p className={styles.alertSub}>Be first to hear about motivated sellers and off-market deals in your target area.</p>
+              <p className={styles.alertSub}>
+                Be first to hear about motivated sellers and off-market deals. Signup sends to {CONTACT_EMAIL}.
+              </p>
               {alertSent ? (
                 <div className={styles.sentBox}>✅ You're on the list! We'll send alerts as new properties come in.</div>
               ) : (
