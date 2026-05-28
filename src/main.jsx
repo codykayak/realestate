@@ -9,6 +9,7 @@ import CityWeBuyHouses from './pages/CityWeBuyHouses';
 import SellingVsCash from './pages/SellingVsCash';
 import ProbateGuide from './pages/ProbateGuide';
 import Testimonials from './pages/Testimonials';
+import ReferralPage from './pages/ReferralPage';
 import './index.css';
 
 const App = lazy(() => import('./App'));
@@ -37,6 +38,9 @@ createRoot(document.getElementById('root')).render(
           <Route path="probate-inherited-house-guide" element={<ProbateGuide />} />
           <Route path="testimonials" element={<Testimonials />} />
         </Route>
+
+        <Route path="referral" element={<ReferralPage />} />
+        <Route path="referral-program" element={<ReferralPage />} />
 
         <Route path="/app/*" element={<Suspense fallback={<MapLoading />}><App /></Suspense>} />
         <Route path="*" element={<Navigate to="/" replace />} />
