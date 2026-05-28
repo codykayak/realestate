@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { BRAND_NAME, CONTACT_EMAIL } from '../constants/brand';
 import { sendFormToContact } from '../utils/sendToContact';
@@ -36,9 +36,23 @@ const AREAS = [
 export default function LandingPage() {
   const navigate = useNavigate();
   useScrollToOffer();
-  useScrollReveal();                    // wire up Intersection Observer
+  useScrollReveal();
   const heroParallax  = useParallax(0.18);
   const trustParallax = useParallax(0.12);
+
+  // $1,000 Reward / Referral modal
+  const [rewardOpen, setRewardOpen] = useState(false);
+  const [rewardForm, setRewardForm] = useState({ name: '', phone: '', email: '', address: '', notes: '' });
+  const [rewardSent, setRewardSent] = useState(false);
+
+  function handleRewardSubmit(e) {
+    e.preventDefault();
+    setRewardSent(true);
+  }
+  function closeReward() {
+    setRewardOpen(false);
+    setTimeout(() => setRewardSent(false), 400);
+  }
 
   const [openFaq, setOpenFaq] = useState(null);
   const [menuOpen, setMenuOpen] = useState(false);
@@ -545,6 +559,101 @@ export default function LandingPage() {
           </div>
         </div>
       </footer>
+
+      {/* ── $1,000 REWARD floating button ────────────────────────────── */}
+      <button
+        className={styles.rewardFab}
+        onClick={() => setRewardOpen(true)}
+        aria-label="$1,000 Finder's Fee — learn more"
+      >
+        <span className={styles.rewardFabBadge}>$1,000</span>
+        <span className={styles.rewardFabLabel}>REWARD</span>
+      </button>
+
+      {/* ── Reward modal ─────────────────────────────────────────────── */}
+      {rewardOpen && (
+        <>
+          <div className={styles.rewardBackdrop} onClick={closeReward} />
+          <div className={styles.rewardModal}>
+            <button className={styles.rewardClose} onClick={closeReward} aria-label="Close">✕</button>
+
+            <div className={styles.rewardHeader}>
+              <span className={styles.rewardEmoji}>💰</span>
+              <h2 className={styles.rewardTitle}>$1,000 Finder's Fee</h2>
+              <p className={styles.rewardSub}>
+                Do you know someone who wants to sell their house?<br/>
+                <strong>If we buy it — you get $1,000 cash.</strong>
+              </p>
+            </div>
+
+            <div className={styles.rewardHow}>
+              {[
+                { icon: '📣', text: 'Tell us about a motivated seller or off-market property' },
+                { icon: '🤝', text: 'We contact them and make a cash offer' },
+                { icon: '💵', text: 'If we close on the deal, you receive $1,000 at closing' },
+              ].map((s) => (
+                <div key={s.icon} className={styles.rewardStep}>
+                  <span className={styles.rewardStepIcon}>{s.icon}</span>
+                  <span>{s.text}</span>
+                </div>
+              ))}
+            </div>
+
+            {rewardSent ? (
+              <div className={styles.rewardSuccess}>
+                ✅ Got it! We'll be in touch. Thank you for the referral!
+              </div>
+            ) : (
+              <form className={styles.rewardForm} onSubmit={handleRewardSubmit}>
+                <input
+                  className={styles.rewardInput}
+                  placeholder="Your name *"
+                  required
+                  value={rewardForm.name}
+                  onChange={e => setRewardForm({ ...rewardForm, name: e.target.value })}
+                />
+                <input
+                  className={styles.rewardInput}
+                  placeholder="Your phone number *"
+                  type="tel"
+                  required
+                  value={rewardForm.phone}
+                  onChange={e => setRewardForm({ ...rewardForm, phone: e.target.value })}
+                />
+                <input
+                  className={styles.rewardInput}
+                  placeholder="Your email (optional)"
+                  type="email"
+                  value={rewardForm.email}
+                  onChange={e => setRewardForm({ ...rewardForm, email: e.target.value })}
+                />
+                <input
+                  className={styles.rewardInput}
+                  placeholder="Property address or city *"
+                  required
+                  value={rewardForm.address}
+                  onChange={e => setRewardForm({ ...rewardForm, address: e.target.value })}
+                />
+                <textarea
+                  className={`${styles.rewardInput} ${styles.rewardTextarea}`}
+                  placeholder="Tell us anything you know about the seller or property (optional)"
+                  value={rewardForm.notes}
+                  onChange={e => setRewardForm({ ...rewardForm, notes: e.target.value })}
+                  rows={3}
+                />
+                <button type="submit" className={styles.rewardSubmit}>
+                  💰 Submit My Referral
+                </button>
+              </form>
+            )}
+
+            <p className={styles.rewardDisclaimer}>
+              Finder's fee paid at closing. Property must be purchased by MacroREI.
+              Referral must be new — not already in our system.
+            </p>
+          </div>
+        </>
+      )}
     </div>
   );
 }
