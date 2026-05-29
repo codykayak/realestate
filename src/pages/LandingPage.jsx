@@ -346,19 +346,35 @@ export default function LandingPage() {
               </div>
             ))}
           </div>
-          <div className={styles.areasCardGrid} style={{ marginTop: 20 }}>
-            {cities.map((c) => (
-              <Link
-                key={c.slug}
-                to={`/we-buy-houses/${c.slug}`}
-                className={styles.areaCard}
-                data-reveal="up"
-                onClick={() => window.scrollTo(0, 0)}
-              >
-                <strong className={styles.areaCounty}>We Buy Houses — {c.name}</strong>
-                <p className={styles.areaCities}>Local cash buyer →</p>
-              </Link>
-            ))}
+          {/* City page links — in collapsible accordion */}
+          <div className={styles.citiesAccordion} data-reveal="up" data-delay="300">
+            <button
+              className={styles.citiesAccordionTrigger}
+              onClick={() => setCitiesOpen(v => !v)}
+            >
+              <span>
+                📍 View all {cities.length} cities we buy in
+              </span>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
+                style={{ transform: citiesOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s', flexShrink: 0 }}>
+                <path d="M6 9l6 6 6-6" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"/>
+              </svg>
+            </button>
+            {citiesOpen && (
+              <div className={styles.citiesAccordionGrid}>
+                {cities.map((c) => (
+                  <Link
+                    key={c.slug}
+                    to={`/we-buy-houses/${c.slug}`}
+                    className={styles.cityAccordionItem}
+                    onClick={() => window.scrollTo(0, 0)}
+                  >
+                    <strong>{c.name}</strong>
+                    <span>{c.county}</span>
+                  </Link>
+                ))}
+              </div>
+            )}
           </div>
           <div className={styles.areasCta} data-reveal="up" data-delay="400">
             <p className={styles.areasCtaText}>Buying in any of these areas? Let's talk.</p>
@@ -610,7 +626,7 @@ export default function LandingPage() {
             <div className={styles.footerCol}>
               <h4>Legal &amp; Documents</h4>
               <Link to="/contracts">📄 Contracts &amp; Forms</Link>
-              <Link to="/contracts">Wholesale Agreement</Link>
+              <Link to="/contracts">Purchase Agreement</Link>
               <Link to="/referral">Finder's Fee Agreement</Link>
             </div>
             <div className={styles.footerCol}>

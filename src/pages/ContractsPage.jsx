@@ -6,11 +6,11 @@ const LOGO = '/Template/Macro REI Macro Real Estate Logo.png';
 
 const CONTRACTS = [
   {
-    id: 'wholesale',
-    title: 'Oregon Wholesale Purchase & Sale Agreement',
-    description: 'Standard one-page cash purchase contract for motivated sellers. Includes "and/or assigns" language, as-is sale, assignment rights, and heirship/probate provisions.',
+    id: 'purchase-agreement',
+    title: 'Oregon Cash Purchase & Sale Agreement',
+    description: 'Standard one-page cash purchase contract for motivated sellers. Includes "and/or assigns" language, as-is sale, transfer rights, and heirship/probate provisions.',
     features: [
-      'and/or assigns — wholesale assignment rights built in',
+      'and/or assigns — transfer rights built in',
       'As-Is, Where-Is sale — no repair contingencies',
       'Earnest money, closing date, title provisions',
       'Heirship & probate coordination language',
@@ -46,7 +46,7 @@ export default function ContractsPage() {
           <span className={styles.badge}>📄 Legal Documents</span>
           <h1 className={styles.title}>Contracts &amp; Forms</h1>
           <p className={styles.subtitle}>
-            MacroREI's standard wholesale real estate contracts for Oregon.
+            MacroREI's standard real estate purchase contracts for Oregon.
             Download as PDF or open to fill in your browser.
           </p>
           <div className={styles.disclaimer}>
@@ -147,8 +147,8 @@ export default function ContractsPage() {
           <h3 className={styles.comingSoonTitle}>More Forms Coming Soon</h3>
           <div className={styles.comingSoonGrid}>
             {[
-              { icon: '📝', title: 'Assignment of Contract', desc: 'Transfer your purchase agreement to an end buyer with assignment fee.' },
-              { icon: '🤝', title: 'Buyer\'s Agreement', desc: 'Agreement between MacroREI and a cash end buyer at assignment.' },
+              { icon: '📝', title: 'Contract Transfer Agreement', desc: 'Transfer your purchase agreement to an end buyer with a transfer fee.' },
+              { icon: '🤝', title: 'End Buyer Agreement', desc: 'Agreement between MacroREI and a cash end buyer at closing.' },
               { icon: '📋', title: 'Authorization to Release Info', desc: 'Allows third parties to communicate directly with lenders or title.' },
               { icon: '🏛', title: 'Heirship Affidavit Template', desc: 'Oregon small estate / heirship affidavit for inherited property transfers.' },
             ].map(item => (
