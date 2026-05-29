@@ -605,6 +605,13 @@ export default function LandingPage() {
               <a href="#investor-signup">Join the Network</a>
               <a href="/app">Map CMS</a>
               <a href="#alerts">Deal Alerts</a>
+              <Link to="/referral">$1,000 Referral Program</Link>
+            </div>
+            <div className={styles.footerCol}>
+              <h4>Legal &amp; Documents</h4>
+              <Link to="/contracts">📄 Contracts &amp; Forms</Link>
+              <Link to="/contracts">Wholesale Agreement</Link>
+              <Link to="/referral">Finder's Fee Agreement</Link>
             </div>
             <div className={styles.footerCol}>
               <h4>Contact</h4>
