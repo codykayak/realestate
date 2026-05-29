@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { submitForm } from '../utils/submitForm';
 import { BRAND_NAME, CONTACT_EMAIL } from '../constants/brand';
 import { sendFormToContact } from '../utils/sendToContact';
 import { IMG as TEMPLATE_IMG } from '../constants/images';

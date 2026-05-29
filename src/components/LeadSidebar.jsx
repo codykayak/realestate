@@ -163,6 +163,67 @@ export default function LeadSidebar({ lead, onClose, onUpdate, onViewInSheets })
             </div>
           )}
 
+          {/* ── Public Records (Lane County) ──────────────────────── */}
+          {lead.publicRecord && (
+            <div className={styles.publicRecordSection}>
+              <p className={styles.sectionLabel}>
+                📋 Lane County Public Records
+              </p>
+
+              <div className={styles.fieldGrid}>
+                {[
+                  { label: 'Market Value',    val: lead.publicRecord.marketValue },
+                  { label: 'Assessed Value',  val: lead.publicRecord.assessedValue },
+                  { label: 'Taxable Value',   val: lead.publicRecord.taxableValue },
+                  { label: 'Land Value',      val: lead.publicRecord.landValue },
+                  { label: 'Improvement',     val: lead.publicRecord.improvementValue },
+                  { label: 'Exemption',       val: lead.publicRecord.exemptionAmount
+                      ? `${lead.publicRecord.exemptionAmount} (${lead.publicRecord.exemptionType || ''})`
+                      : null },
+                  { label: 'Assess Gap',      val: lead.publicRecord.assessedVsMarketGap
+                      ? `${lead.publicRecord.assessedVsMarketGap} below market` : null },
+                  { label: 'Year Built',      val: lead.publicRecord.yearBuilt },
+                  { label: 'Bldg Type',       val: lead.publicRecord.buildingType },
+                  { label: 'Lot Size',        val: lead.publicRecord.acreage },
+                  { label: 'Property Class',  val: lead.publicRecord.propertyClass },
+                  { label: 'Status',          val: lead.publicRecord.statusClass },
+                  { label: 'Neighborhood',    val: lead.publicRecord.neighborhood },
+                  { label: 'Tax Account',     val: lead.publicRecord.taxAccount },
+                  { label: 'Map/Taxlot',      val: lead.publicRecord.mapTaxlot },
+                ].filter(f => f.val).map(f => (
+                  <div key={f.label} className={styles.field}>
+                    <span className={styles.fieldLabel}>{f.label}</span>
+                    <span className={styles.fieldValue}>{f.val}</span>
+                  </div>
+                ))}
+              </div>
+
+              {/* Tax delinquency / balance due links */}
+              <div className={styles.taxLinks}>
+                {lead.publicRecord.taxPayLink && (
+                  <a
+                    href={lead.publicRecord.taxPayLink}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className={styles.taxLinkBtn}
+                  >
+                    🏛 Check Tax Balance Due
+                  </a>
+                )}
+                {lead.publicRecord.rlidLink && (
+                  <a
+                    href={lead.publicRecord.rlidLink}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className={styles.rlidLinkBtn}
+                  >
+                    📄 Full RLID Report
+                  </a>
+                )}
+              </div>
+            </div>
+          )}
+
           {/* Notes */}
           <div className={styles.notesSection}>
             <label className={styles.sectionLabel} htmlFor={`notes-${lead.id}`}>Notes</label>

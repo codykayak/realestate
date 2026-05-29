@@ -14,6 +14,7 @@ import DialerView from './components/DialerView';
 import SheetsView from './components/SheetsView';
 import BgGeocodingBanner from './components/BgGeocodingBanner';
 import { geocodeLeads, geocodeAddress } from './utils/geocode';
+import { lookupProperty } from './utils/propertyLookup';
 import { assignZones } from './utils/assignZones';
 import { saveLeads as lsSave, loadLeads as lsLoad, clearLeads as lsClear } from './utils/storage';
 import { useZoningData } from './hooks/useZoningData';
@@ -107,7 +108,28 @@ export default function App() {
     );
     setLeads(geocoded);
     setGeocoding(false);
+
+    // After geocoding, enrich each mapped lead with Lane County property records
+    // Run in the background — non-blocking, low priority
+    enrichLeadsFromPublicRecords(geocoded);
   }, []);
+
+  // Background enrichment: Lane County taxlot data for each geocoded lead
+  async function enrichLeadsFromPublicRecords(geocodedLeads) {
+    const mapped = geocodedLeads.filter(l => l.geocoded);
+    for (const lead of mapped) {
+      try {
+        const rec = await lookupProperty(lead.geocoded.lat, lead.geocoded.lng);
+        if (rec) {
+          setLeads(prev =>
+            prev.map(l => l.id === lead.id ? { ...l, publicRecord: rec } : l)
+          );
+        }
+      } catch { /* silent fail per lead */ }
+      // Small delay to avoid hammering the GIS server
+      await new Promise(r => setTimeout(r, 200));
+    }
+  }
 
   const handleSkipGeocode = useCallback(() => { abortRef.current?.abort(); setGeocoding(false); }, []);
   const handleSelectLead  = useCallback((id) => setSelectedId((p) => (p === id ? null : id)), []);
@@ -175,10 +197,13 @@ export default function App() {
 
       if (geo) {
         console.log(`[resumeGeocode] ✓ ${lead._addressForGeocode} → ${geo.lat}, ${geo.lng}`);
-        // Update this single lead immediately — pin appears on map right away
         setLeads((prev) =>
           prev.map((l) => l.id === lead.id ? { ...l, geocoded: geo } : l),
         );
+        // Enrich with public records in background
+        lookupProperty(geo.lat, geo.lng).then(rec => {
+          if (rec) setLeads(prev => prev.map(l => l.id === lead.id ? { ...l, publicRecord: rec } : l));
+        }).catch(() => {});
       } else {
         console.warn(`[resumeGeocode] ✗ Failed: "${lead._addressForGeocode}"`);
       }

@@ -232,6 +232,56 @@
   flex: 1;
 }
 
+/* ── Public Records section ──────────────────────────────────────────────── */
+.publicRecordSection {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  background: rgba(88,166,255,0.04);
+  border: 1px solid rgba(88,166,255,0.15);
+  border-radius: 12px;
+  padding: 12px 14px;
+}
+
+.taxLinks {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.taxLinkBtn,
+.rlidLinkBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 700;
+  padding: 7px 12px;
+  border-radius: 8px;
+  text-decoration: none;
+  transition: background 0.15s, opacity 0.15s;
+  min-height: 36px;
+  white-space: nowrap;
+}
+
+.taxLinkBtn {
+  background: rgba(245,166,35,0.12);
+  border: 1px solid rgba(245,166,35,0.3);
+  color: #f5a623;
+}
+.taxLinkBtn:hover { background: rgba(245,166,35,0.22); }
+
+.rlidLinkBtn {
+  background: rgba(88,166,255,0.1);
+  border: 1px solid rgba(88,166,255,0.25);
+  color: #58a6ff;
+}
+.rlidLinkBtn:hover { background: rgba(88,166,255,0.2); }
+
+@media (max-width: 640px) {
+  .taxLinkBtn, .rlidLinkBtn { font-size: 14px; min-height: 44px; padding: 10px 14px; }
+}
+
 /* ── Notes ───────────────────────────────────────────────────────────────── */
 .notesSection { display: flex; flex-direction: column; gap: 7px; }
 

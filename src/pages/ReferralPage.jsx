@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
+import { sendFormToContact } from '../utils/sendToContact';
 import styles from './ReferralPage.module.css';
 
 const LOGO = '/Template/Macro REI Macro Real Estate Logo.png';
@@ -19,9 +20,23 @@ export default function ReferralPage() {
     setForm(f => ({ ...f, [name]: type === 'checkbox' ? checked : value }));
   }
 
-  function handleSubmit(e) {
+  async function handleSubmit(e) {
     e.preventDefault();
     if (!form.agreed) return;
+    await sendFormToContact({
+      subject: '💵 $1,000 Referral Submission — MacroREI',
+      fields: {
+        'Referrer Name':    form.referrerName,
+        'Referrer Phone':   form.referrerPhone,
+        'Referrer Email':   form.referrerEmail,
+        'Property Address': form.propertyAddress,
+        "Seller's Name":    form.sellerName,
+        "Seller's Phone":   form.sellerPhone,
+        'Notes':            form.notes,
+        'Agreed to Terms':  form.agreed ? 'Yes' : 'No',
+        'Date':             form.date,
+      },
+    });
     setSubmitted(true);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
