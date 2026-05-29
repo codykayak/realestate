@@ -74,8 +74,121 @@
   border-radius: 8px;
 }
 .navLinks  { display:flex; align-items:center; gap:28px; }
-.navLink   { font-size:14px; font-weight:500; color:var(--nw-muted); text-decoration:none; transition:color .15s; }
+.navLink   { font-size:14px; font-weight:500; color:var(--nw-muted); text-decoration:none; transition:color .15s; background:none; border:none; cursor:pointer; padding:0; font-family:inherit; }
 .navLink:hover { color:var(--nw-teal); }
+
+/* ── Cities dropdown ─────────────────────────────────────────────────────── */
+.navDropWrap {
+  position: relative;
+}
+
+.navDropTrigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+.navDropOpen { color: var(--nw-teal); }
+
+.navDropMenu {
+  position: absolute;
+  top: calc(100% + 12px);
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(7,13,20,0.98);
+  border: 1px solid rgba(0,200,180,0.2);
+  border-radius: 14px;
+  padding: 12px;
+  min-width: 440px;
+  z-index: 200;
+  box-shadow: 0 12px 36px rgba(0,0,0,0.6);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  animation: dropDown 0.15s ease;
+}
+
+@keyframes dropDown {
+  from { opacity: 0; transform: translateX(-50%) translateY(-6px); }
+  to   { opacity: 1; transform: translateX(-50%) translateY(0); }
+}
+
+.navDropGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 4px;
+}
+
+.navDropItem {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 9px 12px;
+  border-radius: 9px;
+  text-decoration: none;
+  transition: background 0.12s;
+}
+.navDropItem:hover { background: rgba(0,200,180,0.08); }
+
+.navDropCity {
+  font-size: 13px;
+  font-weight: 700;
+  color: #e6edf3;
+}
+.navDropCounty {
+  font-size: 11px;
+  color: var(--nw-muted);
+}
+
+.navDropFooter {
+  border-top: 1px solid rgba(255,255,255,0.07);
+  margin-top: 8px;
+  padding-top: 8px;
+  text-align: center;
+}
+
+.navDropAll {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--nw-teal);
+  text-decoration: none;
+  transition: opacity 0.15s;
+}
+.navDropAll:hover { opacity: 0.8; }
+
+/* Mobile cities section */
+.mobileCitiesSection {
+  padding: 6px 0 4px;
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+}
+
+.mobileCitiesLabel {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--nw-teal);
+  margin-bottom: 8px;
+  padding-top: 4px;
+}
+
+.mobileCitiesGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+  margin-bottom: 8px;
+}
+
+.mobileCityLink {
+  font-size: 14px;
+  font-weight: 600;
+  color: #c9d1d9;
+  text-decoration: none;
+  padding: 8px 6px;
+  border-radius: 8px;
+  background: rgba(255,255,255,0.04);
+  text-align: center;
+  transition: background 0.12s, color 0.12s;
+}
+.mobileCityLink:hover { background: rgba(0,200,180,0.1); color: var(--nw-teal); }
 .navActions{ display:flex; align-items:center; gap:10px; }
 .offerBtnNav {
   background: var(--nw-grad); border:none; border-radius:8px; color:#000;

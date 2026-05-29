@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { submitForm } from '../utils/submitForm';
 import { BRAND_NAME, CONTACT_EMAIL } from '../constants/brand';
@@ -27,11 +27,15 @@ const FAQS = [
 ];
 
 const AREAS = [
-  { county: 'Lane County',      cities: 'Eugene · Springfield · Florence · Cottage Grove', icon: '🌲' },
-  { county: 'Benton County',    cities: 'Corvallis · Philomath · Monroe',                  icon: '🎓' },
-  { county: 'Douglas County',   cities: 'Roseburg · Sutherlin · Myrtle Creek',             icon: '⛰️' },
-  { county: 'Deschutes County', cities: 'Bend · Redmond · Sisters · La Pine',              icon: '🏔️' },
-  { county: 'Linn County',      cities: 'Albany · Lebanon · Sweet Home',                   icon: '🌾' },
+  { county: 'Lane County',       cities: 'Eugene · Springfield · Florence · Cottage Grove · Junction City', icon: '🌲' },
+  { county: 'Benton County',     cities: 'Corvallis · Philomath · Monroe',                                  icon: '🎓' },
+  { county: 'Linn County',       cities: 'Albany · Lebanon · Sweet Home · Harrisburg',                      icon: '🌾' },
+  { county: 'Deschutes County',  cities: 'Bend · Redmond · Sisters · La Pine',                              icon: '🏔️' },
+  { county: 'Douglas County',    cities: 'Roseburg · Sutherlin · Myrtle Creek · Canyonville',               icon: '⛰️' },
+  { county: 'Jackson County',    cities: 'Medford · Grants Pass · Ashland · Central Point',                 icon: '🏡' },
+  { county: 'Marion County',     cities: 'Salem · Keizer · Silverton · Stayton',                            icon: '🏛️' },
+  { county: 'Lincoln County',    cities: 'Newport · Lincoln City · Toledo',                                  icon: '🌊' },
+  { county: 'Klamath County',    cities: 'Klamath Falls · Chiloquin · Merrill',                              icon: '🦅' },
 ];
 
 export default function LandingPage() {
@@ -40,6 +44,20 @@ export default function LandingPage() {
   useScrollReveal();
   const heroParallax  = useParallax(0.18);
   const trustParallax = useParallax(0.12);
+
+  const [citiesOpen, setCitiesOpen] = useState(false);
+  const citiesRef = useRef(null);
+
+  // Close cities dropdown on outside click
+  useEffect(() => {
+    function handler(e) {
+      if (citiesRef.current && !citiesRef.current.contains(e.target)) {
+        setCitiesOpen(false);
+      }
+    }
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, []);
 
   const [openFaq, setOpenFaq] = useState(null);
   const [menuOpen, setMenuOpen] = useState(false);
@@ -99,11 +117,50 @@ export default function LandingPage() {
           <img src={IMG.logo} alt={BRAND_NAME} className={styles.logoImg} />
         </a>
         <div className={styles.navLinks}>
-          {['#how-it-works','#areas','#faq','#investors','#alerts'].map((href, i) => (
-            <a key={href} href={href} className={styles.navLink}>
-              {['How It Works','Areas','FAQ','Investors','Get Alerts'][i]}
-            </a>
-          ))}
+          <a href="#how-it-works" className={styles.navLink}>How It Works</a>
+
+          {/* Cities We Buy In — dropdown submenu */}
+          <div className={styles.navDropWrap} ref={citiesRef}>
+            <button
+              className={`${styles.navLink} ${styles.navDropTrigger} ${citiesOpen ? styles.navDropOpen : ''}`}
+              onClick={() => setCitiesOpen(v => !v)}
+              aria-haspopup="true"
+              aria-expanded={citiesOpen}
+            >
+              Cities We Buy In
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none"
+                style={{ transform: citiesOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }}>
+                <path d="M6 9l6 6 6-6" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"/>
+              </svg>
+            </button>
+
+            {citiesOpen && (
+              <div className={styles.navDropMenu}>
+                <div className={styles.navDropGrid}>
+                  {cities.map(c => (
+                    <Link
+                      key={c.slug}
+                      to={`/we-buy-houses/${c.slug}`}
+                      className={styles.navDropItem}
+                      onClick={() => setCitiesOpen(false)}
+                    >
+                      <span className={styles.navDropCity}>{c.name}</span>
+                      <span className={styles.navDropCounty}>{c.county}</span>
+                    </Link>
+                  ))}
+                </div>
+                <div className={styles.navDropFooter}>
+                  <a href="#areas" onClick={() => setCitiesOpen(false)} className={styles.navDropAll}>
+                    View all service areas →
+                  </a>
+                </div>
+              </div>
+            )}
+          </div>
+
+          <a href="#faq"       className={styles.navLink}>FAQ</a>
+          <a href="#investors" className={styles.navLink}>Investors</a>
+          <a href="#alerts"    className={styles.navLink}>Get Alerts</a>
         </div>
         <div className={styles.navActions}>
           <a href="tel:+15413212630" className={styles.callBtnNav}>
@@ -123,9 +180,25 @@ export default function LandingPage() {
 
       {menuOpen && (
         <div className={styles.mobileMenu}>
-          {[['#how-it-works','How It Works'],['#areas','Areas We Buy'],['#faq','FAQ'],['#investors','Investors'],['#alerts','Get Alerts']].map(([href, label]) => (
+          {[['#how-it-works','How It Works'],['#faq','FAQ'],['#investors','Investors'],['#alerts','Get Alerts']].map(([href, label]) => (
             <a key={href} href={href} onClick={() => setMenuOpen(false)}>{label}</a>
           ))}
+          {/* Cities submenu in mobile */}
+          <div className={styles.mobileCitiesSection}>
+            <p className={styles.mobileCitiesLabel}>Cities We Buy In</p>
+            <div className={styles.mobileCitiesGrid}>
+              {cities.map(c => (
+                <Link
+                  key={c.slug}
+                  to={`/we-buy-houses/${c.slug}`}
+                  className={styles.mobileCityLink}
+                  onClick={() => setMenuOpen(false)}
+                >
+                  {c.name}
+                </Link>
+              ))}
+            </div>
+          </div>
           <Link to="/cash-offer-calculator" onClick={() => setMenuOpen(false)}>Cash Calculator</Link>
           <OfferLink className={styles.mobileOfferBtn} onClick={() => setMenuOpen(false)}>Get Cash Offer</OfferLink>
           <button className={styles.mobileLoginBtn} onClick={() => { setMenuOpen(false); navigate('/app'); }}>Sign In to Map →</button>
