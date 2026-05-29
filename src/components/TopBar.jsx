@@ -15,7 +15,7 @@ export default function TopBar({
           <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z" stroke="#58a6ff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
           <circle cx="12" cy="10" r="3" stroke="#58a6ff" strokeWidth="2"/>
         </svg>
-        <span className={styles.title}>Seller Map</span>
+        <span className={styles.title}>Leads</span>
       </div>
 
       {/* Lead stats */}
@@ -36,7 +36,7 @@ export default function TopBar({
               onClick={onResumeGeocoding}
               title="Tap to finish mapping remaining addresses"
             >
-              {unmapped} missing — tap to finish
+              {unmapped} missing
             </button>
           )
         )}
