@@ -198,26 +198,41 @@ export default function LeadSidebar({ lead, onClose, onUpdate, onViewInSheets })
                 ))}
               </div>
 
-              {/* Tax delinquency / balance due links */}
+              {/* ── One-tap County Tax Records button ─────────────── */}
+              {(lead.publicRecord.countyTaxReportLink || lead.publicRecord.taxPayLink) && (
+                <a
+                  href={lead.publicRecord.countyTaxReportLink || lead.publicRecord.taxPayLink}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={styles.countyTaxBtn}
+                >
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"
+                      stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                  <div className={styles.countyTaxBtnText}>
+                    <span className={styles.countyTaxBtnMain}>View County Tax Records</span>
+                    <span className={styles.countyTaxBtnSub}>Assessed value, tax history &amp; payment status</span>
+                  </div>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+                    <path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6M15 3h6v6M10 14L21 3"
+                      stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                </a>
+              )}
+
+              {/* Secondary links */}
               <div className={styles.taxLinks}>
                 {lead.publicRecord.taxPayLink && (
-                  <a
-                    href={lead.publicRecord.taxPayLink}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className={styles.taxLinkBtn}
-                  >
-                    🏛 Check Tax Balance Due
+                  <a href={lead.publicRecord.taxPayLink} target="_blank" rel="noopener noreferrer"
+                    className={styles.taxLinkBtn}>
+                    🏛 Balance Due
                   </a>
                 )}
                 {lead.publicRecord.rlidLink && (
-                  <a
-                    href={lead.publicRecord.rlidLink}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className={styles.rlidLinkBtn}
-                  >
-                    📄 Full RLID Report
+                  <a href={lead.publicRecord.rlidLink} target="_blank" rel="noopener noreferrer"
+                    className={styles.rlidLinkBtn}>
+                    📄 RLID
                   </a>
                 )}
               </div>

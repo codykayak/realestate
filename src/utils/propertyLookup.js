@@ -75,15 +75,25 @@ export async function lookupProperty(lat, lng) {
     // Equity gap: difference between market value and assessed value
     const assessedGap = market > assessed ? market - assessed : 0;
 
-    // Tax account link (direct RLID record — shows tax balance due)
-    const acctno    = feat.acctno?.trim();
-    const rlidLink  = feat.rlid_link?.trim() ||
-      (acctno ? `https://rlid.org/standard/property/?acct=${acctno}` : null);
+    const acctno     = feat.acctno?.trim();
+    const acctInt    = acctno ? parseInt(acctno, 10) : null;   // strip leading zeros
 
-    // Lane County tax payment lookup (shows if taxes are delinquent and by how much)
+    // ── One-tap Lane County tax report (PUBLIC — no login needed) ────────
+    // Opens the Assessment & Taxation Property Info Report directly.
+    // Shows: assessed values by year, current tax amount, exemptions,
+    // property class, tax code area, and links to tax statements.
+    const countyTaxReportLink = acctInt
+      ? `https://www.rlid.org/custom/lc/at/index.cfm?acctint=${acctInt}&do=custom_LC_AT_propsearch.directqry&type=report`
+      : null;
+
+    // Tax payment portal (balance due — separate from report)
     const taxPayLink = acctno
       ? `https://apps.lanecounty.org/TaxPayment/?Acct=${acctno}`
       : null;
+
+    // Full RLID record (requires subscription for balance due detail)
+    const rlidLink  = feat.rlid_link?.trim() ||
+      (acctno ? `https://rlid.org/standard/property/?acct=${acctno}` : null);
 
     return {
       // Ownership
@@ -114,8 +124,9 @@ export async function lookupProperty(lat, lng) {
       neighborhood:   feat.neighborhood_name || null,
 
       // Links
-      rlidLink,
+      countyTaxReportLink,   // PRIMARY one-tap button
       taxPayLink,
+      rlidLink,
 
       _raw: feat,
     };
