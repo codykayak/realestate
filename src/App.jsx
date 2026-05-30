@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import LoginScreen from './components/LoginScreen';
+import AuthScreen from './components/AuthScreen';
 import UploadScreen from './components/UploadScreen';
 import MapView from './components/MapView';
 import LeadSidebar from './components/LeadSidebar';
@@ -26,7 +26,12 @@ import './App.css';
 
 export default function App() {
   const navigate = useNavigate();
-  const { user, loading: authLoading, error: authError, signInWithGoogle, signOutUser } = useAuth();
+  const {
+    user, loading: authLoading, error: authError,
+    setError: setAuthError,
+    signInWithGoogle, signInWithEmail, signUpWithEmail,
+    resetPassword, signOutUser,
+  } = useAuth();
   const uid = user?.uid ?? null;
   const { loadLeads: fsLoad, saveLeads: fsSave, clearLeads: fsClear, logCall, getTodayCallLogs } = useFirestoreLeads(uid);
 
@@ -259,9 +264,18 @@ export default function App() {
     );
   }
 
-  // ── Login gate ───────────────────────────────────────────────────────────
+  // ── Auth gate (sign in OR sign up) ───────────────────────────────────────
   if (!user && isFirebaseConfigured) {
-    return <LoginScreen onSignIn={signInWithGoogle} error={authError} />;
+    return (
+      <AuthScreen
+        onSignInGoogle={signInWithGoogle}
+        onSignInEmail={signInWithEmail}
+        onSignUp={signUpWithEmail}
+        onResetPassword={resetPassword}
+        error={authError}
+        setError={setAuthError}
+      />
+    );
   }
 
   // ── Shared props ─────────────────────────────────────────────────────────

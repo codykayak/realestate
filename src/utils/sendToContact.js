@@ -19,6 +19,8 @@
  */
 
 import emailjs from '@emailjs/browser';
+import { addDoc, collection, serverTimestamp } from 'firebase/firestore';
+import { db, auth, isFirebaseConfigured } from '../firebase';
 import { CONTACT_EMAIL } from '../constants/brand';
 
 const SERVICE_ID  = import.meta.env.VITE_EMAILJS_SERVICE_ID;
@@ -42,6 +44,23 @@ export async function sendFormToContact({ subject, fields }) {
     .filter(([, v]) => v != null && String(v).trim() !== '')
     .map(([k, v]) => `${k}: ${v}`)
     .join('\n');
+
+  // ── Always save to Firestore /submissions (survives email failures) ──
+  if (isFirebaseConfigured && db) {
+    try {
+      await addDoc(collection(db, 'submissions'), {
+        type:      subject,
+        fields,
+        body,
+        userId:    auth?.currentUser?.uid    ?? null,
+        userEmail: auth?.currentUser?.email  ?? fields['Email'] ?? fields['Your Email'] ?? null,
+        timestamp: serverTimestamp(),
+        read:      false,
+      });
+    } catch (err) {
+      console.warn('[sendToContact] Firestore save failed:', err);
+    }
+  }
 
   if (EMAIL_CONFIGURED) {
     try {
