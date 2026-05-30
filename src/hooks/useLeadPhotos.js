@@ -99,7 +99,7 @@ export function useLeadPhotos(uid) {
           const pct = Math.round((snap.bytesTransferred / snap.totalBytes) * 100);
           onProgress?.(pct);
         },
-        reject,
+        (err) => reject(friendlyStorageError(err)),
         async () => {
           try {
             const url = await getDownloadURL(task.snapshot.ref);
@@ -112,7 +112,7 @@ export function useLeadPhotos(uid) {
               timestamp: new Date().toISOString(),
             });
           } catch (e) {
-            reject(e);
+            reject(friendlyStorageError(e));
           }
         },
       );
@@ -129,4 +129,29 @@ export function useLeadPhotos(uid) {
   }, []);
 
   return { uploadPhoto, deletePhoto };
+}
+
+// Turn Firebase Storage error codes into actionable plain-English messages
+function friendlyStorageError(e) {
+  const code = e?.code ?? '';
+  const messages = {
+    'storage/retry-limit-exceeded':
+      'Upload failed — Firebase Storage may not be activated yet.\n' +
+      'Fix: Firebase Console → Build → Storage → Get started → Production mode → Publish rules.',
+    'storage/unauthorized':
+      'Permission denied. Make sure you are signed in and Storage rules are published.',
+    'storage/canceled':
+      'Upload was cancelled.',
+    'storage/unknown':
+      'An unknown error occurred. Check your internet connection and try again.',
+    'storage/bucket-not-found':
+      'Storage bucket not found. Enable Firebase Storage in the Firebase Console first.',
+    'storage/quota-exceeded':
+      'Firebase Storage quota exceeded. Upgrade to the Blaze plan at console.firebase.google.com.',
+    'storage/unauthenticated':
+      'You must be signed in to upload files.',
+    'storage/object-not-found':
+      'File not found in storage.',
+  };
+  return new Error(messages[code] ?? (e?.message || 'Upload failed. Please try again.'));
 }
