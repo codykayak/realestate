@@ -165,7 +165,7 @@ export default function SheetsView({ leads, selectedId, onDialLead, onSelectLead
                   {phones > 0    && <span className={styles.metaChip}>{phones} phone{phones > 1 ? 's' : ''}</span>}
                   {(lead.photos?.length ?? 0) > 0 && (
                     <span className={`${styles.metaChip} ${styles.photosChip}`}>
-                      📷 {lead.photos.length} photo{lead.photos.length > 1 ? 's' : ''}
+                      📎 {lead.photos.length} file{lead.photos.length > 1 ? 's' : ''}
                     </span>
                   )}
                   </div>

@@ -1,12 +1,17 @@
 /**
- * Upload, retrieve, and delete property photos stored in Firebase Storage.
+ * Upload, retrieve, and delete any file (images, videos, PDFs, docs, etc.)
+ * stored in Firebase Storage per lead.
  *
  * Storage path: /users/{uid}/photos/{leadId}/{timestamp}-{filename}
- * Photo metadata lives inside the lead object: lead.photos = [{url, name, size, timestamp}]
  *
- * Setup required (one-time in Firebase Console):
+ * Firebase Storage note:
+ *   Free Spark plan = 1 GB TOTAL storage.
+ *   For large uploads (1 GB+ per property), upgrade to Blaze (pay-as-you-go).
+ *   Blaze pricing: ~$0.026/GB/month stored, $0.12/GB downloaded.
+ *
+ * Setup (one-time in Firebase Console):
  * 1. Build → Storage → Get started → production mode
- * 2. Rules tab → paste:
+ * 2. Rules tab → paste and Publish:
  *
  *   rules_version = '2';
  *   service firebase.storage {
@@ -24,40 +29,67 @@ import {
 } from 'firebase/storage';
 import { storage, auth, isFirebaseConfigured } from '../firebase';
 
-const MAX_FILE_SIZE_MB = 20;
-const ALLOWED_TYPES    = ['image/jpeg', 'image/png', 'image/webp', 'image/heic', 'image/heif'];
+// 1 GB limit per file (1024 MB)
+const MAX_FILE_SIZE_MB = 1024;
+
+// File type → emoji icon for non-image display
+export function fileIcon(type = '', name = '') {
+  const ext = name.split('.').pop()?.toLowerCase() ?? '';
+  if (type.startsWith('image/'))    return '🖼️';
+  if (type.startsWith('video/'))    return '🎬';
+  if (type.startsWith('audio/'))    return '🎵';
+  if (type === 'application/pdf' || ext === 'pdf')  return '📄';
+  if (['doc','docx'].includes(ext)) return '📝';
+  if (['xls','xlsx'].includes(ext)) return '📊';
+  if (['zip','rar','7z'].includes(ext)) return '📦';
+  return '📎';
+}
+
+export function isImage(type = '') {
+  return type.startsWith('image/');
+}
+
+export function isVideo(type = '') {
+  return type.startsWith('video/');
+}
+
+export function formatSize(bytes) {
+  if (!bytes) return '';
+  if (bytes < 1024)         return `${bytes} B`;
+  if (bytes < 1024 ** 2)   return `${(bytes / 1024).toFixed(1)} KB`;
+  if (bytes < 1024 ** 3)   return `${(bytes / 1024 ** 2).toFixed(1)} MB`;
+  return `${(bytes / 1024 ** 3).toFixed(2)} GB`;
+}
 
 export function useLeadPhotos(uid) {
 
   /**
-   * Upload one image file for a lead.
-   * @param {number} leadId
-   * @param {File}   file
+   * Upload any file for a lead.
+   * @param {number}   leadId
+   * @param {File}     file
    * @param {function} onProgress  — called with 0–100
-   * @returns {Promise<{url,name,size,timestamp}|null>}
+   * @returns {Promise<FileRecord|null>}
    */
   const uploadPhoto = useCallback(async (leadId, file, onProgress) => {
     if (!isFirebaseConfigured || !uid) return null;
 
-    // Validate
-    if (!ALLOWED_TYPES.includes(file.type) && !file.type.startsWith('image/')) {
-      throw new Error('Please upload an image file (JPG, PNG, WEBP, HEIC).');
-    }
-    if (file.size > MAX_FILE_SIZE_MB * 1024 * 1024) {
-      throw new Error(`Image must be under ${MAX_FILE_SIZE_MB} MB.`);
+    const limitBytes = MAX_FILE_SIZE_MB * 1024 * 1024;
+    if (file.size > limitBytes) {
+      throw new Error(`File must be under ${MAX_FILE_SIZE_MB} MB (1 GB). This file is ${formatSize(file.size)}.`);
     }
 
     const timestamp  = Date.now();
-    const safeName   = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
+    const safeName   = file.name.replace(/[^a-zA-Z0-9._\-() ]/g, '_');
     const path       = `users/${uid}/photos/${leadId}/${timestamp}-${safeName}`;
     const storageRef = ref(storage, path);
 
     return new Promise((resolve, reject) => {
       const task = uploadBytesResumable(storageRef, file, {
-        contentType: file.type,
+        contentType: file.type || 'application/octet-stream',
         customMetadata: {
           uploadedBy: auth.currentUser?.email ?? uid,
           leadId:     String(leadId),
+          fileName:   file.name,
         },
       });
 
@@ -76,7 +108,7 @@ export function useLeadPhotos(uid) {
               name:      file.name,
               size:      file.size,
               type:      file.type,
-              path,            // keep for deletion
+              path,
               timestamp: new Date().toISOString(),
             });
           } catch (e) {
@@ -87,16 +119,11 @@ export function useLeadPhotos(uid) {
     });
   }, [uid]);
 
-  /**
-   * Delete a photo from Storage.
-   * @param {string} path  — the photo.path stored in the lead
-   */
   const deletePhoto = useCallback(async (path) => {
     if (!isFirebaseConfigured || !path) return;
     try {
       await deleteObject(ref(storage, path));
     } catch (e) {
-      // If already deleted, ignore
       if (e.code !== 'storage/object-not-found') throw e;
     }
   }, []);

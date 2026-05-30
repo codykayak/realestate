@@ -511,6 +511,64 @@
   cursor: pointer;
 }
 
+/* Upload progress bar */
+.uploadProgress {
+  position: relative;
+  height: 28px;
+  background: rgba(255,255,255,0.05);
+  border-radius: 6px;
+  overflow: hidden;
+  margin-bottom: 6px;
+}
+.uploadProgressBar {
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  background: linear-gradient(90deg, #00a896, #00c8b4);
+  transition: width 0.2s ease;
+  border-radius: 6px;
+}
+.uploadProgressLabel {
+  position: relative;
+  z-index: 1;
+  font-size: 11px;
+  font-weight: 600;
+  color: #fff;
+  padding: 0 8px;
+  line-height: 28px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: block;
+}
+
+/* Non-image file thumb */
+.fileThumb {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  width: 100%;
+  height: 100%;
+  padding: 6px 4px;
+  text-decoration: none;
+  background: rgba(255,255,255,0.04);
+  border-radius: 8px;
+  transition: background 0.15s;
+}
+.fileThumb:hover { background: rgba(255,255,255,0.09); }
+
+.fileThumbIcon  { font-size: 24px; line-height: 1; }
+.fileThumbName  {
+  font-size: 9px; color: #c9d1d9; text-align: center;
+  word-break: break-all; line-height: 1.3;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.fileThumbSize  { font-size: 9px; color: #6e7681; }
+
 .deletePhotoBtn {
   position: absolute;
   top: 3px; right: 3px;
@@ -525,6 +583,40 @@
   transition: background 0.15s;
 }
 .deletePhotoBtn:hover { background: rgba(248,81,73,0.85); }
+
+/* Lightbox */
+.lightbox {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.92);
+  z-index: 200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: zoom-out;
+}
+.lightboxImg {
+  max-width: 95vw;
+  max-height: 95vh;
+  object-fit: contain;
+  border-radius: 8px;
+  box-shadow: 0 8px 40px rgba(0,0,0,0.6);
+}
+.lightboxClose {
+  position: fixed;
+  top: 16px; right: 16px;
+  background: rgba(255,255,255,0.12);
+  border: none;
+  border-radius: 50%;
+  color: #fff;
+  font-size: 20px;
+  width: 44px; height: 44px;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer;
+  transition: background 0.15s;
+  z-index: 201;
+}
+.lightboxClose:hover { background: rgba(255,255,255,0.22); }
 
 @media (max-width: 640px) {
   .addPhotoBtn { font-size: 14px; min-height: 42px; padding: 8px 14px; }
