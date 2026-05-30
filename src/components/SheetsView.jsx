@@ -159,10 +159,15 @@ export default function SheetsView({ leads, selectedId, onDialLead, onSelectLead
                   </div>
 
                   <div className={styles.rowMeta}>
-                    {lead.price    && <span className={styles.metaChip}>{lead.price}</span>}
-                    {lead.equity   && <span className={styles.metaChip}>Eq: {lead.equity}</span>}
-                    {lead.distress && <span className={`${styles.metaChip} ${styles.distressChip}`}>Score: {lead.distress}</span>}
-                    {phones > 0    && <span className={styles.metaChip}>{phones} phone{phones > 1 ? 's' : ''}</span>}
+                  {lead.price    && <span className={styles.metaChip}>{lead.price}</span>}
+                  {lead.equity   && <span className={styles.metaChip}>Eq: {lead.equity}</span>}
+                  {lead.distress && <span className={`${styles.metaChip} ${styles.distressChip}`}>Score: {lead.distress}</span>}
+                  {phones > 0    && <span className={styles.metaChip}>{phones} phone{phones > 1 ? 's' : ''}</span>}
+                  {(lead.photos?.length ?? 0) > 0 && (
+                    <span className={`${styles.metaChip} ${styles.photosChip}`}>
+                      📷 {lead.photos.length} photo{lead.photos.length > 1 ? 's' : ''}
+                    </span>
+                  )}
                   </div>
                 </div>
 

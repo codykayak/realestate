@@ -14,6 +14,7 @@ import DialerView from './components/DialerView';
 import SheetsView from './components/SheetsView';
 import BgGeocodingBanner from './components/BgGeocodingBanner';
 import { geocodeLeads, geocodeAddress } from './utils/geocode';
+import { useLeadPhotos } from './hooks/useLeadPhotos';
 import { lookupProperty } from './utils/propertyLookup';
 import { assignZones } from './utils/assignZones';
 import { saveLeads as lsSave, loadLeads as lsLoad, clearLeads as lsClear } from './utils/storage';
@@ -57,6 +58,7 @@ export default function App() {
   const abortRef = useRef(null);
 
   const { geojson: eugeneGeojson, loading: eugeneLoading } = useZoningData();
+  const { uploadPhoto, deletePhoto } = useLeadPhotos(uid);
   const { geojson: regionalGeojson, loading: regionalLoading } = useRegionalZoning(mapBounds, mapZoom, enabledCounties);
 
   // ── Load leads on mount / auth ──────────────────────────────────────────
@@ -383,6 +385,8 @@ export default function App() {
             todayCalls={todayCalls}
             jumpToId={dialerJumpId}
             onViewInSheets={handleViewInSheets}
+            onUploadPhoto={uploadPhoto}
+            onDeletePhoto={deletePhoto}
           />
         </div>
       )}

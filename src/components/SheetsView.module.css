@@ -230,6 +230,12 @@
   background: rgba(245,166,35,0.1);
 }
 
+.photosChip {
+  color: #58a6ff;
+  background: rgba(88,166,255,0.1);
+  font-weight: 700;
+}
+
 /* ── Action buttons ──────────────────────────────────────────────────────── */
 .rowActions {
   display: flex;

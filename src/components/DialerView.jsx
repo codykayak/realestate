@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import styles from './DialerView.module.css';
 
 const OUTCOMES = [
@@ -11,7 +11,7 @@ const OUTCOMES = [
 
 const DAILY_GOAL = 100;
 
-export default function DialerView({ leads, onUpdateLead, onLogCall, todayCalls, onViewInSheets, jumpToId }) {
+export default function DialerView({ leads, onUpdateLead, onLogCall, todayCalls, onViewInSheets, jumpToId, onUploadPhoto, onDeletePhoto }) {
   const [idx, setIdx]             = useState(0);
   const [jumped, setJumped]       = useState(false);
   const [note, setNote]           = useState('');
@@ -364,6 +364,14 @@ export default function DialerView({ leads, onUpdateLead, onLogCall, todayCalls,
         />
       </div>
 
+      {/* ── Photos ────────────────────────────────────────────────────── */}
+      <PhotoSection
+        lead={lead}
+        onUploadPhoto={onUploadPhoto}
+        onDeletePhoto={onDeletePhoto}
+        onUpdateLead={onUpdateLead}
+      />
+
       {/* ── Next button ───────────────────────────────────────────────── */}
       <button
         className={styles.nextBtn}
@@ -372,6 +380,104 @@ export default function DialerView({ leads, onUpdateLead, onLogCall, todayCalls,
       >
         Next Lead →
       </button>
+    </div>
+  );
+}
+
+// ── Photo upload section ──────────────────────────────────────────────────
+
+function PhotoSection({ lead, onUploadPhoto, onDeletePhoto, onUpdateLead }) {
+  const fileRef   = useRef(null);
+  const [uploading, setUploading] = useState(false);
+  const [progress, setProgress]   = useState(0);
+  const [error, setError]         = useState(null);
+
+  const photos = lead.photos ?? [];
+
+  async function handleFiles(e) {
+    const files = Array.from(e.target.files ?? []);
+    if (!files.length) return;
+    setError(null);
+
+    for (const file of files) {
+      setUploading(true);
+      setProgress(0);
+      try {
+        const photo = await onUploadPhoto(lead.id, file, setProgress);
+        if (photo) {
+          onUpdateLead(lead.id, { photos: [...(lead.photos ?? []), photo] });
+        }
+      } catch (err) {
+        setError(err.message ?? 'Upload failed');
+      }
+    }
+    setUploading(false);
+    e.target.value = ''; // reset so same file can be re-selected
+  }
+
+  async function handleDelete(photo) {
+    if (!window.confirm(`Delete photo "${photo.name}"?`)) return;
+    await onDeletePhoto?.(photo.path);
+    onUpdateLead(lead.id, { photos: (lead.photos ?? []).filter(p => p.url !== photo.url) });
+  }
+
+  return (
+    <div className={styles.photoSection}>
+      <div className={styles.photoHeader}>
+        <p className={styles.notesLabel}>
+          Property Photos
+          {photos.length > 0 && <span className={styles.photoCount}>{photos.length}</span>}
+        </p>
+        <button
+          className={styles.addPhotoBtn}
+          onClick={() => fileRef.current?.click()}
+          disabled={uploading}
+        >
+          {uploading ? (
+            <>
+              <span className={styles.miniSpinnerDark} />
+              {progress}%
+            </>
+          ) : (
+            <>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+                <path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"
+                  stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                <circle cx="12" cy="13" r="4" stroke="currentColor" strokeWidth="2"/>
+              </svg>
+              Add Photo
+            </>
+          )}
+        </button>
+        <input
+          ref={fileRef}
+          type="file"
+          accept="image/*"
+          capture="environment"
+          multiple
+          style={{ display: 'none' }}
+          onChange={handleFiles}
+        />
+      </div>
+
+      {error && <p className={styles.photoError}>{error}</p>}
+
+      {photos.length > 0 && (
+        <div className={styles.photoGrid}>
+          {photos.map((photo, i) => (
+            <div key={photo.url ?? i} className={styles.photoThumb}>
+              <img src={photo.url} alt={photo.name} className={styles.thumbImg} />
+              <button
+                className={styles.deletePhotoBtn}
+                onClick={() => handleDelete(photo)}
+                aria-label="Delete photo"
+              >
+                ✕
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

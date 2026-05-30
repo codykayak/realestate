@@ -425,6 +425,111 @@
 .notes:focus { border-color: #58a6ff; outline: none; }
 .notes::placeholder { color: #6e7681; }
 
+/* ── Photos ──────────────────────────────────────────────────────────────── */
+.photoSection {
+  padding: 4px 14px 8px;
+  flex-shrink: 0;
+}
+
+.photoHeader {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.photoCount {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(88,166,255,0.15);
+  color: #58a6ff;
+  font-size: 11px;
+  font-weight: 700;
+  border-radius: 5px;
+  padding: 1px 7px;
+  margin-left: 6px;
+}
+
+.addPhotoBtn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(255,255,255,0.07);
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 8px;
+  color: #c9d1d9;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 7px 12px;
+  cursor: pointer;
+  margin-left: auto;
+  transition: background 0.15s;
+  min-height: 34px;
+  white-space: nowrap;
+}
+.addPhotoBtn:hover:not(:disabled) { background: rgba(255,255,255,0.12); }
+.addPhotoBtn:disabled { opacity: 0.5; }
+
+.miniSpinnerDark {
+  display: inline-block;
+  width: 11px; height: 11px;
+  border: 2px solid rgba(200,200,200,0.2);
+  border-top-color: #c9d1d9;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+
+.photoError {
+  font-size: 12px;
+  color: #f85149;
+  margin-bottom: 6px;
+  padding: 6px 10px;
+  background: rgba(248,81,73,0.08);
+  border-radius: 6px;
+}
+
+.photoGrid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 6px;
+}
+
+.photoThumb {
+  position: relative;
+  border-radius: 8px;
+  overflow: hidden;
+  aspect-ratio: 1;
+  background: rgba(255,255,255,0.05);
+}
+
+.thumbImg {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  cursor: pointer;
+}
+
+.deletePhotoBtn {
+  position: absolute;
+  top: 3px; right: 3px;
+  background: rgba(0,0,0,0.7);
+  border: none;
+  border-radius: 50%;
+  color: #fff;
+  font-size: 10px;
+  width: 22px; height: 22px;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.deletePhotoBtn:hover { background: rgba(248,81,73,0.85); }
+
+@media (max-width: 640px) {
+  .addPhotoBtn { font-size: 14px; min-height: 42px; padding: 8px 14px; }
+}
+
 /* ── Next button ───────────────────────────────────────────────────────── */
 .nextBtn {
   margin: 8px 14px 0;
