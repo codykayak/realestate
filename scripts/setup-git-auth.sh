@@ -4,26 +4,40 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 ENV_FILE="$ROOT/.env.local"
 
+# Valid classic PAT: ghp_ + ~36 chars (skip placeholder / truncated secrets)
+is_valid_pat() {
+  [[ "${1:-}" == ghp_* ]] && [[ ${#1} -ge 36 ]]
+}
+
+pick_first_valid_pat() {
+  for candidate in "$@"; do
+    if is_valid_pat "$candidate"; then
+      echo "$candidate"
+      return 0
+    fi
+  done
+  return 1
+}
+
 load_token() {
-  if [[ -n "${REALESTATE_GITHUB_TOKEN:-}" ]]; then
-    echo "$REALESTATE_GITHUB_TOKEN"
-    return
-  fi
-  if [[ -n "${GH_TOKEN:-}" ]] && [[ "${GH_TOKEN}" == ghp_* ]]; then
-    echo "$GH_TOKEN"
-    return
-  fi
+  local from_file_june="" from_file_gh=""
+
   if [[ -f "$ENV_FILE" ]]; then
     set -a
     # shellcheck disable=SC1090
     source "$ENV_FILE"
     set +a
-    if [[ -n "${REALESTATE_GITHUB_TOKEN:-}" ]]; then
-      echo "$REALESTATE_GITHUB_TOKEN"
-      return
-    fi
+    from_file_june="${junerealestate:-}"
+    from_file_gh="${GH_TOKEN:-}"
   fi
-  return 1
+
+  # Only junerealestate (+ .env.local / GH_TOKEN). Ignore REALESTATE_GITHUB_TOKEN so a
+  # stale Cursor secret cannot override a valid junerealestate PAT.
+  pick_first_valid_pat \
+    "${junerealestate:-}" \
+    "${GH_TOKEN:-}" \
+    "$from_file_june" \
+    "$from_file_gh"
 }
 
 TOKEN="$(load_token)" || {
@@ -31,9 +45,12 @@ TOKEN="$(load_token)" || {
 No GitHub PAT found for realestate pushes.
 
 Set ONE of these (recommended order):
-  1. Cursor → Cloud Agents → Secrets → REALESTATE_GITHUB_TOKEN = ghp_...
-  2. Shell: export GH_TOKEN=ghp_...
-  3. File:  .env.local with REALESTATE_GITHUB_TOKEN=ghp_...
+  1. Cursor → Cloud Agents → Secrets → junerealestate = ghp_... (Runtime secret, full token)
+  2. File:  .env.local with junerealestate=ghp_...
+
+Ignore REALESTATE_GITHUB_TOKEN in Cursor if you cannot delete it — this script skips it.
+
+Start a NEW Cloud Agent after changing secrets (repo: codykayak/realestate).
 
 Also: start this Cloud Agent from repo codykayak/realestate (not AiBhive).
 EOF

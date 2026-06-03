@@ -152,6 +152,9 @@ export default function SheetsView({ leads, selectedId, onDialLead, onSelectLead
                     {(lead.callCount ?? 0) > 0 && (
                       <span className={styles.callBadge}>📞{lead.callCount}</span>
                     )}
+                    {(lead.smsCount ?? 0) > 0 && (
+                      <span className={styles.smsBadge}>💬{lead.smsCount}</span>
+                    )}
                   </div>
 
                   <div className={styles.rowAddr}>

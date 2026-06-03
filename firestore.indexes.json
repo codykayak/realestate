@@ -1,0 +1,14 @@
+{
+  "indexes": [
+    {
+      "collectionGroup": "smsLogs",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "phoneKey", "order": "ASCENDING" },
+        { "fieldPath": "trigger", "order": "ASCENDING" },
+        { "fieldPath": "createdAt", "order": "ASCENDING" }
+      ]
+    }
+  ],
+  "fieldOverrides": []
+}
