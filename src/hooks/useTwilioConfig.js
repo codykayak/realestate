@@ -3,6 +3,7 @@ import { doc, onSnapshot, setDoc, serverTimestamp } from 'firebase/firestore';
 import { httpsCallable } from 'firebase/functions';
 import { db, functions, isFirebaseConfigured } from '../firebase';
 import { DEFAULT_MISSED_TEMPLATE, DEFAULT_TEMPLATES } from '../utils/smsTemplates';
+import { parseCallableError } from '../utils/callableError';
 
 const TWILIO_DOC = 'twilio';
 
@@ -69,10 +70,16 @@ export function useTwilioConfig(uid) {
     }
   }, [uid]);
 
-  const testCredentials = useCallback(async ({ accountSid, authToken }) => {
+  const testCredentials = useCallback(async ({ accountSid, authToken, phoneNumber }) => {
     const fn = httpsCallable(functions, 'testTwilioCredentials');
-    const { data } = await fn({ accountSid, authToken });
-    return data;
+    try {
+      const { data } = await fn({ accountSid, authToken, phoneNumber });
+      return data;
+    } catch (e) {
+      const err = new Error(parseCallableError(e));
+      err.cause = e;
+      throw err;
+    }
   }, []);
 
   const sendSms = useCallback(async ({ leadId, templateId, toPhone, leadSnapshot }) => {
@@ -83,9 +90,9 @@ export function useTwilioConfig(uid) {
       const { data } = await fn({ leadId, templateId, toPhone, leadSnapshot });
       return data;
     } catch (e) {
-      const msg = e.message || 'Failed to send text.';
+      const msg = parseCallableError(e);
       setError(msg);
-      throw e;
+      throw new Error(msg);
     } finally {
       setSending(false);
     }

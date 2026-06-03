@@ -15,11 +15,21 @@ import {
 } from './lib/twilioStore.js';
 import { mergeTemplate, toE164, phoneKey, DEFAULT_TEMPLATES } from './lib/templates.js';
 import { sendSmsToLead, leadBlocksSms } from './lib/sendSmsCore.js';
+import { CALLABLE_OPTIONS, REGION } from './lib/callableOpts.js';
 
 initializeApp();
 
-const REGION = process.env.FUNCTION_REGION || 'us-central1';
 const PROJECT_ID = process.env.GCLOUD_PROJECT || process.env.GCP_PROJECT || 'realestate-map-23692';
+
+function twilioErrorMessage(err) {
+  const code = err?.code ?? err?.status;
+  const msg = err?.message ?? String(err);
+  if (code === 20003 || /authenticate/i.test(msg)) {
+    return 'Invalid Account SID or Auth Token. Copy both again from Twilio Console.';
+  }
+  if (code === 20404) return 'Twilio account not found. Check the Account SID.';
+  return msg || 'Twilio API request failed.';
+}
 
 function requireAuth(request) {
   if (!request.auth?.uid) {
@@ -34,7 +44,7 @@ function publicUrl(req, functionName) {
 }
 
 // ── Callable: return webhook URLs for Twilio Console setup ─────────────────
-export const getTwilioSetup = onCall({ region: REGION, cors: true }, async (request) => {
+export const getTwilioSetup = onCall(CALLABLE_OPTIONS, async (request) => {
   const uid = requireAuth(request);
   return {
     webhooks: webhookUrls(uid, REGION, PROJECT_ID),
@@ -44,23 +54,42 @@ export const getTwilioSetup = onCall({ region: REGION, cors: true }, async (requ
 });
 
 // ── Callable: verify Account SID + Auth Token ───────────────────────────────
-export const testTwilioCredentials = onCall({ region: REGION, cors: true }, async (request) => {
+export const testTwilioCredentials = onCall(CALLABLE_OPTIONS, async (request) => {
   requireAuth(request);
-  const { accountSid, authToken } = request.data ?? {};
-  if (!accountSid || !authToken) {
+  const { accountSid, authToken, phoneNumber } = request.data ?? {};
+  const sid = String(accountSid ?? '').trim();
+  const token = String(authToken ?? '').trim();
+  if (!sid || !token) {
     throw new HttpsError('invalid-argument', 'Account SID and Auth Token are required.');
   }
+  if (!sid.startsWith('AC')) {
+    throw new HttpsError('invalid-argument', 'Account SID must start with AC.');
+  }
   try {
-    const client = twilio(accountSid, authToken);
-    const account = await client.api.accounts(accountSid).fetch();
-    return { ok: true, friendlyName: account.friendlyName };
+    const client = twilio(sid, token);
+    const account = await client.api.v2010.accounts(sid).fetch();
+    let phoneOk = null;
+    if (phoneNumber) {
+      const e164 = toE164(phoneNumber);
+      const nums = await client.incomingPhoneNumbers.list({ phoneNumber: e164, limit: 1 });
+      phoneOk = nums.length > 0;
+    }
+    return {
+      ok: true,
+      friendlyName: account.friendlyName ?? 'Twilio',
+      phoneVerified: phoneOk,
+      phoneWarning: phoneOk === false
+        ? 'This Auth Token works, but the Twilio number was not found on the account. Check the number or subaccount.'
+        : null,
+    };
   } catch (e) {
-    throw new HttpsError('invalid-argument', e.message || 'Invalid Twilio credentials.');
+    console.error('[testTwilioCredentials]', e);
+    throw new HttpsError('invalid-argument', twilioErrorMessage(e));
   }
 });
 
 // ── Callable: send SMS from dialer ──────────────────────────────────────────
-export const sendSms = onCall({ region: REGION, cors: true }, async (request) => {
+export const sendSms = onCall(CALLABLE_OPTIONS, async (request) => {
   const uid = requireAuth(request);
   const { leadId, templateId, toPhone, leadSnapshot } = request.data ?? {};
 
@@ -122,7 +151,7 @@ async function patchLeadFields(uid, leadId, patch) {
 }
 
 /** Schedule appointment confirmation SMS 3 hours before appointmentAt */
-export const scheduleAppointmentSms = onCall({ region: REGION, cors: true }, async (request) => {
+export const scheduleAppointmentSms = onCall(CALLABLE_OPTIONS, async (request) => {
   const uid = requireAuth(request);
   const { leadId, appointmentAt, toPhone } = request.data ?? {};
   if (leadId == null || !appointmentAt) {
@@ -191,7 +220,7 @@ export const scheduleAppointmentSms = onCall({ region: REGION, cors: true }, asy
   };
 });
 
-export const cancelScheduledAppointmentSms = onCall({ region: REGION, cors: true }, async (request) => {
+export const cancelScheduledAppointmentSms = onCall(CALLABLE_OPTIONS, async (request) => {
   const uid = requireAuth(request);
   const { leadId } = request.data ?? {};
   if (leadId == null) throw new HttpsError('invalid-argument', 'leadId required.');

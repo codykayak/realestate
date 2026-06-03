@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { DEFAULT_MISSED_TEMPLATE, DEFAULT_TEMPLATES } from '../utils/smsTemplates';
+import { validateTwilioFields } from '../utils/callableError';
 import styles from './TwilioOnboarding.module.css';
 
 const STEPS = ['welcome', 'credentials', 'webhooks', 'templates', 'test', 'done'];
@@ -56,15 +57,53 @@ export default function TwilioOnboarding({
     setTimeout(() => setCopied(''), 2000);
   }, []);
 
+  async function saveCredentialsStep() {
+    await saveConfig({
+      accountSid: accountSid.trim(),
+      authToken: authToken.trim(),
+      phoneNumber,
+      agentPhone,
+      agentName,
+      ringSeconds,
+      autoMissedCallSms: autoMissed,
+    });
+    setStep(STEPS.indexOf('webhooks'));
+  }
+
   async function handleTestCredentials() {
     setErr(null);
+    const validationErr = validateTwilioFields({ accountSid, authToken, phoneNumber, agentPhone });
+    if (validationErr) {
+      setErr(validationErr);
+      return;
+    }
     setBusy(true);
     try {
-      await testCredentials({ accountSid, authToken });
-      await saveConfig({ accountSid, authToken, phoneNumber, agentPhone, agentName, ringSeconds, autoMissedCallSms: autoMissed });
-      setStep(STEPS.indexOf('webhooks'));
+      const result = await testCredentials({ accountSid, authToken, phoneNumber });
+      await saveCredentialsStep();
+      if (result?.phoneWarning) {
+        setErr(result.phoneWarning);
+      }
     } catch (e) {
       setErr(e.message || 'Credentials check failed.');
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function handleSaveWithoutVerify() {
+    setErr(null);
+    const validationErr = validateTwilioFields({ accountSid, authToken, phoneNumber, agentPhone });
+    if (validationErr) {
+      setErr(validationErr);
+      return;
+    }
+    setBusy(true);
+    try {
+      await saveCredentialsStep();
+      setErr('Saved without API test. Deploy Firebase Functions and test with Txt Now before going live.');
+    } catch (e) {
+      setErr(e.message || 'Could not save settings.');
     } finally {
       setBusy(false);
     }
@@ -188,6 +227,17 @@ export default function TwilioOnboarding({
               <button type="button" className={styles.primaryBtn} disabled={busy || !accountSid || !authToken || !phoneNumber || !agentPhone} onClick={handleTestCredentials}>
                 {busy ? 'Verifying…' : 'Save & verify credentials →'}
               </button>
+              <button
+                type="button"
+                className={styles.secondaryBtn}
+                disabled={busy || !accountSid || !authToken || !phoneNumber || !agentPhone}
+                onClick={handleSaveWithoutVerify}
+              >
+                Save &amp; continue (skip API test)
+              </button>
+              <p className={styles.hint}>
+                If you only see &quot;internal&quot;, the SMS backend may not be deployed yet — use skip to save credentials and finish setup.
+              </p>
             </>
           )}
 
