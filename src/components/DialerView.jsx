@@ -1,5 +1,7 @@
 import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { fileIcon, isImage, formatSize } from '../hooks/useLeadPhotos';
+import { smsCountForPhone } from '../utils/smsTemplates';
+import TxtNowSheet from './TxtNowSheet';
 import styles from './DialerView.module.css';
 
 const OUTCOMES = [
@@ -12,7 +14,23 @@ const OUTCOMES = [
 
 const DAILY_GOAL = 100;
 
-export default function DialerView({ leads, onUpdateLead, onLogCall, todayCalls, onViewInSheets, jumpToId, onUploadPhoto, onDeletePhoto }) {
+export default function DialerView({
+  leads,
+  onUpdateLead,
+  onLogCall,
+  todayCalls,
+  onViewInSheets,
+  jumpToId,
+  onUploadPhoto,
+  onDeletePhoto,
+  twilioReady = false,
+  twilioConfig = null,
+  twilioTemplates = [],
+  onOpenTwilioSetup,
+  onSendSms,
+  smsSending = false,
+  smsError = null,
+}) {
   const [idx, setIdx]             = useState(0);
   const [jumped, setJumped]       = useState(false);
   const [note, setNote]           = useState('');
@@ -20,6 +38,8 @@ export default function DialerView({ leads, onUpdateLead, onLogCall, todayCalls,
   const [lastOutcome, setLastOutcome] = useState(null);
   const [filterStatus, setFilterStatus] = useState('all'); // 'all' | 'New' | 'Contacted' | ...
   const [showFilter, setShowFilter] = useState(false);
+  const [txtOpen, setTxtOpen]     = useState(false);
+  const [activePhone, setActivePhone] = useState('');
 
   function hasPhone(l) {
     if (l.phones?.length > 0) return true;
@@ -58,7 +78,30 @@ export default function DialerView({ leads, onUpdateLead, onLogCall, todayCalls,
     setNote(lead?.notes ?? '');
     setLastOutcome(lead?.lastOutcome ?? null);
     setCalling(false);
+    setActivePhone(lead?.phone ?? lead?.phones?.[0]?.number ?? '');
   }, [lead?.id]);
+
+  const handleTxtNow = useCallback(() => {
+    if (!twilioReady) {
+      onOpenTwilioSetup?.();
+      return;
+    }
+    setTxtOpen(true);
+  }, [twilioReady, onOpenTwilioSetup]);
+
+  const handleSmsSent = useCallback(async (payload) => {
+    if (!onSendSms || !lead) return null;
+    const result = await onSendSms(payload);
+    if (result) {
+      onUpdateLead(lead.id, {
+        smsCount: result.smsCount,
+        smsCountsByPhone: result.smsCountsByPhone,
+        lastSmsAt: new Date().toISOString(),
+        status: lead.status === 'New' ? 'Contacted' : lead.status,
+      });
+    }
+    return result;
+  }, [onSendSms, onUpdateLead, lead]);
 
   const handleCall = useCallback(() => {
     if (!lead?.phone) return;
@@ -180,6 +223,15 @@ export default function DialerView({ leads, onUpdateLead, onLogCall, todayCalls,
         )}
 
         <button
+          type="button"
+          className={`${styles.smsSetupBtn} ${twilioReady ? styles.smsSetupReady : ''}`}
+          onClick={() => onOpenTwilioSetup?.()}
+          title={twilioReady ? 'Twilio connected' : 'Set up Twilio SMS'}
+        >
+          {twilioReady ? '💬 SMS' : '💬 Setup'}
+        </button>
+
+        <button
           className={`${styles.filterBtn} ${filterStatus !== 'all' ? styles.filterActive : ''}`}
           onClick={() => setShowFilter((v) => !v)}
         >
@@ -245,6 +297,11 @@ export default function DialerView({ leads, onUpdateLead, onLogCall, todayCalls,
                 📞 {lead.callCount}×
               </span>
             )}
+            {(lead.smsCount ?? 0) > 0 && (
+              <span className={styles.smsCountBadge}>
+                💬 {lead.smsCount}×
+              </span>
+            )}
             <span
               className={styles.statusBadge}
               style={{ background: statusColor(lead.status) }}
@@ -293,6 +350,7 @@ export default function DialerView({ leads, onUpdateLead, onLogCall, todayCalls,
                   className={`${styles.multiPhoneRow} ${isActive ? styles.multiPhoneActive : ''}`}
                   onClick={() => {
                     setCalling(true);
+                    setActivePhone(number);
                     const count = (lead.callCount ?? 0) + 1;
                     onUpdateLead(lead.id, {
                       phone:        number,
