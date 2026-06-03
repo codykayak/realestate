@@ -1,0 +1,9 @@
+# MacroREI — AI crawler hints
+# Full page list: https://www.macrorei.com/llms.txt
+# Sitemap: https://www.macrorei.com/sitemap.xml
+
+Preferred-Name: Macro Real Estate Investing (MacroREI)
+Site: https://www.macrorei.com
+Contact: cody@macrorei.com
+Phone: +1-541-321-2630
+Topic: Oregon cash home buyer, inherited and probate properties, as-is sales

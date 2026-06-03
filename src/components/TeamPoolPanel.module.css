@@ -1,0 +1,189 @@
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 180;
+  background: rgba(0, 0, 0, 0.72);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+}
+
+@media (min-width: 520px) {
+  .overlay {
+    align-items: center;
+    padding: 16px;
+  }
+}
+
+.sheet {
+  width: 100%;
+  max-width: 440px;
+  max-height: 90dvh;
+  overflow-y: auto;
+  background: #161b22;
+  border-radius: 20px 20px 0 0;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+@media (min-width: 520px) {
+  .sheet {
+    border-radius: 16px;
+  }
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px;
+}
+
+.title {
+  margin: 0;
+  font-size: 18px;
+  color: #e6edf3;
+}
+
+.close {
+  background: rgba(255, 255, 255, 0.08);
+  border: none;
+  color: #8b949e;
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.body {
+  padding: 0 16px 20px;
+}
+
+.lead {
+  color: #8b949e;
+  font-size: 14px;
+  line-height: 1.5;
+  margin: 0 0 16px;
+}
+
+.error {
+  color: #f85149;
+  font-size: 13px;
+  margin-bottom: 12px;
+}
+
+.form {
+  margin-bottom: 20px;
+}
+
+.sectionTitle {
+  margin: 0 0 8px;
+  font-size: 14px;
+  color: #e6edf3;
+}
+
+.input {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 10px 12px;
+  margin-bottom: 10px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: #0d1117;
+  color: #e6edf3;
+  font-size: 15px;
+}
+
+.primaryBtn,
+.secondaryBtn,
+.dangerBtn {
+  width: 100%;
+  padding: 12px;
+  border-radius: 10px;
+  border: none;
+  font-weight: 700;
+  cursor: pointer;
+  margin-top: 6px;
+}
+
+.primaryBtn {
+  background: #238636;
+  color: #fff;
+}
+
+.secondaryBtn {
+  background: rgba(88, 166, 255, 0.15);
+  color: #58a6ff;
+}
+
+.dangerBtn {
+  background: rgba(248, 81, 73, 0.12);
+  color: #f85149;
+}
+
+.activeTeam {
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  padding-top: 12px;
+}
+
+.teamName {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 800;
+  color: #e6edf3;
+}
+
+.meta {
+  margin: 4px 0 12px;
+  font-size: 13px;
+  color: #8b949e;
+}
+
+.codeRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+}
+
+.codeLabel {
+  font-size: 12px;
+  color: #8b949e;
+}
+
+.code {
+  font-size: 18px;
+  letter-spacing: 0.12em;
+  color: #58a6ff;
+  font-weight: 800;
+}
+
+.copyBtn {
+  padding: 6px 10px;
+  border-radius: 6px;
+  border: 1px solid rgba(88, 166, 255, 0.4);
+  background: transparent;
+  color: #58a6ff;
+  cursor: pointer;
+  font-size: 12px;
+}
+
+.memberList {
+  list-style: none;
+  margin: 0 0 16px;
+  padding: 0;
+}
+
+.memberList li {
+  display: flex;
+  justify-content: space-between;
+  padding: 8px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  font-size: 13px;
+  color: #c9d1d9;
+}
+
+.role {
+  color: #8b949e;
+  text-transform: capitalize;
+}

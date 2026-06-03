@@ -1,0 +1,81 @@
+.wrap {
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.heading {
+  margin: 0 0 6px;
+  font-size: 14px;
+  font-weight: 800;
+  color: #e6edf3;
+}
+
+.hint {
+  margin: 0 0 12px;
+  font-size: 12px;
+  color: #8b949e;
+  line-height: 1.45;
+}
+
+.enableBtn,
+.linkBtn {
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1px dashed rgba(88, 166, 255, 0.5);
+  background: rgba(88, 166, 255, 0.08);
+  color: #58a6ff;
+  font-weight: 700;
+  cursor: pointer;
+  font-size: 13px;
+}
+
+.stages {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+  margin-bottom: 12px;
+}
+
+.stageBtn {
+  padding: 8px 6px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: #0d1117;
+  color: #8b949e;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.stageActive {
+  border-color: #3fb950;
+  color: #3fb950;
+  background: rgba(63, 185, 80, 0.12);
+}
+
+.label {
+  display: block;
+  font-size: 11px;
+  color: #8b949e;
+  margin-bottom: 10px;
+}
+
+.input {
+  display: block;
+  width: 100%;
+  box-sizing: border-box;
+  margin-top: 4px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: #0d1117;
+  color: #e6edf3;
+  font-size: 14px;
+}
+
+.linkBtn {
+  margin-top: 4px;
+  border-style: solid;
+}

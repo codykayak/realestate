@@ -4,6 +4,7 @@ import { smsCountForPhone } from '../utils/smsTemplates';
 import { isSmsBlocked, isCallBlocked, complianceLabel } from '../utils/leadCompliance';
 import TxtNowSheet from './TxtNowSheet';
 import LeadActivityTimeline from './LeadActivityTimeline';
+import SellerDealPanel from './SellerDealPanel';
 import styles from './DialerView.module.css';
 
 const OUTCOMES = [
@@ -19,6 +20,7 @@ const DAILY_GOAL = 100;
 export default function DialerView({
   leads,
   onUpdateLead,
+  onSyncPortal,
   onLogCall,
   todayCalls,
   onViewInSheets,
@@ -576,6 +578,12 @@ export default function DialerView({
           ))}
         </div>
       </div>
+
+      <SellerDealPanel
+        lead={lead}
+        onUpdate={onUpdateLead}
+        onSyncPortal={onSyncPortal}
+      />
 
       {/* ── Notes ─────────────────────────────────────────────────────── */}
       <div className={styles.notesSection}>

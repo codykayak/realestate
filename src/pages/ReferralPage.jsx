@@ -1,12 +1,35 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { sendFormToContact } from '../utils/sendToContact';
+import SeoHead from '../components/SeoHead';
+import { SITE_URL } from '../constants/brand';
 import styles from './ReferralPage.module.css';
 
 const LOGO = '/Template/Macro REI Macro Real Estate Logo.png';
 const TODAY = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
 
 export default function ReferralPage() {
+  return (
+    <>
+      <SeoHead
+        title="Refer a Seller — Earn $1,000 | MacroREI Oregon"
+        description="Refer a motivated seller in Oregon to Macro Real Estate Investing. Earn $1,000 when we close on a referred property. Eugene, Springfield, Lane County, and statewide."
+        path="/referral"
+        keywords="referral program cash home buyer Oregon, refer seller $1000, MacroREI referral"
+        jsonLd={{
+          '@context': 'https://schema.org',
+          '@type': 'WebPage',
+          name: 'MacroREI Referral Program',
+          url: `${SITE_URL}/referral`,
+          description: 'Earn $1,000 for referring Oregon home sellers to MacroREI.',
+        }}
+      />
+      <ReferralForm />
+    </>
+  );
+}
+
+function ReferralForm() {
   const [form, setForm] = useState({
     referrerName: '', referrerPhone: '', referrerEmail: '',
     sellerName: '', sellerPhone: '', propertyAddress: '', notes: '',

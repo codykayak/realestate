@@ -1,0 +1,159 @@
+.page {
+  min-height: 100dvh;
+  background: linear-gradient(180deg, #070d14 0%, #0d1117 40%);
+  color: #e6edf3;
+  font-family: system-ui, -apple-system, sans-serif;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 20px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.brand {
+  font-weight: 800;
+  color: #58a6ff;
+  text-decoration: none;
+  font-size: 15px;
+}
+
+.phone {
+  color: #3fb950;
+  text-decoration: none;
+  font-weight: 700;
+  font-size: 14px;
+}
+
+.main {
+  max-width: 520px;
+  margin: 0 auto;
+  padding: 28px 20px 48px;
+}
+
+.title {
+  margin: 0 0 8px;
+  font-size: 26px;
+}
+
+.property {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.city {
+  margin: 4px 0 24px;
+  color: #8b949e;
+}
+
+.timeline {
+  list-style: none;
+  margin: 0 0 24px;
+  padding: 0;
+}
+
+.step {
+  display: flex;
+  gap: 14px;
+  padding: 14px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  color: #6e7681;
+}
+
+.stepDone {
+  color: #8b949e;
+}
+
+.stepCurrent {
+  color: #e6edf3;
+}
+
+.stepCurrent p {
+  margin: 6px 0 0;
+  font-size: 14px;
+  color: #8b949e;
+  line-height: 1.5;
+}
+
+.stepDot {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  background: rgba(255, 255, 255, 0.06);
+  font-weight: 800;
+  font-size: 13px;
+}
+
+.stepDone .stepDot {
+  background: rgba(63, 185, 80, 0.2);
+  color: #3fb950;
+}
+
+.stepCurrent .stepDot {
+  background: rgba(88, 166, 255, 0.25);
+  color: #58a6ff;
+}
+
+.details {
+  background: rgba(255, 255, 255, 0.04);
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 20px;
+}
+
+.details p {
+  margin: 0 0 8px;
+}
+
+.label {
+  color: #8b949e;
+  margin-right: 8px;
+}
+
+.statusLine {
+  margin-top: 12px !important;
+  padding-top: 12px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.help {
+  font-size: 14px;
+  color: #8b949e;
+  line-height: 1.6;
+}
+
+.help a {
+  color: #58a6ff;
+}
+
+.card {
+  background: rgba(255, 255, 255, 0.04);
+  border-radius: 16px;
+  padding: 24px;
+}
+
+.card h1 {
+  margin-top: 0;
+}
+
+.cta {
+  display: inline-block;
+  margin-top: 12px;
+  padding: 12px 20px;
+  background: #238636;
+  color: #fff;
+  border-radius: 10px;
+  text-decoration: none;
+  font-weight: 700;
+}
+
+.muted {
+  color: #8b949e;
+}

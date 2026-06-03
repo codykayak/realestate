@@ -1,19 +1,47 @@
-# Macro Real Estate Investing — https://realestate.aibhive.com
+# Macro Real Estate Investing (MacroREI)
+# https://www.macrorei.com
+# Oregon cash home buyer — Eugene, Springfield, Lane County, and statewide as-is purchases.
 
-Marketing site for Oregon cash home purchases. Investor Map CMS: /app (not for public SEO).
+## Brand
+- Name: Macro Real Estate Investing
+- Short name: MacroREI
+- Phone: (541) 321-2630
+- Email: cody@macrorei.com
+- Service: We buy houses for cash in Oregon (inherited, probate, as-is, landlord exits)
 
-## Pages
-- / — Home
-- /cash-offer-calculator
-- /selling-vs-cash-offer
-- /probate-inherited-house-guide
-- /testimonials
-- /we-buy-houses/eugene-or
-- /we-buy-houses/springfield-or
-- /we-buy-houses/corvallis-or
-- /we-buy-houses/bend-or
-- /we-buy-houses/lebanon-or
-- /we-buy-houses/roseburg-or
-- /we-buy-houses/florence-or
+## Public pages (index these)
+- https://www.macrorei.com/ — Home, cash offer form, FAQ
+- https://www.macrorei.com/cash-offer-calculator
+- https://www.macrorei.com/selling-vs-cash-offer
+- https://www.macrorei.com/probate-inherited-house-guide
+- https://www.macrorei.com/testimonials
+- https://www.macrorei.com/referral
+- https://www.macrorei.com/referral-program
+- https://www.macrorei.com/contracts
+- https://www.macrorei.com/contracts/sms-consent
+- https://www.macrorei.com/contracts/affidavit-of-heirship
+- https://www.macrorei.com/seller-deal-tracker — Seller portal overview (offer / under contract / closing)
 
-Contact: (541) 321-2630
+## City landing pages (we buy houses)
+- https://www.macrorei.com/we-buy-houses/eugene-or
+- https://www.macrorei.com/we-buy-houses/springfield-or
+- https://www.macrorei.com/we-buy-houses/corvallis-or
+- https://www.macrorei.com/we-buy-houses/bend-or
+- https://www.macrorei.com/we-buy-houses/lebanon-or
+- https://www.macrorei.com/we-buy-houses/roseburg-or
+- https://www.macrorei.com/we-buy-houses/florence-or
+- https://www.macrorei.com/we-buy-houses/albany-or
+- https://www.macrorei.com/we-buy-houses/grants-pass-or
+- https://www.macrorei.com/we-buy-houses/medford-or
+- https://www.macrorei.com/we-buy-houses/klamath-falls-or
+- https://www.macrorei.com/we-buy-houses/salem-or
+- https://www.macrorei.com/we-buy-houses/newport-or
+- https://www.macrorei.com/we-buy-houses/cottage-grove-or
+- https://www.macrorei.com/we-buy-houses/junction-city-or
+
+## Do not index (private)
+- /app — Investor Map CMS (login required)
+- /seller/* — Private magic-link seller deal status (per seller)
+
+## Sitemap
+https://www.macrorei.com/sitemap.xml

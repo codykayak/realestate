@@ -1,10 +1,10 @@
 /**
- * Firestore lead persistence — per-user, data-isolated.
+ * Firestore lead persistence — personal or shared org pool.
  *
- * Document path:  /users/{uid}/data/leads
- * Stores a stripped lead array (no _raw, _headers — reduces payload size).
+ * Personal:  /users/{uid}/data/leads
+ * Team pool:  /orgs/{orgId}/data/leads
  *
- * Call logs stored as:  /users/{uid}/callLogs/{autoId}
+ * Call logs remain per-user: /users/{uid}/callLogs/{autoId}
  */
 
 import { useState, useEffect, useCallback } from 'react';
@@ -14,7 +14,6 @@ import {
 } from 'firebase/firestore';
 import { db, isFirebaseConfigured } from '../firebase';
 
-// Fields to drop before saving to Firestore (reduce document size)
 const STRIP = new Set(['_raw', '_headers', '_addressSource']);
 
 function stripLead(lead) {
@@ -25,54 +24,60 @@ function stripLead(lead) {
   return out;
 }
 
-function leadsDocRef(uid) {
+function leadsDocRef(uid, orgId) {
+  if (orgId) return doc(db, 'orgs', orgId, 'data', 'leads');
   return doc(db, 'users', uid, 'data', 'leads');
 }
 
-export function useFirestoreLeads(uid) {
+export function useFirestoreLeads(uid, orgId = null, editor = null) {
   const [syncing, setSyncing] = useState(false);
 
-  // Load leads from Firestore
   const loadLeads = useCallback(async () => {
     if (!isFirebaseConfigured || !uid) return null;
     try {
-      const snap = await getDoc(leadsDocRef(uid));
+      const snap = await getDoc(leadsDocRef(uid, orgId));
       if (!snap.exists()) return null;
       return snap.data().leads ?? null;
     } catch (e) {
       console.error('[Firestore] loadLeads:', e);
       return null;
     }
-  }, [uid]);
+  }, [uid, orgId]);
 
-  // Save leads to Firestore
   const saveLeads = useCallback(async (leads) => {
     if (!isFirebaseConfigured || !uid || !leads) return;
     setSyncing(true);
     try {
-      await setDoc(leadsDocRef(uid), {
+      const meta = {
         leads: leads.map(stripLead),
         updatedAt: serverTimestamp(),
         leadCount: leads.length,
-      });
+      };
+      if (orgId && editor) {
+        meta.lastEditedBy = editor.email ?? '';
+        meta.lastEditedUid = editor.uid ?? uid;
+      }
+      await setDoc(leadsDocRef(uid, orgId), meta);
     } catch (e) {
       console.error('[Firestore] saveLeads:', e);
     } finally {
       setSyncing(false);
     }
-  }, [uid]);
+  }, [uid, orgId, editor]);
 
-  // Clear leads from Firestore
   const clearLeads = useCallback(async () => {
     if (!isFirebaseConfigured || !uid) return;
     try {
-      await setDoc(leadsDocRef(uid), { leads: [], updatedAt: serverTimestamp(), leadCount: 0 });
+      await setDoc(leadsDocRef(uid, orgId), {
+        leads: [],
+        updatedAt: serverTimestamp(),
+        leadCount: 0,
+      });
     } catch (e) {
       console.error('[Firestore] clearLeads:', e);
     }
-  }, [uid]);
+  }, [uid, orgId]);
 
-  // Log a call
   const logCall = useCallback(async ({ leadId, leadName, phone, outcome, note, createdByEmail, createdByUid }) => {
     if (!isFirebaseConfigured || !uid) return;
     try {
@@ -84,12 +89,13 @@ export function useFirestoreLeads(uid) {
         note:      note ?? '',
         createdByEmail: createdByEmail ?? '',
         createdByUid:   createdByUid ?? uid,
+        orgId: orgId ?? null,
         timestamp: serverTimestamp(),
       });
     } catch (e) {
       console.error('[Firestore] logCall:', e);
     }
-  }, [uid]);
+  }, [uid, orgId]);
 
   const getLeadActivity = useCallback(async (leadId) => {
     if (!isFirebaseConfigured || !uid || leadId == null) return [];
@@ -143,7 +149,6 @@ export function useFirestoreLeads(uid) {
     }
   }, [uid]);
 
-  // Fetch today's call logs (for stats)
   const getTodayCallLogs = useCallback(async () => {
     if (!isFirebaseConfigured || !uid) return [];
     try {

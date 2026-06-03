@@ -1,4 +1,5 @@
 import { useRef } from 'react';
+import SellerDealPanel from './SellerDealPanel';
 import styles from './LeadSidebar.module.css';
 
 const STATUS_OPTIONS = ['New', 'Contacted', 'Negotiating', 'Under Contract', 'Dead', 'Closed'];
@@ -30,7 +31,7 @@ const PRIORITY_FIELDS = [
   { key: 'mls',       label: 'MLS #' },
 ];
 
-export default function LeadSidebar({ lead, onClose, onUpdate, onViewInSheets }) {
+export default function LeadSidebar({ lead, onClose, onUpdate, onSyncPortal, onViewInSheets }) {
   const sheetRef = useRef(null);
 
   if (!lead) return null;
@@ -238,6 +239,8 @@ export default function LeadSidebar({ lead, onClose, onUpdate, onViewInSheets })
               </div>
             </div>
           )}
+
+          <SellerDealPanel lead={lead} onUpdate={onUpdate} onSyncPortal={onSyncPortal} />
 
           {/* Notes */}
           <div className={styles.notesSection}>

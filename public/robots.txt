@@ -1,11 +1,15 @@
 User-agent: *
 Allow: /
+Disallow: /app
+Disallow: /seller/
 
 Sitemap: https://www.macrorei.com/sitemap.xml
 
-# Allow AI crawlers explicitly
+# Allow AI crawlers explicitly (marketing pages only; /app and /seller/ disallowed above)
 User-agent: GPTBot
 Allow: /
+Disallow: /app
+Disallow: /seller/
 
 User-agent: ChatGPT-User
 Allow: /
@@ -27,3 +31,6 @@ Allow: /
 
 User-agent: XAI-bot
 Allow: /
+
+# Machine-readable site summary for LLMs
+# See https://www.macrorei.com/llms.txt

@@ -24,6 +24,9 @@ import { useZoningData } from './hooks/useZoningData';
 import { useRegionalZoning } from './hooks/useRegionalZoning';
 import { useAuth } from './hooks/useAuth';
 import { useFirestoreLeads } from './hooks/useFirestoreLeads';
+import { useOrgPool } from './hooks/useOrgPool';
+import { useSellerPortalSync } from './hooks/useSellerPortalSync';
+import TeamPoolPanel from './components/TeamPoolPanel';
 import { isFirebaseConfigured } from './firebase';
 import './App.css';
 
@@ -37,9 +40,16 @@ export default function App() {
   } = useAuth();
   const uid = user?.uid ?? null;
   const {
+    org, members, isTeamMode, activeOrgId,
+    createOrg, joinOrg, leaveOrg, usePersonalLeads,
+    error: orgError, setError: setOrgError,
+  } = useOrgPool(uid, user?.email ?? '');
+  const editor = uid ? { uid, email: user?.email ?? '' } : null;
+  const {
     loadLeads: fsLoad, saveLeads: fsSave, clearLeads: fsClear,
     logCall, getTodayCallLogs, getLeadActivity,
-  } = useFirestoreLeads(uid);
+  } = useFirestoreLeads(uid, activeOrgId, editor);
+  const { syncPortal } = useSellerPortalSync(uid, activeOrgId);
   const {
     config: twilioConfig,
     loading: twilioLoading,
@@ -72,6 +82,7 @@ export default function App() {
   const [todayCalls, setTodayCalls]             = useState([]);
   const [dialerJumpId, setDialerJumpId]         = useState(null);
   const [twilioSetupOpen, setTwilioSetupOpen]   = useState(false);
+  const [teamOpen, setTeamOpen]                 = useState(false);
   // Background (non-blocking) geocoding for "X missing → tap to finish"
   const [bgGeocoding, setBgGeocoding]           = useState(false);
   const [bgDone, setBgDone]                     = useState(0);
@@ -83,20 +94,20 @@ export default function App() {
   const { uploadPhoto, deletePhoto } = useLeadPhotos(uid);
   const { geojson: regionalGeojson, loading: regionalLoading } = useRegionalZoning(mapBounds, mapZoom, enabledCounties);
 
-  // ── Load leads on mount / auth ──────────────────────────────────────────
+  // ── Load leads on mount / auth / team pool switch ───────────────────────
   useEffect(() => {
     if (authLoading) return;
     async function init() {
       if (uid && isFirebaseConfigured) {
         const fsLeads = await fsLoad();
-        if (fsLeads?.length) { setLeads(fsLeads); return; }
+        setLeads(fsLeads ?? []);
+        return;
       }
-      // Fallback: localStorage
       const saved = lsLoad();
       if (saved?.length) setLeads(saved);
     }
     init();
-  }, [uid, authLoading]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [uid, authLoading, activeOrgId]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // ── Persist leads ────────────────────────────────────────────────────────
   useEffect(() => {
@@ -182,8 +193,22 @@ export default function App() {
   const handleSkipGeocode = useCallback(() => { abortRef.current?.abort(); setGeocoding(false); }, []);
   const handleSelectLead  = useCallback((id) => setSelectedId((p) => (p === id ? null : id)), []);
   const handleUpdateLead  = useCallback((id, patch) => {
-    setLeads((prev) => prev.map((l) => (l.id === id ? { ...l, ...patch } : l)));
-  }, []);
+    setLeads((prev) => {
+      const next = prev.map((l) => {
+        if (l.id !== id) return l;
+        const updated = {
+          ...l,
+          ...patch,
+          ...(user?.email ? { lastEditedBy: user.email } : {}),
+        };
+        if (updated.sellerDeal?.enabled) {
+          syncPortal(updated).catch(() => {});
+        }
+        return updated;
+      });
+      return next;
+    });
+  }, [user?.email, syncPortal]);
 
   const handleReset = useCallback(async () => {
     abortRef.current?.abort();
@@ -346,6 +371,8 @@ export default function App() {
     onReset: leads ? handleReset : null,
     onResumeGeocoding: unmappedCount > 0 && !bgGeocoding ? handleResumeGeocoding : undefined,
     bgGeocoding,
+    teamLabel: isTeamMode ? org?.name : null,
+    onOpenTeam: uid ? () => setTeamOpen(true) : undefined,
   };
 
   return (
@@ -399,6 +426,7 @@ export default function App() {
                 lead={selectedLead}
                 onClose={() => setSelectedId(null)}
                 onUpdate={handleUpdateLead}
+                onSyncPortal={syncPortal}
                 onViewInSheets={() => handleViewInSheets(selectedLead?.id)}
               />
             </>
@@ -412,6 +440,7 @@ export default function App() {
           <SheetsView
             leads={leads ?? []}
             selectedId={selectedId}
+            isTeamMode={isTeamMode}
             onDialLead={handleDialLead}
             onSelectLead={handleSelectLead}
             onViewOnMap={handleViewOnMap}
@@ -426,6 +455,7 @@ export default function App() {
           <DialerView
             leads={leads ?? []}
             onUpdateLead={handleUpdateLead}
+            onSyncPortal={syncPortal}
             onLogCall={handleLogCall}
             todayCalls={todayCalls}
             jumpToId={dialerJumpId}
@@ -445,6 +475,19 @@ export default function App() {
           />
         </div>
       )}
+
+      <TeamPoolPanel
+        open={teamOpen}
+        onClose={() => { setTeamOpen(false); setOrgError(null); }}
+        org={org}
+        members={members}
+        isTeamMode={isTeamMode}
+        error={orgError}
+        onCreateOrg={createOrg}
+        onJoinOrg={joinOrg}
+        onLeaveOrg={leaveOrg}
+        onUsePersonal={usePersonalLeads}
+      />
 
       <TwilioOnboarding
         open={twilioSetupOpen}
