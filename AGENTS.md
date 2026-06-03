@@ -22,9 +22,9 @@ Do **not** use `codykayak/AiBhive` for realestate site work.
 
 | Name | Value |
 |------|--------|
-| `REALESTATE_GITHUB_TOKEN` | your `ghp_...` token (classic, **repo** scope) |
+| `junerealestate` | your `ghp_...` token (classic, **repo** scope) |
 
-`CLOUD_AGENT_INJECTED_SECRET_NAMES` must include this name so the shell sees it.
+Use this name only. `setup-git-auth.sh` **ignores** `REALESTATE_GITHUB_TOKEN` so an old Cursor secret cannot break pushes. After adding or changing secrets, **start a new Cloud Agent** on `codykayak/realestate`.
 
 ### 3. Grant Cursor’s GitHub App access to realestate (optional but best)
 
@@ -46,7 +46,7 @@ cd /path/to/realestate
 git push -u origin your-branch
 ```
 
-The script uses, in order: `REALESTATE_GITHUB_TOKEN` env → `GH_TOKEN` → `.env.local`.
+The script uses, in order: `junerealestate` env → `GH_TOKEN` → `.env.local` (ignores `REALESTATE_GITHUB_TOKEN`).
 
 ## PRs
 
