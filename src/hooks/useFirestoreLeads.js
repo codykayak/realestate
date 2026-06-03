@@ -73,7 +73,7 @@ export function useFirestoreLeads(uid) {
   }, [uid]);
 
   // Log a call
-  const logCall = useCallback(async ({ leadId, leadName, phone, outcome, note }) => {
+  const logCall = useCallback(async ({ leadId, leadName, phone, outcome, note, createdByEmail, createdByUid }) => {
     if (!isFirebaseConfigured || !uid) return;
     try {
       await addDoc(collection(db, 'users', uid, 'callLogs'), {
@@ -82,10 +82,64 @@ export function useFirestoreLeads(uid) {
         phone:     phone ?? '',
         outcome,
         note:      note ?? '',
+        createdByEmail: createdByEmail ?? '',
+        createdByUid:   createdByUid ?? uid,
         timestamp: serverTimestamp(),
       });
     } catch (e) {
       console.error('[Firestore] logCall:', e);
+    }
+  }, [uid]);
+
+  const getLeadActivity = useCallback(async (leadId) => {
+    if (!isFirebaseConfigured || !uid || leadId == null) return [];
+    try {
+      const callQ = query(
+        collection(db, 'users', uid, 'callLogs'),
+        where('leadId', '==', leadId),
+        orderBy('timestamp', 'desc'),
+      );
+      const smsQ = query(
+        collection(db, 'users', uid, 'smsLogs'),
+        where('leadId', '==', leadId),
+        orderBy('createdAt', 'desc'),
+      );
+      const [callSnap, smsSnap] = await Promise.all([getDocs(callQ), getDocs(smsQ)]);
+
+      const items = [];
+
+      for (const d of callSnap.docs) {
+        const c = d.data();
+        items.push({
+          id: `call-${d.id}`,
+          kind: 'call',
+          at: c.timestamp,
+          title: `Call — ${c.outcome ?? 'logged'}`,
+          detail: c.note || c.phone || '',
+          by: c.createdByEmail || '',
+        });
+      }
+      for (const d of smsSnap.docs) {
+        const s = d.data();
+        items.push({
+          id: `sms-${d.id}`,
+          kind: 'sms',
+          at: s.createdAt,
+          title: `Text — ${s.templateId ?? 'message'}`,
+          detail: s.body?.slice(0, 120) || s.phone || '',
+          by: s.createdByEmail || '',
+        });
+      }
+
+      items.sort((a, b) => {
+        const ta = a.at?.toDate?.() ?? new Date(a.at ?? 0);
+        const tb = b.at?.toDate?.() ?? new Date(b.at ?? 0);
+        return tb - ta;
+      });
+      return items;
+    } catch (e) {
+      console.error('[Firestore] getLeadActivity:', e);
+      return [];
     }
   }, [uid]);
 
@@ -108,5 +162,5 @@ export function useFirestoreLeads(uid) {
     }
   }, [uid]);
 
-  return { loadLeads, saveLeads, clearLeads, logCall, getTodayCallLogs, syncing };
+  return { loadLeads, saveLeads, clearLeads, logCall, getTodayCallLogs, getLeadActivity, syncing };
 }

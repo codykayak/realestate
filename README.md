@@ -94,6 +94,18 @@ Add GitHub secret `FIREBASE_TOKEN` (`firebase login:ci`) to auto-deploy via `.gi
 
 **Twilio Console** — paste the Voice webhook URL from onboarding into your Twilio phone number’s “A call comes in” setting.
 
+### Dialer features (requires Functions deploy)
+
+- Lead flags: **Do not call**, **Do not text**, **SMS opted out** — blocks Call / Txt Now
+- **Activity timeline** — calls, texts, and notes per lead
+- **Export CSV** on Sheets tab
+- **Appointment reminder** — schedules confirmation text **3 hours before** appointment (`processScheduledSms` runs every 5 minutes)
+- Call/text logs include **team member email** (Firebase Auth — each login has its own lead list)
+
+```bash
+firebase deploy --only functions,firestore:rules,firestore:indexes --project realestate-map-23692
+```
+
 ## Geocoding Notes
 
 - Uses [Nominatim](https://nominatim.openstreetmap.org/) (free, no API key)

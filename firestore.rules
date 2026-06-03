@@ -12,5 +12,9 @@ service cloud.firestore {
       allow read, create: if request.auth != null && request.auth.uid == userId;
       allow update, delete: if false;
     }
+    match /users/{userId}/scheduledSms/{docId} {
+      allow read: if request.auth != null && request.auth.uid == userId;
+      allow create, update, delete: if false;
+    }
   }
 }

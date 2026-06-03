@@ -8,6 +8,38 @@
         { "fieldPath": "trigger", "order": "ASCENDING" },
         { "fieldPath": "createdAt", "order": "ASCENDING" }
       ]
+    },
+    {
+      "collectionGroup": "scheduledSms",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "leadId", "order": "ASCENDING" },
+        { "fieldPath": "status", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "scheduledSms",
+      "queryScope": "COLLECTION_GROUP",
+      "fields": [
+        { "fieldPath": "status", "order": "ASCENDING" },
+        { "fieldPath": "sendAt", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "callLogs",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "leadId", "order": "ASCENDING" },
+        { "fieldPath": "timestamp", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "smsLogs",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "leadId", "order": "ASCENDING" },
+        { "fieldPath": "createdAt", "order": "DESCENDING" }
+      ]
     }
   ],
   "fieldOverrides": []

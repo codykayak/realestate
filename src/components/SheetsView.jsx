@@ -1,4 +1,6 @@
 import { useState, useMemo } from 'react';
+import { exportLeadsCsv } from '../utils/exportLeads';
+import { complianceLabel } from '../utils/leadCompliance';
 import styles from './SheetsView.module.css';
 
 const STATUS_COLORS = {
@@ -29,7 +31,7 @@ function phoneCount(lead) {
   return 0;
 }
 
-export default function SheetsView({ leads, selectedId, onDialLead, onSelectLead, onViewOnMap }) {
+export default function SheetsView({ leads, selectedId, onDialLead, onSelectLead, onViewOnMap, onUpdateLead }) {
   const [search,   setSearch]   = useState('');
   const [sort,     setSort]     = useState('distress_desc');
   const [showSort, setShowSort] = useState(false);
@@ -84,6 +86,15 @@ export default function SheetsView({ leads, selectedId, onDialLead, onSelectLead
             <button className={styles.clearSearch} onClick={() => setSearch('')}>✕</button>
           )}
         </div>
+
+        <button
+          type="button"
+          className={styles.exportBtn}
+          onClick={() => exportLeadsCsv(sorted, `macrorei-leads-${new Date().toISOString().slice(0, 10)}.csv`)}
+          title="Export filtered list to CSV"
+        >
+          Export CSV
+        </button>
 
         <div className={styles.sortWrap}>
           <button className={styles.sortBtn} onClick={() => setShowSort((v) => !v)}>
@@ -155,6 +166,9 @@ export default function SheetsView({ leads, selectedId, onDialLead, onSelectLead
                     {(lead.smsCount ?? 0) > 0 && (
                       <span className={styles.smsBadge}>💬{lead.smsCount}</span>
                     )}
+                    {complianceLabel(lead).map((tag) => (
+                      <span key={tag} className={styles.dncBadge}>{tag}</span>
+                    ))}
                   </div>
 
                   <div className={styles.rowAddr}>

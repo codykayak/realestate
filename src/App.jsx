@@ -36,7 +36,10 @@ export default function App() {
     resetPassword, signOutUser,
   } = useAuth();
   const uid = user?.uid ?? null;
-  const { loadLeads: fsLoad, saveLeads: fsSave, clearLeads: fsClear, logCall, getTodayCallLogs } = useFirestoreLeads(uid);
+  const {
+    loadLeads: fsLoad, saveLeads: fsSave, clearLeads: fsClear,
+    logCall, getTodayCallLogs, getLeadActivity,
+  } = useFirestoreLeads(uid);
   const {
     config: twilioConfig,
     loading: twilioLoading,
@@ -46,6 +49,8 @@ export default function App() {
     fetchWebhooks,
     webhooks,
     sendSms,
+    scheduleAppointmentSms,
+    cancelScheduledAppointmentSms,
     sending: smsSending,
     error: smsError,
     setError: setSmsError,
@@ -132,6 +137,9 @@ export default function App() {
       callCount: l.callCount ?? 0,
       smsCount: l.smsCount ?? 0,
       smsCountsByPhone: l.smsCountsByPhone ?? {},
+      doNotCall: l.doNotCall ?? false,
+      doNotText: l.doNotText ?? false,
+      smsOptOut: l.smsOptOut ?? false,
     }));
     setLeads(initial);
     setSelectedId(null);
@@ -191,11 +199,14 @@ export default function App() {
 
   const handleLogCall = useCallback(async (callData) => {
     if (uid && isFirebaseConfigured) {
-      await logCall(callData);
-      // Refresh today's stats
+      await logCall({
+        ...callData,
+        createdByEmail: user?.email ?? '',
+        createdByUid: uid,
+      });
       getTodayCallLogs().then(setTodayCalls).catch(() => {});
     }
-  }, [uid, logCall, getTodayCallLogs]);
+  }, [uid, user?.email, logCall, getTodayCallLogs]);
 
   const handleBoundsChange = useCallback((bounds, zoom) => { setMapBounds(bounds); setMapZoom(zoom); }, []);
 
@@ -404,6 +415,7 @@ export default function App() {
             onDialLead={handleDialLead}
             onSelectLead={handleSelectLead}
             onViewOnMap={handleViewOnMap}
+            onUpdateLead={handleUpdateLead}
           />
         </div>
       )}
@@ -425,6 +437,9 @@ export default function App() {
             twilioTemplates={twilioTemplates}
             onOpenTwilioSetup={() => { setSmsError(null); setTwilioSetupOpen(true); }}
             onSendSms={sendSms}
+            scheduleAppointmentSms={scheduleAppointmentSms}
+            cancelScheduledAppointmentSms={cancelScheduledAppointmentSms}
+            fetchLeadActivity={getLeadActivity}
             smsSending={smsSending}
             smsError={smsError}
           />

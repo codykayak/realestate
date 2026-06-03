@@ -17,6 +17,12 @@ export const DEFAULT_TEMPLATES = [
     body:
       'Hi {{firstName}}, we help owners at {{address}} sell fast with no fees or repairs. Can I send details? Reply STOP to opt out.',
   },
+  {
+    id: 'appointment',
+    label: 'Appointment confirmed',
+    body:
+      'Hi {{firstName}}, reminder: we\'re scheduled to connect {{appointmentTime}} regarding {{address}}. Reply if you need to reschedule. MacroREI {{agentName}}. Reply STOP to opt out.',
+  },
 ];
 
 export const DEFAULT_MISSED_TEMPLATE = {
@@ -31,6 +37,15 @@ export function mergeTemplate(body, lead, config = {}) {
   const firstName = name.split(/\s+/)[0] || 'there';
   const address = [lead?.address, lead?.city, lead?.state].filter(Boolean).join(', ').trim() || 'your property';
   const agentName = config.agentName?.trim() || 'Macro REI';
+  let appointmentTime = '';
+  if (lead?.appointmentAt) {
+    const d = new Date(lead.appointmentAt);
+    if (!Number.isNaN(d.getTime())) {
+      appointmentTime = d.toLocaleString(undefined, {
+        weekday: 'short', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit',
+      });
+    }
+  }
 
   return body
     .replace(/\{\{firstName\}\}/g, firstName)
@@ -38,7 +53,8 @@ export function mergeTemplate(body, lead, config = {}) {
     .replace(/\{\{address\}\}/g, address)
     .replace(/\{\{agentName\}\}/g, agentName)
     .replace(/\{\{city\}\}/g, String(lead?.city ?? '').trim())
-    .replace(/\{\{state\}\}/g, String(lead?.state ?? '').trim());
+    .replace(/\{\{state\}\}/g, String(lead?.state ?? '').trim())
+    .replace(/\{\{appointmentTime\}\}/g, appointmentTime || 'at our scheduled time');
 }
 
 /** SMS count for the active phone on this lead */

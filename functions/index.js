@@ -2,6 +2,7 @@ import { initializeApp } from 'firebase-admin/app';
 import { getFirestore, FieldValue } from 'firebase-admin/firestore';
 import { onCall, HttpsError } from 'firebase-functions/v2/https';
 import { onRequest } from 'firebase-functions/v2/https';
+import { onSchedule } from 'firebase-functions/v2/scheduler';
 import twilio from 'twilio';
 import {
   getTwilioConfig,
@@ -13,6 +14,7 @@ import {
   recentAutoSms,
 } from './lib/twilioStore.js';
 import { mergeTemplate, toE164, phoneKey, DEFAULT_TEMPLATES } from './lib/templates.js';
+import { sendSmsToLead, leadBlocksSms } from './lib/sendSmsCore.js';
 
 initializeApp();
 
@@ -82,50 +84,190 @@ export const sendSms = onCall({ region: REGION, cors: true }, async (request) =>
     lead = snap.data()?.leads?.find((l) => l.id === leadId) ?? null;
   }
   if (!lead) throw new HttpsError('not-found', 'Lead not found.');
+  if (leadBlocksSms(lead)) {
+    throw new HttpsError('failed-precondition', 'Lead is marked do-not-text or SMS opt-out.');
+  }
 
-  const dest = toPhone || lead.phone;
-  const to = toE164(dest);
-  if (!to) throw new HttpsError('invalid-argument', 'No valid phone number for this lead.');
-
-  const body = mergeTemplate(template.body, lead, config);
-  const client = twilioClient(config);
-  const from = toE164(config.phoneNumber);
-
-  let message;
+  const actor = { uid, email: request.auth.token?.email ?? '' };
+  let result;
   try {
-    message = await client.messages.create({ to, from, body });
+    result = await sendSmsToLead(uid, config, lead, templateId, template.body, toPhone, 'manual', actor);
   } catch (e) {
     throw new HttpsError('internal', e.message || 'Twilio send failed.');
   }
-
-  const pKey = phoneKey(to);
-  await patchLeadSms(uid, leadId, pKey, {});
-
-  await getFirestore().collection(`users/${uid}/smsLogs`).add({
-    leadId,
-    leadName: lead.name ?? '',
-    phone: to,
-    phoneKey: pKey,
-    templateId,
-    body,
-    twilioSid: message.sid,
-    status: message.status,
-    trigger: 'manual',
-    direction: 'outbound',
-    createdAt: FieldValue.serverTimestamp(),
-  });
 
   const snap = await getFirestore().doc(`users/${uid}/data/leads`).get();
   const updated = snap.data()?.leads?.find((l) => l.id === leadId);
 
   return {
-    sid: message.sid,
-    status: message.status,
-    body,
+    sid: result.message.sid,
+    status: result.message.status,
+    body: result.body,
     smsCount: updated?.smsCount ?? 1,
-    smsCountsByPhone: updated?.smsCountsByPhone ?? { [pKey]: 1 },
+    smsCountsByPhone: updated?.smsCountsByPhone ?? { [phoneKey(result.to)]: 1 },
   };
 });
+
+const APPOINTMENT_REMINDER_MS = 3 * 60 * 60 * 1000;
+
+async function patchLeadFields(uid, leadId, patch) {
+  const ref = getFirestore().doc(`users/${uid}/data/leads`);
+  const snap = await ref.get();
+  if (!snap.exists) return;
+  const leads = snap.data().leads ?? [];
+  const idx = leads.findIndex((l) => l.id === leadId);
+  if (idx === -1) return;
+  leads[idx] = { ...leads[idx], ...patch };
+  await ref.set({ leads, updatedAt: FieldValue.serverTimestamp() }, { merge: true });
+}
+
+/** Schedule appointment confirmation SMS 3 hours before appointmentAt */
+export const scheduleAppointmentSms = onCall({ region: REGION, cors: true }, async (request) => {
+  const uid = requireAuth(request);
+  const { leadId, appointmentAt, toPhone } = request.data ?? {};
+  if (leadId == null || !appointmentAt) {
+    throw new HttpsError('invalid-argument', 'leadId and appointmentAt are required.');
+  }
+
+  const appt = new Date(appointmentAt);
+  if (Number.isNaN(appt.getTime())) {
+    throw new HttpsError('invalid-argument', 'Invalid appointment date.');
+  }
+
+  const config = await getTwilioConfig(uid);
+  if (!config?.onboardingComplete) {
+    throw new HttpsError('failed-precondition', 'Complete Twilio setup first.');
+  }
+
+  const snap = await getFirestore().doc(`users/${uid}/data/leads`).get();
+  const lead = snap.data()?.leads?.find((l) => l.id === leadId);
+  if (!lead) throw new HttpsError('not-found', 'Lead not found.');
+  if (leadBlocksSms(lead)) {
+    throw new HttpsError('failed-precondition', 'Lead is marked do-not-text or SMS opt-out.');
+  }
+
+  const sendAt = new Date(appt.getTime() - APPOINTMENT_REMINDER_MS);
+  if (sendAt.getTime() <= Date.now()) {
+    throw new HttpsError('failed-precondition', 'Appointment must be more than 3 hours from now to schedule a reminder.');
+  }
+
+  const pending = await getFirestore()
+    .collection(`users/${uid}/scheduledSms`)
+    .where('leadId', '==', leadId)
+    .where('status', '==', 'pending')
+    .get();
+  for (const doc of pending.docs) {
+    await doc.ref.update({ status: 'cancelled', cancelledAt: FieldValue.serverTimestamp() });
+  }
+
+  const template = (config.templates ?? DEFAULT_TEMPLATES).find((t) => t.id === 'appointment')
+    ?? DEFAULT_TEMPLATES.find((t) => t.id === 'appointment');
+
+  const phone = toPhone || lead.phone;
+  const docRef = await getFirestore().collection(`users/${uid}/scheduledSms`).add({
+    leadId,
+    leadName: lead.name ?? '',
+    phone: toE164(phone),
+    templateId: 'appointment',
+    appointmentAt: appt.toISOString(),
+    sendAt,
+    status: 'pending',
+    createdByUid: uid,
+    createdByEmail: request.auth.token?.email ?? '',
+    createdAt: FieldValue.serverTimestamp(),
+  });
+
+  await patchLeadFields(uid, leadId, {
+    appointmentAt: appt.toISOString(),
+    scheduledSmsId: docRef.id,
+    scheduledSmsSendAt: sendAt.toISOString(),
+  });
+
+  return {
+    scheduledSmsId: docRef.id,
+    sendAt: sendAt.toISOString(),
+    appointmentAt: appt.toISOString(),
+    previewTemplate: mergeTemplate(template.body, { ...lead, appointmentAt: appt.toISOString() }, config),
+  };
+});
+
+export const cancelScheduledAppointmentSms = onCall({ region: REGION, cors: true }, async (request) => {
+  const uid = requireAuth(request);
+  const { leadId } = request.data ?? {};
+  if (leadId == null) throw new HttpsError('invalid-argument', 'leadId required.');
+
+  const pending = await getFirestore()
+    .collection(`users/${uid}/scheduledSms`)
+    .where('leadId', '==', leadId)
+    .where('status', '==', 'pending')
+    .get();
+  for (const doc of pending.docs) {
+    await doc.ref.update({ status: 'cancelled', cancelledAt: FieldValue.serverTimestamp() });
+  }
+  await patchLeadFields(uid, leadId, { scheduledSmsId: null, scheduledSmsSendAt: null });
+  return { cancelled: pending.size };
+});
+
+/** Every 5 minutes — send due appointment reminder texts */
+export const processScheduledSms = onSchedule(
+  { schedule: 'every 5 minutes', region: REGION, timeZone: 'America/Los_Angeles' },
+  async () => {
+    const now = new Date();
+    const db = getFirestore();
+
+    const due = await db.collectionGroup('scheduledSms')
+      .where('status', '==', 'pending')
+      .where('sendAt', '<=', now)
+      .limit(40)
+      .get();
+
+    for (const doc of due.docs) {
+      const data = doc.data();
+      const uid = doc.ref.parent.parent?.id;
+      if (!uid) continue;
+
+      try {
+        const config = await getTwilioConfig(uid);
+        if (!config) {
+          await doc.ref.update({ status: 'failed', error: 'Twilio not configured' });
+          continue;
+        }
+
+        const leadSnap = await db.doc(`users/${uid}/data/leads`).get();
+        const lead = leadSnap.data()?.leads?.find((l) => l.id === data.leadId)
+          ?? { id: data.leadId, name: data.leadName, appointmentAt: data.appointmentAt };
+
+        if (leadBlocksSms(lead)) {
+          await doc.ref.update({ status: 'cancelled', error: 'Lead opted out' });
+          continue;
+        }
+
+        const template = (config.templates ?? DEFAULT_TEMPLATES).find((t) => t.id === 'appointment')
+          ?? DEFAULT_TEMPLATES.find((t) => t.id === 'appointment');
+
+        const result = await sendSmsToLead(
+          uid,
+          config,
+          { ...lead, appointmentAt: data.appointmentAt },
+          'appointment',
+          template.body,
+          data.phone,
+          'appointment_reminder',
+          { uid: data.createdByUid, email: data.createdByEmail },
+        );
+
+        await doc.ref.update({
+          status: 'sent',
+          sentAt: FieldValue.serverTimestamp(),
+          twilioSid: result.message.sid,
+        });
+      } catch (e) {
+        console.error('[processScheduledSms]', doc.id, e);
+        await doc.ref.update({ status: 'failed', error: String(e.message ?? e) });
+      }
+    }
+  },
+);
 
 // ── HTTP: inbound voice → ring agent cell ───────────────────────────────────
 export const twilioVoice = onRequest({ region: REGION }, async (req, res) => {
@@ -204,35 +346,21 @@ export const twilioDialStatus = onRequest({ region: REGION }, async (req, res) =
   if (already) return;
 
   const lead = await findLeadByPhone(uid, caller);
+  if (lead && leadBlocksSms(lead)) return;
+
   const tmpl = config.missedCallTemplate;
-  const body = mergeTemplate(tmpl.body, lead ?? { name: '', address: '' }, config);
-
-  const client = twilioClient(config);
   try {
-    const message = await client.messages.create({
-      to: caller,
-      from: toE164(config.phoneNumber),
-      body,
-    });
-
-    if (lead) {
-      await patchLeadSms(uid, lead.id, pKey, {});
-    }
-
-    await getFirestore().collection(`users/${uid}/smsLogs`).add({
-      leadId: lead?.id ?? null,
-      leadName: lead?.name ?? '',
-      phone: caller,
-      phoneKey: pKey,
-      templateId: tmpl.id ?? 'missed',
-      body,
-      twilioSid: message.sid,
-      status: message.status,
-      trigger: 'missed_inbound',
-      direction: 'outbound',
-      dialCallStatus: dialStatus,
-      createdAt: FieldValue.serverTimestamp(),
-    });
+    await sendSmsToLead(
+      uid,
+      config,
+      lead ?? { name: '', address: '' },
+      tmpl.id ?? 'missed',
+      tmpl.body,
+      caller,
+      'missed_inbound',
+      {},
+    );
+    if (lead) await patchLeadSms(uid, lead.id, pKey, {});
   } catch (e) {
     console.error('[twilioDialStatus] SMS failed:', e);
   }

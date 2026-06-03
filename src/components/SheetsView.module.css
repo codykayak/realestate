@@ -62,6 +62,31 @@
   flex-shrink: 0;
 }
 
+.exportBtn {
+  flex-shrink: 0;
+  min-height: 42px;
+  padding: 0 14px;
+  border-radius: 10px;
+  border: 1px solid rgba(63, 185, 80, 0.35);
+  background: rgba(63, 185, 80, 0.12);
+  color: #3fb950;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.dncBadge {
+  font-size: 10px;
+  font-weight: 700;
+  color: #ff7b72;
+  background: rgba(248, 81, 73, 0.12);
+  border-radius: 4px;
+  padding: 2px 6px;
+  margin-left: 4px;
+  white-space: nowrap;
+}
+
 .sortBtn {
   display: flex;
   align-items: center;

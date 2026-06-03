@@ -91,6 +91,19 @@ export function useTwilioConfig(uid) {
     }
   }, []);
 
+  const scheduleAppointmentSms = useCallback(async ({ leadId, appointmentAt, toPhone }) => {
+    setError(null);
+    const fn = httpsCallable(functions, 'scheduleAppointmentSms');
+    const { data } = await fn({ leadId, appointmentAt, toPhone });
+    return data;
+  }, []);
+
+  const cancelScheduledAppointmentSms = useCallback(async (leadId) => {
+    const fn = httpsCallable(functions, 'cancelScheduledAppointmentSms');
+    const { data } = await fn({ leadId });
+    return data;
+  }, []);
+
   return {
     config,
     loading,
@@ -100,6 +113,8 @@ export function useTwilioConfig(uid) {
     saveConfig,
     testCredentials,
     sendSms,
+    scheduleAppointmentSms,
+    cancelScheduledAppointmentSms,
     sending,
     error,
     setError,

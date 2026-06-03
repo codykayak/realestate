@@ -427,6 +427,120 @@
   padding: 2px 8px;
 }
 
+.complianceWarn {
+  margin-top: 10px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  background: rgba(248, 81, 73, 0.12);
+  border: 1px solid rgba(248, 81, 73, 0.3);
+  color: #ff7b72;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.complianceToggles {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 14px;
+  margin-top: 10px;
+}
+
+.complianceLabel {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #8b949e;
+  cursor: pointer;
+  min-height: 36px;
+}
+
+.complianceLabel input {
+  width: 18px;
+  height: 18px;
+}
+
+.phoneSectionBlocked {
+  opacity: 0.55;
+}
+
+.rowDisabled {
+  pointer-events: none;
+  opacity: 0.45;
+}
+
+.appointmentSection {
+  padding: 12px 14px;
+  margin: 0 14px;
+  background: rgba(88, 166, 255, 0.06);
+  border: 1px solid rgba(88, 166, 255, 0.2);
+  border-radius: 12px;
+}
+
+.appointmentLabel {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #58a6ff;
+  margin-bottom: 8px;
+}
+
+.appointmentInput {
+  width: 100%;
+  min-height: 44px;
+  font-size: 16px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  background: #0d1117;
+  color: #e6edf3;
+  margin-bottom: 10px;
+}
+
+.appointmentActions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.appointmentBtn {
+  flex: 1;
+  min-height: 44px;
+  border: none;
+  border-radius: 10px;
+  background: #1f6feb;
+  color: #fff;
+  font-weight: 700;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.appointmentBtn:disabled {
+  opacity: 0.45;
+}
+
+.appointmentCancelBtn {
+  min-height: 44px;
+  padding: 0 16px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  background: transparent;
+  color: #8b949e;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.appointmentHint {
+  font-size: 12px;
+  color: #8b949e;
+  margin-top: 8px;
+}
+
+.apptOk { font-size: 13px; color: #3fb950; margin-top: 8px; }
+.apptErr { font-size: 13px; color: #ff7b72; margin-top: 8px; }
+
 /* ── Outcome buttons ───────────────────────────────────────────────────── */
 .outcomes {
   padding: 16px 14px 8px;

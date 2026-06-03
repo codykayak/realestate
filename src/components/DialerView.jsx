@@ -1,7 +1,9 @@
 import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { fileIcon, isImage, formatSize } from '../hooks/useLeadPhotos';
 import { smsCountForPhone } from '../utils/smsTemplates';
+import { isSmsBlocked, isCallBlocked, complianceLabel } from '../utils/leadCompliance';
 import TxtNowSheet from './TxtNowSheet';
+import LeadActivityTimeline from './LeadActivityTimeline';
 import styles from './DialerView.module.css';
 
 const OUTCOMES = [
@@ -28,6 +30,9 @@ export default function DialerView({
   twilioTemplates = [],
   onOpenTwilioSetup,
   onSendSms,
+  scheduleAppointmentSms,
+  cancelScheduledAppointmentSms,
+  fetchLeadActivity,
   smsSending = false,
   smsError = null,
 }) {
@@ -40,6 +45,9 @@ export default function DialerView({
   const [showFilter, setShowFilter] = useState(false);
   const [txtOpen, setTxtOpen]     = useState(false);
   const [activePhone, setActivePhone] = useState('');
+  const [appointmentAt, setAppointmentAt] = useState('');
+  const [apptMsg, setApptMsg] = useState(null);
+  const [apptBusy, setApptBusy] = useState(false);
 
   function hasPhone(l) {
     if (l.phones?.length > 0) return true;
@@ -79,15 +87,62 @@ export default function DialerView({
     setLastOutcome(lead?.lastOutcome ?? null);
     setCalling(false);
     setActivePhone(lead?.phone ?? lead?.phones?.[0]?.number ?? '');
+    setAppointmentAt(lead?.appointmentAt ? lead.appointmentAt.slice(0, 16) : '');
+    setApptMsg(null);
   }, [lead?.id]);
+
+  const toggleFlag = useCallback((key) => {
+    if (!lead) return;
+    onUpdateLead(lead.id, { [key]: !lead[key] });
+  }, [lead, onUpdateLead]);
 
   const handleTxtNow = useCallback(() => {
     if (!twilioReady) {
       onOpenTwilioSetup?.();
       return;
     }
+    if (isSmsBlocked(lead)) return;
     setTxtOpen(true);
-  }, [twilioReady, onOpenTwilioSetup]);
+  }, [twilioReady, onOpenTwilioSetup, lead]);
+
+  const handleScheduleAppointment = useCallback(async () => {
+    if (!lead || !appointmentAt || !scheduleAppointmentSms) return;
+    setApptBusy(true);
+    setApptMsg(null);
+    try {
+      const iso = new Date(appointmentAt).toISOString();
+      const data = await scheduleAppointmentSms({
+        leadId: lead.id,
+        appointmentAt: iso,
+        toPhone: activePhone,
+      });
+      onUpdateLead(lead.id, {
+        appointmentAt: data.appointmentAt,
+        scheduledSmsId: data.scheduledSmsId,
+        scheduledSmsSendAt: data.sendAt,
+      });
+      setApptMsg({ ok: true, text: `Reminder scheduled for ${new Date(data.sendAt).toLocaleString()}` });
+    } catch (e) {
+      setApptMsg({ ok: false, text: e.message || 'Could not schedule.' });
+    } finally {
+      setApptBusy(false);
+    }
+  }, [lead, appointmentAt, activePhone, scheduleAppointmentSms, onUpdateLead]);
+
+  const handleCancelAppointment = useCallback(async () => {
+    if (!lead || !cancelScheduledAppointmentSms) return;
+    setApptBusy(true);
+    try {
+      await cancelScheduledAppointmentSms(lead.id);
+      onUpdateLead(lead.id, { scheduledSmsId: null, scheduledSmsSendAt: null, appointmentAt: null });
+      setAppointmentAt('');
+      setApptMsg({ ok: true, text: 'Scheduled reminder cancelled.' });
+    } catch (e) {
+      setApptMsg({ ok: false, text: e.message || 'Cancel failed.' });
+    } finally {
+      setApptBusy(false);
+    }
+  }, [lead, cancelScheduledAppointmentSms, onUpdateLead]);
 
   const handleSmsSent = useCallback(async (payload) => {
     if (!onSendSms || !lead) return null;
@@ -104,7 +159,7 @@ export default function DialerView({
   }, [onSendSms, onUpdateLead, lead]);
 
   const handleCall = useCallback(() => {
-    if (!lead?.phone) return;
+    if (!lead?.phone || isCallBlocked(lead)) return;
     setCalling(true);
     const count = (lead.callCount ?? 0) + 1;
     onUpdateLead(lead.id, {
@@ -333,10 +388,31 @@ export default function DialerView({
             </span>
           </div>
         )}
+
+        {complianceLabel(lead).length > 0 && (
+          <div className={styles.complianceWarn}>
+            {complianceLabel(lead).join(' · ')}
+          </div>
+        )}
+
+        <div className={styles.complianceToggles}>
+          <label className={styles.complianceLabel}>
+            <input type="checkbox" checked={!!lead.doNotCall} onChange={() => toggleFlag('doNotCall')} />
+            Do not call
+          </label>
+          <label className={styles.complianceLabel}>
+            <input type="checkbox" checked={!!lead.doNotText} onChange={() => toggleFlag('doNotText')} />
+            Do not text
+          </label>
+          <label className={styles.complianceLabel}>
+            <input type="checkbox" checked={!!lead.smsOptOut} onChange={() => toggleFlag('smsOptOut')} />
+            SMS opted out
+          </label>
+        </div>
       </div>
 
       {/* ── Phone + Call buttons ──────────────────────────────────────── */}
-      <div className={styles.phoneSection}>
+      <div className={`${styles.phoneSection} ${isCallBlocked(lead) ? styles.phoneSectionBlocked : ''}`}>
         {/* Multi-phone: show all numbers as tap-to-call rows */}
         {lead.phones?.length > 0 ? (
           <div className={styles.multiPhoneList}>
@@ -346,9 +422,10 @@ export default function DialerView({
               return (
                 <a
                   key={label}
-                  href={`tel:${digits}`}
-                  className={`${styles.multiPhoneRow} ${isActive ? styles.multiPhoneActive : ''}`}
-                  onClick={() => {
+                  href={isCallBlocked(lead) ? undefined : `tel:${digits}`}
+                  className={`${styles.multiPhoneRow} ${isActive ? styles.multiPhoneActive : ''} ${isCallBlocked(lead) ? styles.rowDisabled : ''}`}
+                  onClick={(e) => {
+                    if (isCallBlocked(lead)) { e.preventDefault(); return; }
                     setCalling(true);
                     setActivePhone(number);
                     const count = (lead.callCount ?? 0) + 1;
@@ -380,17 +457,25 @@ export default function DialerView({
             <p className={styles.phoneNumber}>{formatPhone(lead.phone)}</p>
             <div className={styles.callActionRow}>
               <a
-                href={`tel:${(lead.phone || '').replace(/\D/g, '')}`}
-                className={`${styles.callBtn} ${calling ? styles.callBtnActive : ''}`}
-                onClick={handleCall}
+                href={isCallBlocked(lead) ? undefined : `tel:${(lead.phone || '').replace(/\D/g, '')}`}
+                className={`${styles.callBtn} ${calling ? styles.callBtnActive : ''} ${isCallBlocked(lead) ? styles.rowDisabled : ''}`}
+                onClick={(e) => {
+                  if (isCallBlocked(lead)) { e.preventDefault(); return; }
+                  handleCall();
+                }}
               >
                 <svg width="22" height="22" viewBox="0 0 24 24" fill="white">
                   <path d="M22 16.92v3a2 2 0 01-2.18 2A19.79 19.79 0 013.07 9.81a19.79 19.79 0 01-3.07-8.68A2 2 0 012 .99h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L6.09 8.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"/>
                 </svg>
                 {calling ? 'Calling…' : 'CALL'}
               </a>
-              <button type="button" className={styles.txtBtn} onClick={handleTxtNow}>
-                Txt Now
+              <button
+                type="button"
+                className={styles.txtBtn}
+                onClick={handleTxtNow}
+                disabled={isSmsBlocked(lead)}
+              >
+                {isSmsBlocked(lead) ? 'Text blocked' : 'Txt Now'}
                 {smsCountForPhone(lead, lead.phone) > 0 && (
                   <span className={styles.txtTally}>{smsCountForPhone(lead, lead.phone)}</span>
                 )}
@@ -401,8 +486,13 @@ export default function DialerView({
 
         {/* Txt Now for multi-phone leads */}
         {lead.phones?.length > 0 && (
-          <button type="button" className={styles.txtBtnFull} onClick={handleTxtNow}>
-            💬 Txt Now
+          <button
+            type="button"
+            className={styles.txtBtnFull}
+            onClick={handleTxtNow}
+            disabled={isSmsBlocked(lead)}
+          >
+            {isSmsBlocked(lead) ? '💬 Text blocked' : '💬 Txt Now'}
             {(lead.smsCount ?? 0) > 0 && (
               <span className={styles.txtTally}>{lead.smsCount} sent</span>
             )}
@@ -420,6 +510,53 @@ export default function DialerView({
         onSend={handleSmsSent}
         sending={smsSending}
         error={smsError}
+      />
+
+      {/* ── Appointment reminder (3 hrs before) ─────────────────────── */}
+      {twilioReady && !isSmsBlocked(lead) && (
+        <div className={styles.appointmentSection}>
+          <p className={styles.appointmentLabel}>Appointment — auto-text 3 hours before</p>
+          <input
+            type="datetime-local"
+            className={styles.appointmentInput}
+            value={appointmentAt}
+            onChange={(e) => setAppointmentAt(e.target.value)}
+          />
+          <div className={styles.appointmentActions}>
+            <button
+              type="button"
+              className={styles.appointmentBtn}
+              disabled={apptBusy || !appointmentAt}
+              onClick={handleScheduleAppointment}
+            >
+              {apptBusy ? 'Scheduling…' : 'Schedule reminder'}
+            </button>
+            {lead.scheduledSmsSendAt && (
+              <button
+                type="button"
+                className={styles.appointmentCancelBtn}
+                disabled={apptBusy}
+                onClick={handleCancelAppointment}
+              >
+                Cancel
+              </button>
+            )}
+          </div>
+          {lead.scheduledSmsSendAt && (
+            <p className={styles.appointmentHint}>
+              Text scheduled: {new Date(lead.scheduledSmsSendAt).toLocaleString()}
+            </p>
+          )}
+          {apptMsg && (
+            <p className={apptMsg.ok ? styles.apptOk : styles.apptErr}>{apptMsg.text}</p>
+          )}
+        </div>
+      )}
+
+      <LeadActivityTimeline
+        leadId={lead?.id}
+        fetchActivity={fetchLeadActivity}
+        leadNotes={note}
       />
 
       {/* ── Outcome buttons ───────────────────────────────────────────── */}
