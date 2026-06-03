@@ -2,6 +2,8 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import styles from './ContractsPage.module.css';
 
+/** @typedef {'document' | 'page'} ContractLinkType */
+
 const LOGO = '/Template/Macro REI Macro Real Estate Logo.png';
 
 const CONTRACTS = [
@@ -22,6 +24,42 @@ const CONTRACTS = [
     pdfPath:  '/contracts/oregon-wholesale-purchase-agreement.pdf',
     badge: 'Most Used',
     badgeColor: '#3fb950',
+    linkType: 'document',
+  },
+  {
+    id: 'sms-consent',
+    title: 'SMS Marketing Consent (Proof of Consent)',
+    description:
+      'Public TCPA / Twilio disclosure page with required opt-in language, opt-out instructions, and a printable consent form for carriers and 10DLC registration.',
+    features: [
+      'Required opt-in disclosure language',
+      'STOP / HELP instructions',
+      'Documents how consent is collected',
+      'Printable written consent form',
+      'Public URL for Twilio campaign registration',
+    ],
+    linkType: 'page',
+    pagePath: '/contracts/sms-consent',
+    badge: 'Twilio / TCPA',
+    badgeColor: '#58a6ff',
+  },
+  {
+    id: 'affidavit-heirship',
+    title: 'Oregon Affidavit of Heirship',
+    description:
+      'Fill-in template to identify heirs and inherited property for title and estate transfers. Use with your attorney or title company.',
+    features: [
+      'Decedent and property identification',
+      'Heir table with relationships and interests',
+      'Statement under penalty of perjury',
+      'Oregon notary acknowledgment block',
+      'Separate page with fill-in browser form',
+    ],
+    linkType: 'page',
+    pagePath: '/contracts/affidavit-of-heirship',
+    htmlPath: '/contracts/oregon-affidavit-of-heirship.html',
+    badge: 'Heirship',
+    badgeColor: '#a371f7',
   },
 ];
 
@@ -69,42 +107,55 @@ export default function ContractsPage() {
                 </div>
 
                 <div className={styles.cardActions}>
-                  {/* Primary: Download PDF */}
-                  <a
-                    href={c.pdfPath}
-                    download
-                    className={styles.downloadBtn}
-                  >
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-                      <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
-                      <polyline points="7 10 12 15 17 10" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
-                      <line x1="12" y1="15" x2="12" y2="3" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"/>
-                    </svg>
-                    Download PDF
-                  </a>
-
-                  {/* Secondary: Open HTML to fill in browser */}
-                  <a
-                    href={c.htmlPath}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className={styles.openBtn}
-                  >
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-                      <path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-                      <polyline points="15 3 21 3 21 9" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                      <line x1="10" y1="14" x2="21" y2="3" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-                    </svg>
-                    Fill in Browser
-                  </a>
-
-                  {/* Toggle preview */}
-                  <button
-                    className={styles.previewBtn}
-                    onClick={() => setPreviewId(previewId === c.id ? null : c.id)}
-                  >
-                    {previewId === c.id ? '▲ Hide Preview' : '▼ Preview Contract'}
-                  </button>
+                  {c.linkType === 'page' ? (
+                    <>
+                      <Link to={c.pagePath} className={styles.downloadBtn}>
+                        Open page →
+                      </Link>
+                      {c.htmlPath && (
+                        <a
+                          href={c.htmlPath}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className={styles.openBtn}
+                        >
+                          Fill in browser
+                        </a>
+                      )}
+                    </>
+                  ) : (
+                    <>
+                      {c.pdfPath && (
+                        <a href={c.pdfPath} download className={styles.downloadBtn}>
+                          <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                            <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+                            <polyline points="7 10 12 15 17 10" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+                            <line x1="12" y1="15" x2="12" y2="3" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"/>
+                          </svg>
+                          Download PDF
+                        </a>
+                      )}
+                      {c.htmlPath && (
+                        <a
+                          href={c.htmlPath}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className={styles.openBtn}
+                        >
+                          Fill in Browser
+                        </a>
+                      )}
+                      {c.pdfPath && (
+                        <button
+                          type="button"
+                          className={styles.previewBtn}
+                          onClick={() => setPreviewId(previewId === c.id ? null : c.id)}
+                        >
+                          {previewId === c.id ? '▲ Hide Preview' : '▼ Preview Contract'}
+                        </button>
+                      )}
+                    </>
+                  )}
                 </div>
               </div>
 
@@ -119,7 +170,7 @@ export default function ContractsPage() {
               </ul>
 
               {/* PDF preview via iframe */}
-              {previewId === c.id && (
+              {previewId === c.id && c.pdfPath && (
                 <div className={styles.previewWrap}>
                   <div className={styles.previewBar}>
                     <span>Preview — <a href={c.pdfPath} download className={styles.previewDownloadLink}>Download full PDF →</a></span>
@@ -150,7 +201,7 @@ export default function ContractsPage() {
               { icon: '📝', title: 'Contract Transfer Agreement', desc: 'Transfer your purchase agreement to an end buyer with a transfer fee.' },
               { icon: '🤝', title: 'End Buyer Agreement', desc: 'Agreement between MacroREI and a cash end buyer at closing.' },
               { icon: '📋', title: 'Authorization to Release Info', desc: 'Allows third parties to communicate directly with lenders or title.' },
-              { icon: '🏛', title: 'Heirship Affidavit Template', desc: 'Oregon small estate / heirship affidavit for inherited property transfers.' },
+              { icon: '🏛', title: 'Heirship Affidavit Template', desc: 'Now available — see Oregon Affidavit of Heirship above.', done: true },
             ].map(item => (
               <div key={item.title} className={styles.comingSoonCard}>
                 <span className={styles.comingSoonIcon}>{item.icon}</span>

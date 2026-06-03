@@ -11,6 +11,8 @@ import ProbateGuide from './pages/ProbateGuide';
 import Testimonials from './pages/Testimonials';
 import ReferralPage from './pages/ReferralPage';
 import ContractsPage from './pages/ContractsPage';
+import SmsConsentPage from './pages/SmsConsentPage';
+import AffidavitHeirshipPage from './pages/AffidavitHeirshipPage';
 import './index.css';
 
 const App = lazy(() => import('./App'));
@@ -43,7 +45,11 @@ createRoot(document.getElementById('root')).render(
         <Route path="referral"  element={<ReferralPage />} />
         <Route path="referral-program" element={<ReferralPage />} />
         <Route path="contracts" element={<ContractsPage />} />
-        <Route path="legal"     element={<ContractsPage />} />
+        <Route path="contracts/sms-consent" element={<SmsConsentPage />} />
+        <Route path="contracts/affidavit-of-heirship" element={<AffidavitHeirshipPage />} />
+        <Route path="legal" element={<ContractsPage />} />
+        <Route path="legal/sms-consent" element={<SmsConsentPage />} />
+        <Route path="legal/affidavit-of-heirship" element={<AffidavitHeirshipPage />} />
 
         <Route path="/app/*" element={<Suspense fallback={<MapLoading />}><App /></Suspense>} />
         <Route path="*" element={<Navigate to="/" replace />} />
