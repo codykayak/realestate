@@ -11,7 +11,9 @@ import ZoneFilter from './components/ZoneFilter';
 import LayerToggle from './components/LayerToggle';
 import TabBar from './components/TabBar';
 import DialerView from './components/DialerView';
+import TwilioOnboarding from './components/TwilioOnboarding';
 import SheetsView from './components/SheetsView';
+import { useTwilioConfig } from './hooks/useTwilioConfig';
 import BgGeocodingBanner from './components/BgGeocodingBanner';
 import { geocodeLeads, geocodeAddress } from './utils/geocode';
 import { useLeadPhotos } from './hooks/useLeadPhotos';
@@ -35,6 +37,20 @@ export default function App() {
   } = useAuth();
   const uid = user?.uid ?? null;
   const { loadLeads: fsLoad, saveLeads: fsSave, clearLeads: fsClear, logCall, getTodayCallLogs } = useFirestoreLeads(uid);
+  const {
+    config: twilioConfig,
+    loading: twilioLoading,
+    isReady: twilioReady,
+    saveConfig: saveTwilioConfig,
+    testCredentials,
+    fetchWebhooks,
+    webhooks,
+    sendSms,
+    sending: smsSending,
+    error: smsError,
+    setError: setSmsError,
+    templates: twilioTemplates,
+  } = useTwilioConfig(uid);
 
   const [leads, setLeads]                       = useState(null);
   const [selectedId, setSelectedId]             = useState(null);
@@ -50,6 +66,7 @@ export default function App() {
   const [activeTab, setActiveTab]               = useState('map');
   const [todayCalls, setTodayCalls]             = useState([]);
   const [dialerJumpId, setDialerJumpId]         = useState(null);
+  const [twilioSetupOpen, setTwilioSetupOpen]   = useState(false);
   // Background (non-blocking) geocoding for "X missing → tap to finish"
   const [bgGeocoding, setBgGeocoding]           = useState(false);
   const [bgDone, setBgDone]                     = useState(0);
@@ -403,9 +420,27 @@ export default function App() {
             onViewInSheets={handleViewInSheets}
             onUploadPhoto={uploadPhoto}
             onDeletePhoto={deletePhoto}
+            twilioReady={twilioReady}
+            twilioConfig={twilioConfig}
+            twilioTemplates={twilioTemplates}
+            onOpenTwilioSetup={() => { setSmsError(null); setTwilioSetupOpen(true); }}
+            onSendSms={sendSms}
+            smsSending={smsSending}
+            smsError={smsError}
           />
         </div>
       )}
+
+      <TwilioOnboarding
+        open={twilioSetupOpen}
+        onClose={() => setTwilioSetupOpen(false)}
+        config={twilioConfig}
+        saveConfig={saveTwilioConfig}
+        testCredentials={testCredentials}
+        fetchWebhooks={fetchWebhooks}
+        webhooks={webhooks}
+        uid={uid}
+      />
 
       <TabBar
         activeTab={activeTab}
