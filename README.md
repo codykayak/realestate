@@ -72,6 +72,28 @@ gcloud run deploy seller-map \
   --port 8080
 ```
 
+## Twilio SMS (Dialer)
+
+Each user connects **their own** Twilio account via the in-app onboarding wizard (Dialer → **💬 Setup**).
+
+**Features**
+
+- **Txt Now** — pick 1 of 3 templates; name and address auto-fill from the lead spreadsheet
+- **SMS tally** — `smsCount` per lead and per phone number (`smsCountsByPhone`), shown in Dialer and Sheets (like call counts)
+- **Missed callback auto-text** — when a lead calls your Twilio number and you don’t answer, a template is sent (24h dedupe)
+
+**Deploy Cloud Functions** (required for SMS to work in production):
+
+```bash
+cd functions && npm ci && cd ..
+firebase login
+firebase deploy --only functions,firestore:rules --project realestate-map-23692
+```
+
+Add GitHub secret `FIREBASE_TOKEN` (`firebase login:ci`) to auto-deploy via `.github/workflows/deploy-firebase-functions.yml`.
+
+**Twilio Console** — paste the Voice webhook URL from onboarding into your Twilio phone number’s “A call comes in” setting.
+
 ## Geocoding Notes
 
 - Uses [Nominatim](https://nominatim.openstreetmap.org/) (free, no API key)

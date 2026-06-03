@@ -97,9 +97,25 @@ export default function App() {
     getTodayCallLogs().then(setTodayCalls).catch(() => {});
   }, [uid]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  useEffect(() => {
+    if (
+      activeTab === 'dialer' && uid && !twilioLoading &&
+      !twilioReady && !twilioConfig?.onboardingComplete
+    ) {
+      setTwilioSetupOpen(true);
+    }
+  }, [activeTab, uid, twilioLoading, twilioConfig, twilioReady]);
+
   // ── Lead handlers ────────────────────────────────────────────────────────
   const handleLeadsLoaded = useCallback(async ({ leads: parsed }) => {
-    const initial = parsed.map((l) => ({ ...l, status: l.status || 'New', notes: l.notes || '', callCount: 0 }));
+    const initial = parsed.map((l) => ({
+      ...l,
+      status: l.status || 'New',
+      notes: l.notes || '',
+      callCount: l.callCount ?? 0,
+      smsCount: l.smsCount ?? 0,
+      smsCountsByPhone: l.smsCountsByPhone ?? {},
+    }));
     setLeads(initial);
     setSelectedId(null);
     setZoneFilter(null);

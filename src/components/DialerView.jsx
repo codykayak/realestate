@@ -320,19 +320,49 @@ export default function DialerView({ leads, onUpdateLead, onLogCall, todayCalls,
           /* Single phone fallback */
           <>
             <p className={styles.phoneNumber}>{formatPhone(lead.phone)}</p>
-            <a
-              href={`tel:${(lead.phone || '').replace(/\D/g, '')}`}
-              className={`${styles.callBtn} ${calling ? styles.callBtnActive : ''}`}
-              onClick={handleCall}
-            >
-              <svg width="26" height="26" viewBox="0 0 24 24" fill="white">
-                <path d="M22 16.92v3a2 2 0 01-2.18 2A19.79 19.79 0 013.07 9.81a19.79 19.79 0 01-3.07-8.68A2 2 0 012 .99h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L6.09 8.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"/>
-              </svg>
-              {calling ? 'Calling…' : 'CALL'}
-            </a>
+            <div className={styles.callActionRow}>
+              <a
+                href={`tel:${(lead.phone || '').replace(/\D/g, '')}`}
+                className={`${styles.callBtn} ${calling ? styles.callBtnActive : ''}`}
+                onClick={handleCall}
+              >
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="white">
+                  <path d="M22 16.92v3a2 2 0 01-2.18 2A19.79 19.79 0 013.07 9.81a19.79 19.79 0 01-3.07-8.68A2 2 0 012 .99h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L6.09 8.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"/>
+                </svg>
+                {calling ? 'Calling…' : 'CALL'}
+              </a>
+              <button type="button" className={styles.txtBtn} onClick={handleTxtNow}>
+                Txt Now
+                {smsCountForPhone(lead, lead.phone) > 0 && (
+                  <span className={styles.txtTally}>{smsCountForPhone(lead, lead.phone)}</span>
+                )}
+              </button>
+            </div>
           </>
         )}
+
+        {/* Txt Now for multi-phone leads */}
+        {lead.phones?.length > 0 && (
+          <button type="button" className={styles.txtBtnFull} onClick={handleTxtNow}>
+            💬 Txt Now
+            {(lead.smsCount ?? 0) > 0 && (
+              <span className={styles.txtTally}>{lead.smsCount} sent</span>
+            )}
+          </button>
+        )}
       </div>
+
+      <TxtNowSheet
+        open={txtOpen}
+        onClose={() => setTxtOpen(false)}
+        lead={lead}
+        activePhone={activePhone}
+        templates={twilioTemplates ?? []}
+        config={twilioConfig}
+        onSend={handleSmsSent}
+        sending={smsSending}
+        error={smsError}
+      />
 
       {/* ── Outcome buttons ───────────────────────────────────────────── */}
       <div className={styles.outcomes}>
