@@ -28,6 +28,7 @@ export default function TwilioOnboarding({
   const [testPhone, setTestPhone] = useState('');
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState(null);
+  const [notice, setNotice] = useState(null);
   const [copied, setCopied] = useState('');
 
   useEffect(() => {
@@ -72,6 +73,7 @@ export default function TwilioOnboarding({
 
   async function handleTestCredentials() {
     setErr(null);
+    setNotice(null);
     const validationErr = validateTwilioFields({ accountSid, authToken, phoneNumber, agentPhone });
     if (validationErr) {
       setErr(validationErr);
@@ -85,7 +87,9 @@ export default function TwilioOnboarding({
         setErr(result.phoneWarning);
       }
     } catch (e) {
-      setErr(e.message || 'Credentials check failed.');
+      const msg = e.message || 'Credentials check failed.';
+      setErr(msg);
+      setNotice('Your credentials were not verified. Use Save & continue below to save them and move to webhooks.');
     } finally {
       setBusy(false);
     }
@@ -93,6 +97,7 @@ export default function TwilioOnboarding({
 
   async function handleSaveWithoutVerify() {
     setErr(null);
+    setNotice(null);
     const validationErr = validateTwilioFields({ accountSid, authToken, phoneNumber, agentPhone });
     if (validationErr) {
       setErr(validationErr);
@@ -101,7 +106,7 @@ export default function TwilioOnboarding({
     setBusy(true);
     try {
       await saveCredentialsStep();
-      setErr('Saved without API test. Deploy Firebase Functions and test with Txt Now before going live.');
+      setNotice('Credentials saved. Finish webhooks and templates — deploy Cloud Functions before using Txt Now in production.');
     } catch (e) {
       setErr(e.message || 'Could not save settings.');
     } finally {
@@ -177,6 +182,7 @@ export default function TwilioOnboarding({
 
         <div className={styles.body}>
           {err && <p className={styles.error}>{err}</p>}
+          {notice && <p className={styles.notice}>{notice}</p>}
 
           {stepId === 'welcome' && (
             <>
@@ -224,20 +230,25 @@ export default function TwilioOnboarding({
                 <input type="checkbox" checked={autoMissed} onChange={(e) => setAutoMissed(e.target.checked)} />
                 Auto-text when I miss an inbound callback
               </label>
-              <button type="button" className={styles.primaryBtn} disabled={busy || !accountSid || !authToken || !phoneNumber || !agentPhone} onClick={handleTestCredentials}>
-                {busy ? 'Verifying…' : 'Save & verify credentials →'}
+              <p className={styles.hint}>
+                Credentials save to your account. Twilio API verify is optional and needs Cloud Functions deployed.
+              </p>
+              <button
+                type="button"
+                className={styles.primaryBtn}
+                disabled={busy || !accountSid || !authToken || !phoneNumber || !agentPhone}
+                onClick={handleSaveWithoutVerify}
+              >
+                {busy ? 'Saving…' : 'Save & continue →'}
               </button>
               <button
                 type="button"
                 className={styles.secondaryBtn}
                 disabled={busy || !accountSid || !authToken || !phoneNumber || !agentPhone}
-                onClick={handleSaveWithoutVerify}
+                onClick={handleTestCredentials}
               >
-                Save &amp; continue (skip API test)
+                {busy ? 'Verifying…' : 'Save & verify with Twilio (optional)'}
               </button>
-              <p className={styles.hint}>
-                If you only see &quot;internal&quot;, the SMS backend may not be deployed yet — use skip to save credentials and finish setup.
-              </p>
             </>
           )}
 

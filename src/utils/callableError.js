@@ -27,7 +27,11 @@ export function parseCallableError(err) {
   }
   if (code === 'internal') {
     if (detail) return String(detail);
-    return 'Cloud Functions returned an error. Use "Save & continue" if credentials are correct, or deploy Functions (see README).';
+    const msg = String(e?.message ?? '');
+    if (/404|not found|NOT_FOUND/i.test(msg)) {
+      return 'SMS Cloud Functions are not deployed yet (404). Tap Save & continue below — your credentials will still save.';
+    }
+    return 'Could not reach Twilio verify (Cloud Functions). Tap Save & continue below to finish setup without the API test.';
   }
   if (e?.message && e.message !== 'internal') {
     return e.message;
