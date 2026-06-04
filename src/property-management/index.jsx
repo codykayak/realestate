@@ -18,6 +18,7 @@ import { PmProvider, usePm } from './context/PmContext';
 import { FEATURE_CATEGORIES } from './config/featureRegistry';
 import Icon from './components/Icon';
 import ErrorBoundary from './components/ErrorBoundary';
+import GatewayPage from './pages/GatewayPage';
 import Dashboard from './pages/Dashboard';
 import OwnerPortal from './pages/OwnerPortal';
 import Communications from './pages/Communications';
@@ -53,6 +54,11 @@ function hrefFor(base, route) {
   return route ? `${b}/${route}` : b;
 }
 
+function isGatewayPath(pathname, basePath) {
+  const base = (basePath || '/property-management').replace(/\/$/, '');
+  return pathname === base || pathname === `${base}/`;
+}
+
 function Sidebar() {
   const { config, tenant, features } = usePm();
   const enabled = features.filter((f) => f.enabled);
@@ -81,6 +87,15 @@ function Sidebar() {
         <span>{tenant?.name || 'Demo Tenant'}</span>
       </div>
 
+      <NavLink
+        to={hrefFor(base, '')}
+        end
+        className={({ isActive }) => `${styles.navItem} ${isActive ? styles.navActive : ''}`}
+      >
+        <Icon name="home" size={18} className={styles.navIcon} />
+        <span>Gateway home</span>
+      </NavLink>
+
       {order.map((cat) => {
         const items = enabled.filter((f) => f.category === cat);
         if (!items.length) return null;
@@ -91,7 +106,6 @@ function Sidebar() {
               <NavLink
                 key={f.id}
                 to={hrefFor(base, f.route)}
-                end={f.route === ''}
                 className={({ isActive }) => `${styles.navItem} ${isActive ? styles.navActive : ''}`}
               >
                 <Icon name={f.icon} size={18} className={styles.navIcon} />
@@ -125,19 +139,20 @@ function ModuleInner() {
   const { config, features } = usePm();
   const location = useLocation();
   const enabledIds = new Set(features.filter((f) => f.enabled).map((f) => f.id));
+  const gateway = isGatewayPath(location.pathname, config.basePath);
 
   return (
     <div
       className={styles.app}
       style={{ '--pm-accent': config.accent, '--pm-accent-soft': config.accentSoft }}
     >
-      <Sidebar />
-      <main className={styles.main}>
+      {!gateway && <Sidebar />}
+      <main className={gateway ? styles.mainFull : styles.main}>
         <ErrorBoundary key={location.pathname}>
           <Routes>
-            <Route index element={<Dashboard />} />
+            <Route index element={<GatewayPage />} />
             {features.map((f) => {
-              if (f.id === 'dashboard' || !f.route) return null;
+              if (!f.route) return null;
               const Page = PAGE_MAP[f.id];
               if (!Page || !enabledIds.has(f.id)) return null;
               return <Route key={f.id} path={f.route} element={<Page />} />;
@@ -157,8 +172,7 @@ function ModuleInner() {
                 )}
               />
             )}
-            {/* Absolute Navigate to basePath caused redirect loops in production */}
-            <Route path="*" element={<Dashboard />} />
+            <Route path="*" element={<GatewayPage />} />
           </Routes>
         </ErrorBoundary>
       </main>
