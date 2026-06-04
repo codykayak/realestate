@@ -8,22 +8,23 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    permissions:
+      contents: 'read'
+      id-token: 'write' # REQUIRED for Workload Identity
     steps:
       - uses: actions/checkout@v4
 
       - id: auth
         uses: google-github-actions/auth@v2
         with:
-          # This replaces the credentials_json line
           workload_identity_provider: 'projects/886711655757/locations/global/workloadIdentityPools/github-pool-v3/providers/github-provider-v3'
           service_account: 'macrorealestatetrytwo-us-c1@project-c223f844-6371-4c3f-a0c.iam.gserviceaccount.com'
-
 
       - uses: google-github-actions/setup-gcloud@v2
 
       - name: Build and deploy
         env:
-          PROJECT_ID: ${{ secrets.GCP_PROJECT_ID || 'realestate-map-23692' }}
+          PROJECT_ID: 'project-c223f844-6371-4c3f-a0c' # Using your active project ID
         run: |
           gcloud builds submit --tag "gcr.io/${PROJECT_ID}/seller-map"
           gcloud run deploy seller-map \
