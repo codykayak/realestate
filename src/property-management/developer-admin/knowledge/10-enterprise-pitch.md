@@ -25,4 +25,4 @@ Acknowledge EliseAI and PMS-native AI; win on bundled ops, fraud audit, mid-mark
 
 ## Images
 
-`/property-management/pitch/pm-pitch-hero-community.png` and `pm-pitch-operations-team.png`
+`/pm-pitch/pm-pitch-hero-community.png` and `pm-pitch-operations-team.png`

@@ -17,8 +17,8 @@ import {
 } from './pitchData';
 import APP_CONFIG from '../config/appConfig';
 
-const HERO_IMG = '/property-management/pitch/pm-pitch-hero-community.png';
-const OPS_IMG = '/property-management/pitch/pm-pitch-operations-team.png';
+const HERO_IMG = '/pm-pitch/pm-pitch-hero-community.png';
+const OPS_IMG = '/pm-pitch/pm-pitch-operations-team.png';
 
 function formatUsd(n) {
   return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(n);
