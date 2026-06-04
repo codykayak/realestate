@@ -60,7 +60,7 @@ export async function answerWithOpenAI(question, apiKey) {
 
   const { text, hits } = buildContextForQuery(question, 14000);
 
-  const system = `You are the HiveOps Property Management developer assistant for engineers working on macrorei.com/property-management.
+  const system = `You are the Macro REI Property Management developer assistant for engineers working on macrorei.com/property-management.
 Answer using ONLY the documentation below. If the docs say a feature is stubbed or not wired, say so clearly.
 Be specific about file paths under src/property-management/. Mention when "dispatched" is label-only with no external dispatch.
 Documentation:\n\n${text}`;

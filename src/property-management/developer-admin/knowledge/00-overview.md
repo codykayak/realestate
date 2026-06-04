@@ -1,12 +1,12 @@
-# HiveOps Property Management — Developer Overview
+# Macro REI Property Management — Developer Overview
 
-**Product:** HiveOps (white-label name via `VITE_PM_PRODUCT_NAME`)  
+**Product:** Macro REI (white-label name via `VITE_PM_PRODUCT_NAME`)  
 **Mount path:** `/property-management` (override with `VITE_PM_BASE_PATH`)  
 **Live URL:** https://macrorei.com/property-management  
 
 ## What this module is
 
-HiveOps is an **AI operations layer** for multifamily property management. It does **not** replace your Property Management System (PMS). It sits on top of Yardi, RealPage, AppFolio, or Entrata and automates:
+Macro REI is an **AI operations layer** for multifamily property management. It does **not** replace your Property Management System (PMS). It sits on top of Yardi, RealPage, AppFolio, or Entrata and automates:
 
 | Area | What it does today |
 |------|-------------------|

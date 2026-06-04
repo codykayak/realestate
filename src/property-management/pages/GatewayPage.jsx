@@ -78,8 +78,12 @@ export default function GatewayPage() {
         <section className={gw.hero}>
           <div>
             <div className={gw.brandRow}>
-              {config.logo ? <img src={config.logo} alt={config.companyName} /> : <Icon name="home" size={40} />}
-              <div>
+              {config.logo ? (
+                <img src={config.logo} alt={`${config.productName} — ${config.companyName}`} />
+              ) : (
+                <Icon name="home" size={64} />
+              )}
+              <div className={gw.brandText}>
                 <div className={gw.brandName}>{config.productName}</div>
                 <div className={gw.brandSub}>{config.companyName} · {config.productTagline}</div>
               </div>

@@ -81,7 +81,7 @@ export const SPEED_TO_LEAD_DATA = {
 };
 
 export const DEFLECTION_COMPARISON = {
-  labels: ['Without AI layer', 'With HiveOps (target)'],
+  labels: ['Without AI layer', 'With Macro REI (target)'],
   series: [
     { label: 'Staff-handled volume %', values: [100, 42], color: '#6b7785' },
     { label: 'Auto-resolved %', values: [0, 58], color: '#f5a623' },

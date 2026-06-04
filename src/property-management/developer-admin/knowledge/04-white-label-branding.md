@@ -6,7 +6,7 @@ All branding is **build-time** via Vite environment variables in `config/appConf
 
 | Env variable | UI effect |
 |--------------|-----------|
-| `VITE_PM_PRODUCT_NAME` | Sidebar product name (default: HiveOps) |
+| `VITE_PM_PRODUCT_NAME` | Sidebar product name (default: Macro REI) |
 | `VITE_PM_PRODUCT_TAGLINE` | Marketing copy (not always visible in app shell) |
 | `VITE_PM_COMPANY_NAME` | Subtitle under product name |
 | `VITE_PM_LOGO` | Sidebar logo `<img src={config.logo}>` — path under `/public` |
@@ -24,7 +24,7 @@ All branding is **build-time** via Vite environment variables in `config/appConf
    ```
    VITE_PM_LOGO=/branding/client-logo.png
    VITE_PM_COMPANY_NAME=Your PMC Name
-   VITE_PM_PRODUCT_NAME=HiveOps
+   VITE_PM_PRODUCT_NAME=Macro REI
    ```
 3. Rebuild and deploy (`npm run build`).
 

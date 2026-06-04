@@ -1,4 +1,4 @@
-# HiveOps — Property Management Module
+# Macro REI — Property Management Module
 
 A **self-contained, white-label, multi-tenant** application for midsize
 multifamily property management, mounted at **`/property-management`**.

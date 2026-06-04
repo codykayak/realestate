@@ -180,7 +180,7 @@ export default function PitchPage() {
         <div className={styles.card}>
           <div className={styles.cardTitle}>Speed-to-lead vs. conversion (indexed)</div>
           <p className={styles.hint} style={{ marginBottom: 10 }}>
-            Industry pattern: leads contacted in minutes convert far better than those left for hours. HiveOps targets sub-5-minute auto-response on every channel.
+            Industry pattern: leads contacted in minutes convert far better than those left for hours. Macro REI targets sub-5-minute auto-response on every channel.
           </p>
           <BarChart
             data={SPEED_TO_LEAD_DATA.labels.map((label, i) => ({
@@ -270,7 +270,7 @@ export default function PitchPage() {
         </p>
         <table className={styles.table}>
           <thead>
-            <tr><th>Player</th><th>Focus</th><th>HiveOps wedge</th></tr>
+            <tr><th>Player</th><th>Focus</th><th>Macro REI wedge</th></tr>
           </thead>
           <tbody>
             {COMPETITORS.map((c) => (

@@ -15,7 +15,7 @@ export const PM_BASE_PATH = env.VITE_PM_BASE_PATH || '/property-management';
 
 export const APP_CONFIG = {
   /** Product / white-label brand shown in the module UI. */
-  productName: env.VITE_PM_PRODUCT_NAME || 'HiveOps',
+  productName: env.VITE_PM_PRODUCT_NAME || 'Macro REI',
   productTagline:
     env.VITE_PM_PRODUCT_TAGLINE ||
     'The AI operations layer for multifamily property management',
@@ -40,7 +40,7 @@ export const APP_CONFIG = {
   defaultTenantId: env.VITE_PM_DEFAULT_TENANT || 'demo',
 
   /** Support contact surfaced in the UI footer. */
-  supportEmail: env.VITE_PM_SUPPORT_EMAIL || 'support@hiveops.app',
+  supportEmail: env.VITE_PM_SUPPORT_EMAIL || 'cody@macrorei.com',
 };
 
 export default APP_CONFIG;
