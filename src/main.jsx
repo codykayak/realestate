@@ -1,4 +1,4 @@
-import { StrictMode, lazy, Suspense } from 'react';
+import { StrictMode, lazy, Suspense, Component } from 'react';
 import { createRoot } from 'react-dom/client';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import ScrollToTop from './components/ScrollToTop';
@@ -39,6 +39,35 @@ function PmLoading() {
   );
 }
 
+/** If the PM bundle fails to load, show the error instead of an empty dark screen. */
+class PmLoadErrorBoundary extends Component {
+  constructor(props) {
+    super(props);
+    this.state = { error: null };
+  }
+
+  static getDerivedStateFromError(error) {
+    return { error };
+  }
+
+  render() {
+    if (this.state.error) {
+      return (
+        <div style={{ minHeight: '100vh', padding: 24, background: '#0b0f14', color: '#e6edf3', fontFamily: 'system-ui' }}>
+          <h1 style={{ fontSize: 20, marginBottom: 12 }}>Property Management failed to load</h1>
+          <p style={{ color: '#8b97a7', marginBottom: 16 }}>
+            Try a hard refresh (Ctrl+Shift+R). If this persists after deploy, contact support.
+          </p>
+          <pre style={{ background: '#161c25', padding: 12, borderRadius: 8, overflow: 'auto', fontSize: 13, color: '#f85149' }}>
+            {String(this.state.error?.message || this.state.error)}
+          </pre>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
+
 createRoot(document.getElementById('root')).render(
   <StrictMode>
     <BrowserRouter>
@@ -69,7 +98,16 @@ createRoot(document.getElementById('root')).render(
         <Route path="legal/affidavit-of-heirship" element={<AffidavitHeirshipPage />} />
 
         <Route path="/app/*" element={<Suspense fallback={<MapLoading />}><App /></Suspense>} />
-        <Route path="/property-management/*" element={<Suspense fallback={<PmLoading />}><PropertyManagement /></Suspense>} />
+        <Route
+          path="/property-management/*"
+          element={(
+            <PmLoadErrorBoundary>
+              <Suspense fallback={<PmLoading />}>
+                <PropertyManagement />
+              </Suspense>
+            </PmLoadErrorBoundary>
+          )}
+        />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </BrowserRouter>

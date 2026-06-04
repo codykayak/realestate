@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback } from 'react';
+import { useState, useMemo, useCallback, lazy, Suspense } from 'react';
 import { usePm } from '../context/PmContext';
 import Page from '../components/Page';
 import Icon from '../components/Icon';
@@ -20,8 +20,10 @@ import {
   DEFAULT_OVERRIDE_TEMPLATE,
 } from './triagePlayground';
 import APP_CONFIG from '../config/appConfig';
+const PitchPage = lazy(() => import('./PitchPage'));
 
 const TABS = [
+  { id: 'pitch', label: 'Enterprise pitch' },
   { id: 'docs', label: 'Knowledge base' },
   { id: 'assistant', label: 'AI assistant' },
   { id: 'triage', label: 'Triage playground' },
@@ -52,7 +54,7 @@ export default function DeveloperAdmin() {
   );
 
   const article = useMemo(() => getArticle(articleId), [articleId]);
-  const articleHtml = useMemo(() => renderMarkdown(article.body), [article.body]);
+  const articleHtml = useMemo(() => renderMarkdown(article?.body ?? ''), [article?.body]);
 
   const envBlock = useMemo(() => {
     const c = { ...APP_CONFIG, ...config };
@@ -111,7 +113,7 @@ ${JSON.stringify(integrations, null, 2)}
 ${JSON.stringify(workOrders.slice(0, 3), null, 2)}
 
 ## Relevant documentation excerpt
-${article.body.slice(0, 4000)}
+${(article?.body ?? '').slice(0, 4000)}
 `;
     navigator.clipboard?.writeText(ctx);
   }
@@ -155,6 +157,12 @@ ${article.body.slice(0, 4000)}
             </button>
           ))}
         </div>
+
+        {tab === 'pitch' && (
+          <Suspense fallback={<div className={styles.hint}>Loading enterprise pitch…</div>}>
+            <PitchPage />
+          </Suspense>
+        )}
 
         {tab === 'docs' && (
           <div className={devStyles.devLayout}>

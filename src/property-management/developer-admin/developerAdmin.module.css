@@ -35,10 +35,13 @@
 }
 
 .devTabActive {
-  composes: devTab;
-  border-color: var(--pm-accent, #f5a623);
-  color: #f0f3f7;
+  padding: 8px 14px;
+  border-radius: 8px;
+  border: 1px solid var(--pm-accent, #f5a623);
   background: rgba(245, 166, 35, 0.12);
+  color: #f0f3f7;
+  font-size: 13px;
+  cursor: pointer;
 }
 
 .devLayout {
@@ -77,7 +80,12 @@
 }
 
 .docNavActive {
-  composes: docNavItem;
+  text-align: left;
+  padding: 8px 10px;
+  border-radius: 6px;
+  border: none;
+  font-size: 12px;
+  cursor: pointer;
   background: rgba(245, 166, 35, 0.14);
   color: #f5a623;
 }

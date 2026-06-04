@@ -4,6 +4,12 @@
 
 const modules = import.meta.glob('./knowledge/*.md', { eager: true, query: '?raw', import: 'default' });
 
+function moduleRaw(value) {
+  if (typeof value === 'string') return value;
+  if (value != null && typeof value.default === 'string') return value.default;
+  return String(value ?? '');
+}
+
 function slugFromPath(path) {
   const name = path.split('/').pop() || '';
   return name.replace(/\.md$/, '');
@@ -26,17 +32,25 @@ function tokenize(text) {
 export const KNOWLEDGE_ARTICLES = Object.entries(modules)
   .map(([path, raw]) => {
     const id = slugFromPath(path);
+    const body = moduleRaw(raw);
     return {
       id,
-      title: titleFromMarkdown(raw, id),
-      body: raw,
-      tokens: new Set(tokenize(raw)),
+      title: titleFromMarkdown(body, id),
+      body,
+      tokens: new Set(tokenize(body)),
     };
   })
   .sort((a, b) => a.id.localeCompare(b.id));
 
+const FALLBACK_ARTICLE = {
+  id: 'readme',
+  title: 'Developer docs',
+  body: '# Developer documentation\n\nKnowledge articles failed to load. Check the build includes developer-admin/knowledge/*.md.',
+  tokens: new Set(),
+};
+
 export function getArticle(id) {
-  return KNOWLEDGE_ARTICLES.find((a) => a.id === id) ?? KNOWLEDGE_ARTICLES[0];
+  return KNOWLEDGE_ARTICLES.find((a) => a.id === id) ?? KNOWLEDGE_ARTICLES[0] ?? FALLBACK_ARTICLE;
 }
 
 /**
