@@ -52,6 +52,7 @@ createRoot(document.getElementById('root')).render(
         <Route path="legal/affidavit-of-heirship" element={<AffidavitHeirshipPage />} />
 
         <Route path="/app/*" element={<Suspense fallback={<MapLoading />}><App /></Suspense>} />
+        <Route path="/property-management/*" element={<Suspense fallback={<PmLoading />}><PropertyManagement /></Suspense>} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </BrowserRouter>
