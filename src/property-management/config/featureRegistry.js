@@ -13,6 +13,7 @@
 
 export const FEATURE_CATEGORIES = {
   CORE: 'Core',
+  OWNER: 'Owner & Reporting',
   AUTOMATION: 'AI Automation',
   OPERATIONS: 'Operations',
   ADMIN: 'Administration',
@@ -28,6 +29,16 @@ export const FEATURES = [
     route: '',
     defaultEnabled: true,
     locked: true,
+  },
+  {
+    id: 'owner',
+    name: 'Owner Portal',
+    description:
+      'White-label owner dashboard: real-time NOI (MTD/YTD vs budget vs last year), cash-on-cash, portfolio drill-down, financial charts, AI Impact, one-click PDF owner reports, and Phase-2 analytics (benchmarking, forecasting, CapEx, what-if).',
+    category: FEATURE_CATEGORIES.OWNER,
+    icon: 'chart',
+    route: 'owner',
+    defaultEnabled: true,
   },
   {
     id: 'communications',

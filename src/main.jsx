@@ -16,11 +16,23 @@ import AffidavitHeirshipPage from './pages/AffidavitHeirshipPage';
 import './index.css';
 
 const App = lazy(() => import('./App'));
+// Self-contained Property Management module (HiveOps). The host only references
+// this one lazy entry point; the module imports nothing from the host site, so
+// it can be migrated to another site or its own repo with a config change.
+const PropertyManagement = lazy(() => import('./property-management/index.jsx'));
 
 function MapLoading() {
   return (
     <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#070d14', color: '#8b949e' }}>
       Loading Map CMS…
+    </div>
+  );
+}
+
+function PmLoading() {
+  return (
+    <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#0b0f14', color: '#8b97a7' }}>
+      Loading Property Management…
     </div>
   );
 }

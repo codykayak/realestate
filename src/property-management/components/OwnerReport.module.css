@@ -1,0 +1,44 @@
+.overlay {
+  position: fixed; inset: 0; background: rgba(0, 0, 0, 0.7);
+  display: flex; justify-content: center; align-items: flex-start;
+  overflow-y: auto; z-index: 60; padding: 30px 16px;
+}
+
+/* The "paper" — intentionally light so it prints cleanly regardless of the
+   app's dark theme. */
+.paper {
+  background: #ffffff; color: #1a1f29; width: 100%; max-width: 820px;
+  border-radius: 10px; padding: 40px 46px; font-size: 13.5px; line-height: 1.5;
+}
+
+.toolbar {
+  display: flex; justify-content: flex-end; gap: 10px;
+  width: 100%; max-width: 820px; margin-bottom: 12px;
+}
+
+.head { display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 2px solid #1a1f29; padding-bottom: 16px; margin-bottom: 22px; }
+.logo { height: 42px; object-fit: contain; }
+.brandName { font-size: 20px; font-weight: 800; }
+.docTitle { font-size: 13px; color: #5b6573; margin-top: 2px; }
+.period { text-align: right; font-size: 12.5px; color: #5b6573; }
+
+.h2 { font-size: 14px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.6px; color: #1a1f29; margin: 26px 0 12px; border-left: 3px solid #f5a623; padding-left: 10px; }
+
+.kpis { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+.kpi { border: 1px solid #e3e7ee; border-radius: 8px; padding: 12px 14px; }
+.kpiLabel { font-size: 11px; color: #5b6573; }
+.kpiValue { font-size: 20px; font-weight: 800; margin-top: 4px; }
+
+.exec { background: #fbf6ec; border: 1px solid #f0e2c4; border-radius: 8px; padding: 16px 18px; }
+.aiBox { background: #fff7e9; border: 1px solid #f3d9a6; border-radius: 8px; padding: 16px 18px; }
+.aiHeadline { font-size: 17px; font-weight: 800; color: #9a6a00; margin-bottom: 6px; }
+
+.table { width: 100%; border-collapse: collapse; font-size: 12.5px; margin-top: 6px; }
+.table th { text-align: left; color: #5b6573; font-weight: 700; padding: 7px 8px; border-bottom: 2px solid #e3e7ee; }
+.table td { padding: 7px 8px; border-bottom: 1px solid #eef1f6; }
+.table td.num, .table th.num { text-align: right; }
+.pos { color: #1a7f37; font-weight: 600; }
+.neg { color: #c9352c; font-weight: 600; }
+
+.foot { margin-top: 30px; padding-top: 14px; border-top: 1px solid #e3e7ee; font-size: 11px; color: #8a93a1; }
+.two { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; align-items: start; }

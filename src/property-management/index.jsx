@@ -15,6 +15,7 @@ import { PmProvider, usePm } from './context/PmContext';
 import { FEATURE_CATEGORIES } from './config/featureRegistry';
 import Icon from './components/Icon';
 import Dashboard from './pages/Dashboard';
+import OwnerPortal from './pages/OwnerPortal';
 import Communications from './pages/Communications';
 import Leasing from './pages/Leasing';
 import Maintenance from './pages/Maintenance';
@@ -22,9 +23,11 @@ import Residents from './pages/Residents';
 import KnowledgeBase from './pages/KnowledgeBase';
 import Settings from './pages/Settings';
 import styles from './pm.module.css';
+import './components/print.css';
 
 const PAGE_MAP = {
   dashboard: Dashboard,
+  owner: OwnerPortal,
   communications: Communications,
   leasing: Leasing,
   maintenance: Maintenance,
@@ -39,6 +42,7 @@ function Sidebar() {
 
   const order = [
     FEATURE_CATEGORIES.CORE,
+    FEATURE_CATEGORIES.OWNER,
     FEATURE_CATEGORIES.AUTOMATION,
     FEATURE_CATEGORIES.OPERATIONS,
     FEATURE_CATEGORIES.ADMIN,
