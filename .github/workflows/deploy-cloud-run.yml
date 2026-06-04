@@ -14,7 +14,10 @@ jobs:
       - id: auth
         uses: google-github-actions/auth@v2
         with:
-          credentials_json: ${{ secrets.GCP_SA_KEY }}
+          # This replaces the credentials_json line
+          workload_identity_provider: 'projects/886711655757/locations/global/workloadIdentityPools/github-pool-v3/providers/github-provider-v3'
+          service_account: 'macrorealestatetrytwo-us-c1@project-c223f844-6371-4c3f-a0c.iam.gserviceaccount.com'
+
 
       - uses: google-github-actions/setup-gcloud@v2
 
