@@ -12,6 +12,7 @@
  * current sub-path and land on a non-existent route → blank screen).
  */
 
+import { lazy, Suspense } from 'react';
 import { Routes, Route, NavLink, Navigate, useLocation } from 'react-router-dom';
 import { PmProvider, usePm } from './context/PmContext';
 import { FEATURE_CATEGORIES } from './config/featureRegistry';
@@ -25,9 +26,11 @@ import Maintenance from './pages/Maintenance';
 import Residents from './pages/Residents';
 import KnowledgeBase from './pages/KnowledgeBase';
 import Settings from './pages/Settings';
-import DeveloperAdmin from './developer-admin/DeveloperAdmin';
 import styles from './pm.module.css';
 import './components/print.css';
+
+/** Loaded only on /developer-admin so a dev-tools bug cannot break the whole PM app. */
+const DeveloperAdmin = lazy(() => import('./developer-admin/DeveloperAdmin'));
 
 const PAGE_MAP = {
   dashboard: Dashboard,
@@ -112,6 +115,14 @@ function Sidebar() {
   );
 }
 
+function DevAdminFallback() {
+  return (
+    <div className={styles.content}>
+      <div className={styles.hint}>Loading developer tools…</div>
+    </div>
+  );
+}
+
 function ModuleInner() {
   const { config, features } = usePm();
   const location = useLocation();
@@ -134,7 +145,14 @@ function ModuleInner() {
               if (!Page || !enabledIds.has(f.id)) return null;
               return <Route key={f.id} path={f.route} element={<Page />} />;
             })}
-            <Route path="developer-admin" element={<DeveloperAdmin />} />
+            <Route
+              path="developer-admin"
+              element={(
+                <Suspense fallback={<DevAdminFallback />}>
+                  <DeveloperAdmin />
+                </Suspense>
+              )}
+            />
             <Route path="*" element={<Navigate to={config.basePath} replace />} />
           </Routes>
         </ErrorBoundary>

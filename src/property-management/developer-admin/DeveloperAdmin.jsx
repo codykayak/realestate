@@ -41,7 +41,7 @@ const SUGGESTED_QUESTIONS = [
 
 export default function DeveloperAdmin() {
   const { config, featureMap, integrations, workOrders } = usePm();
-  const [tab, setTab] = useState('pitch');
+  const [tab, setTab] = useState('docs');
   const [articleId, setArticleId] = useState(KNOWLEDGE_ARTICLES[0]?.id || '00-overview');
   const [chat, setChat] = useState([]);
   const [question, setQuestion] = useState('');
@@ -54,7 +54,7 @@ export default function DeveloperAdmin() {
   );
 
   const article = useMemo(() => getArticle(articleId), [articleId]);
-  const articleHtml = useMemo(() => renderMarkdown(article.body), [article.body]);
+  const articleHtml = useMemo(() => renderMarkdown(article?.body ?? ''), [article?.body]);
 
   const envBlock = useMemo(() => {
     const c = { ...APP_CONFIG, ...config };
@@ -113,7 +113,7 @@ ${JSON.stringify(integrations, null, 2)}
 ${JSON.stringify(workOrders.slice(0, 3), null, 2)}
 
 ## Relevant documentation excerpt
-${article.body.slice(0, 4000)}
+${(article?.body ?? '').slice(0, 4000)}
 `;
     navigator.clipboard?.writeText(ctx);
   }
