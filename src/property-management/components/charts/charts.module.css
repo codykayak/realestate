@@ -1,0 +1,14 @@
+.wrap { width: 100%; }
+.svg { width: 100%; display: block; overflow: visible; }
+.grid { stroke: var(--pm-border); stroke-width: 1; }
+.axisLabel { fill: var(--pm-muted); font-size: 10px; }
+.line { fill: none; stroke-width: 2; vector-effect: non-scaling-stroke; }
+.dot { stroke: var(--pm-bg); stroke-width: 1.5; }
+.bar { rx: 2; }
+.legend { display: flex; flex-wrap: wrap; gap: 8px 16px; margin-top: 12px; }
+.legendItem { display: flex; align-items: center; gap: 7px; font-size: 12px; color: var(--pm-text); }
+.legendItem span.dot2 { width: 10px; height: 10px; border-radius: 3px; display: inline-block; }
+.legendVal { color: var(--pm-muted); margin-left: 4px; }
+.pieRow { display: flex; gap: 20px; align-items: center; flex-wrap: wrap; }
+.pieLegend { display: flex; flex-direction: column; gap: 6px; flex: 1; min-width: 180px; }
+.tooltipCaption { font-size: 11px; color: var(--pm-muted); margin-top: 6px; text-align: center; }

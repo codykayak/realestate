@@ -1,0 +1,17 @@
+/* Global print rules for the Owner Report. Plain (non-module) CSS so the
+   selectors are stable. When printing, only the report (#pm-print-root) is
+   visible; everything else (app chrome, buttons) is hidden. The browser's
+   "Save as PDF" gives one-click PDF export with no extra dependency. */
+
+@media print {
+  body * { visibility: hidden !important; }
+  #pm-print-root, #pm-print-root * { visibility: visible !important; }
+  #pm-print-root {
+    position: absolute !important;
+    left: 0; top: 0; width: 100%;
+    box-shadow: none !important;
+    margin: 0 !important;
+  }
+  .pm-no-print { display: none !important; }
+  @page { margin: 14mm; }
+}
