@@ -51,6 +51,25 @@ try {
     console.log('OK   owner -> communications');
   }
 
+  for (const bad of ['/nope', '/property-management']) {
+    let navCount = 0;
+    const onNav = () => { navCount += 1; };
+    page.on('framenavigated', onNav);
+    await page.goto(`${BASE}${bad}`, { waitUntil: 'networkidle', timeout: 30000 });
+    await sleep(400);
+    page.off('framenavigated', onNav);
+    const body = await page.locator('body').innerText();
+    if (navCount > 6) {
+      console.error(`FAIL redirect loop on ${bad} (${navCount} navigations)`);
+      failed += 1;
+    } else if (!body.includes('Operations Dashboard')) {
+      console.error(`FAIL unknown route ${bad} should show dashboard`);
+      failed += 1;
+    } else {
+      console.log(`OK   no loop on ${bad} (${navCount} navs)`);
+    }
+  }
+
   await browser.close();
 } finally {
   preview.kill('SIGTERM');

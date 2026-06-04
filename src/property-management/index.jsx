@@ -13,7 +13,7 @@
  */
 
 import { lazy, Suspense } from 'react';
-import { Routes, Route, NavLink, Navigate, useLocation } from 'react-router-dom';
+import { Routes, Route, NavLink, useLocation } from 'react-router-dom';
 import { PmProvider, usePm } from './context/PmContext';
 import { FEATURE_CATEGORIES } from './config/featureRegistry';
 import Icon from './components/Icon';
@@ -157,7 +157,8 @@ function ModuleInner() {
                 )}
               />
             )}
-            <Route path="*" element={<Navigate to={config.basePath} replace />} />
+            {/* Absolute Navigate to basePath caused redirect loops in production */}
+            <Route path="*" element={<Dashboard />} />
           </Routes>
         </ErrorBoundary>
       </main>
