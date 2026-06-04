@@ -16,6 +16,7 @@ import {
 import { mergeTemplate, toE164, phoneKey, DEFAULT_TEMPLATES } from './lib/templates.js';
 import { sendSmsToLead, leadBlocksSms } from './lib/sendSmsCore.js';
 import { CALLABLE_OPTIONS, REGION } from './lib/callableOpts.js';
+import { getLeadsDocRef } from './lib/leadsPath.js';
 
 initializeApp();
 
@@ -109,7 +110,7 @@ export const sendSms = onCall(CALLABLE_OPTIONS, async (request) => {
 
   let lead = leadSnapshot;
   if (!lead) {
-    const snap = await getFirestore().doc(`users/${uid}/data/leads`).get();
+    const snap = await (await getLeadsDocRef(uid)).get();
     lead = snap.data()?.leads?.find((l) => l.id === leadId) ?? null;
   }
   if (!lead) throw new HttpsError('not-found', 'Lead not found.');
@@ -125,7 +126,7 @@ export const sendSms = onCall(CALLABLE_OPTIONS, async (request) => {
     throw new HttpsError('internal', e.message || 'Twilio send failed.');
   }
 
-  const snap = await getFirestore().doc(`users/${uid}/data/leads`).get();
+  const snap = await (await getLeadsDocRef(uid)).get();
   const updated = snap.data()?.leads?.find((l) => l.id === leadId);
 
   return {
@@ -140,7 +141,7 @@ export const sendSms = onCall(CALLABLE_OPTIONS, async (request) => {
 const APPOINTMENT_REMINDER_MS = 3 * 60 * 60 * 1000;
 
 async function patchLeadFields(uid, leadId, patch) {
-  const ref = getFirestore().doc(`users/${uid}/data/leads`);
+  const ref = await getLeadsDocRef(uid);
   const snap = await ref.get();
   if (!snap.exists) return;
   const leads = snap.data().leads ?? [];
@@ -168,7 +169,7 @@ export const scheduleAppointmentSms = onCall(CALLABLE_OPTIONS, async (request) =
     throw new HttpsError('failed-precondition', 'Complete Twilio setup first.');
   }
 
-  const snap = await getFirestore().doc(`users/${uid}/data/leads`).get();
+  const snap = await (await getLeadsDocRef(uid)).get();
   const lead = snap.data()?.leads?.find((l) => l.id === leadId);
   if (!lead) throw new HttpsError('not-found', 'Lead not found.');
   if (leadBlocksSms(lead)) {
@@ -262,7 +263,7 @@ export const processScheduledSms = onSchedule(
           continue;
         }
 
-        const leadSnap = await db.doc(`users/${uid}/data/leads`).get();
+        const leadSnap = await (await getLeadsDocRef(uid)).get();
         const lead = leadSnap.data()?.leads?.find((l) => l.id === data.leadId)
           ?? { id: data.leadId, name: data.leadName, appointmentAt: data.appointmentAt };
 

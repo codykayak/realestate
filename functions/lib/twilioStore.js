@@ -1,6 +1,7 @@
 import { getFirestore } from 'firebase-admin/firestore';
 import twilio from 'twilio';
 import { DEFAULT_MISSED_TEMPLATE, DEFAULT_TEMPLATES } from './templates.js';
+import { getLeadsDocRef } from './leadsPath.js';
 
 const TWILIO_DOC = 'twilio';
 
@@ -62,7 +63,7 @@ export function webhookUrls(uid, region, projectId) {
  * @param {{ smsCount?: number, smsCountsByPhone?: Record<string, number> }} patch
  */
 export async function patchLeadSms(uid, leadId, phoneDigits, patch) {
-  const ref = getFirestore().doc(`users/${uid}/data/leads`);
+  const ref = await getLeadsDocRef(uid);
   const snap = await ref.get();
   if (!snap.exists) return;
   const leads = snap.data().leads ?? [];
@@ -90,7 +91,8 @@ export async function patchLeadSms(uid, leadId, phoneDigits, patch) {
  * @param {string} fromPhone
  */
 export async function findLeadByPhone(uid, fromPhone) {
-  const snap = await getFirestore().doc(`users/${uid}/data/leads`).get();
+  const ref = await getLeadsDocRef(uid);
+  const snap = await ref.get();
   if (!snap.exists) return null;
   const key = fromPhone.replace(/\D/g, '').slice(-10);
   if (!key) return null;

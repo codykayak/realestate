@@ -4,6 +4,7 @@ export default function TopBar({
   leadCount, geocodedCount,
   zoningVisible, onToggleZoning, zoningLoading,
   onReset, onResumeGeocoding, bgGeocoding,
+  teamLabel, onOpenTeam,
 }) {
   const unmapped = leadCount - geocodedCount;
 
@@ -15,7 +16,7 @@ export default function TopBar({
           <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z" stroke="#58a6ff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
           <circle cx="12" cy="10" r="3" stroke="#58a6ff" strokeWidth="2"/>
         </svg>
-        <span className={styles.title}>Leads</span>
+        <span className={styles.title}>{teamLabel ? teamLabel : 'Leads'}</span>
       </div>
 
       {/* Lead stats */}
@@ -44,6 +45,18 @@ export default function TopBar({
 
       {/* Controls */}
       <div className={styles.controls}>
+        {onOpenTeam && (
+          <button
+            type="button"
+            className={styles.teamBtn}
+            onClick={onOpenTeam}
+            title="Shared team lead pool"
+            aria-label="Team lead pool"
+          >
+            <span className={styles.teamIcon}>👥</span>
+            <span className={styles.resetLabel}>Team</span>
+          </button>
+        )}
         {/* Layers button — opens LayerToggle panel */}
         <button
           className={`${styles.layersBtn} ${zoningVisible ? styles.layersBtnOn : ''}`}

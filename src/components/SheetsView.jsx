@@ -1,6 +1,7 @@
 import { useState, useMemo } from 'react';
 import { exportLeadsCsv } from '../utils/exportLeads';
 import { complianceLabel } from '../utils/leadCompliance';
+import { sellerStageLabel } from '../utils/sellerPortal';
 import styles from './SheetsView.module.css';
 
 const STATUS_COLORS = {
@@ -31,7 +32,7 @@ function phoneCount(lead) {
   return 0;
 }
 
-export default function SheetsView({ leads, selectedId, onDialLead, onSelectLead, onViewOnMap, onUpdateLead }) {
+export default function SheetsView({ leads, selectedId, isTeamMode, onDialLead, onSelectLead, onViewOnMap, onUpdateLead }) {
   const [search,   setSearch]   = useState('');
   const [sort,     setSort]     = useState('distress_desc');
   const [showSort, setShowSort] = useState(false);
@@ -169,6 +170,11 @@ export default function SheetsView({ leads, selectedId, onDialLead, onSelectLead
                     {complianceLabel(lead).map((tag) => (
                       <span key={tag} className={styles.dncBadge}>{tag}</span>
                     ))}
+                    {lead.sellerDeal?.enabled && (
+                      <span className={styles.portalBadge} title="Seller portal active">
+                        🏠 {sellerStageLabel(lead.sellerDeal.stage)}
+                      </span>
+                    )}
                   </div>
 
                   <div className={styles.rowAddr}>
@@ -183,6 +189,11 @@ export default function SheetsView({ leads, selectedId, onDialLead, onSelectLead
                   {(lead.photos?.length ?? 0) > 0 && (
                     <span className={`${styles.metaChip} ${styles.photosChip}`}>
                       📎 {lead.photos.length} file{lead.photos.length > 1 ? 's' : ''}
+                    </span>
+                  )}
+                  {isTeamMode && lead.lastEditedBy && (
+                    <span className={styles.metaChip} title="Last edited by">
+                      ✎ {lead.lastEditedBy.split('@')[0]}
                     </span>
                   )}
                   </div>

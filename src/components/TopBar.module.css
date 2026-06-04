@@ -150,6 +150,26 @@
 
 @keyframes spin { to { transform: rotate(360deg); } }
 
+.teamBtn {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  background: rgba(63, 185, 80, 0.1);
+  border: 1px solid rgba(63, 185, 80, 0.35);
+  border-radius: 9px;
+  color: #3fb950;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 0 11px;
+  height: 36px;
+  flex-shrink: 0;
+  cursor: pointer;
+}
+
+.teamIcon {
+  font-size: 14px;
+}
+
 /* ── New CSV button ──────────────────────────────────────────────────── */
 .resetBtn {
   display: flex;

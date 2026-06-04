@@ -76,6 +76,16 @@
   white-space: nowrap;
 }
 
+.portalBadge {
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: 6px;
+  background: rgba(88, 166, 255, 0.15);
+  color: #58a6ff;
+  white-space: nowrap;
+}
+
 .dncBadge {
   font-size: 10px;
   font-weight: 700;

@@ -13,6 +13,8 @@ import ReferralPage from './pages/ReferralPage';
 import ContractsPage from './pages/ContractsPage';
 import SmsConsentPage from './pages/SmsConsentPage';
 import AffidavitHeirshipPage from './pages/AffidavitHeirshipPage';
+import SellerPortalPage from './pages/SellerPortalPage';
+import SellerDealTrackerPage from './pages/SellerDealTrackerPage';
 import './index.css';
 
 const App = lazy(() => import('./App'));
@@ -52,7 +54,10 @@ createRoot(document.getElementById('root')).render(
           <Route path="selling-vs-cash-offer" element={<SellingVsCash />} />
           <Route path="probate-inherited-house-guide" element={<ProbateGuide />} />
           <Route path="testimonials" element={<Testimonials />} />
+          <Route path="seller-deal-tracker" element={<SellerDealTrackerPage />} />
         </Route>
+
+        <Route path="seller/:token" element={<SellerPortalPage />} />
 
         <Route path="referral"  element={<ReferralPage />} />
         <Route path="referral-program" element={<ReferralPage />} />

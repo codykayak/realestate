@@ -1,5 +1,7 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
+import SeoHead from '../components/SeoHead';
+import { SITE_URL } from '../constants/brand';
 import styles from './ContractsPage.module.css';
 
 /** @typedef {'document' | 'page'} ContractLinkType */
@@ -67,6 +69,19 @@ export default function ContractsPage() {
   const [previewId, setPreviewId] = useState(null);
 
   return (
+    <>
+    <SeoHead
+      title="Contracts & Legal Forms | MacroREI Oregon Cash Home Buyer"
+      description="Oregon cash purchase agreements, SMS marketing consent, and Affidavit of Heirship resources from Macro Real Estate Investing."
+      path="/contracts"
+      keywords="Oregon cash purchase agreement, SMS consent real estate, affidavit of heirship Oregon, MacroREI contracts"
+      jsonLd={{
+        '@context': 'https://schema.org',
+        '@type': 'CollectionPage',
+        name: 'MacroREI Contracts & Legal',
+        url: `${SITE_URL}/contracts`,
+      }}
+    />
     <div className={styles.page}>
 
       {/* Nav */}
@@ -225,5 +240,6 @@ export default function ContractsPage() {
         </p>
       </footer>
     </div>
+    </>
   );
 }
