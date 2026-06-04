@@ -1,4 +1,4 @@
-import { StrictMode, lazy, Suspense, Component } from 'react';
+import { StrictMode, lazy, Suspense } from 'react';
 import { createRoot } from 'react-dom/client';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import ScrollToTop from './components/ScrollToTop';
@@ -18,6 +18,9 @@ import SellerDealTrackerPage from './pages/SellerDealTrackerPage';
 import './index.css';
 
 const App = lazy(() => import('./App'));
+// Self-contained Property Management module (Macro REI). The host only references
+// this one lazy entry point; the module imports nothing from the host site, so
+// it can be migrated to another site or its own repo with a config change.
 const PropertyManagement = lazy(() => import('./property-management/index.jsx'));
 
 function MapLoading() {
@@ -36,45 +39,15 @@ function PmLoading() {
   );
 }
 
-class PmLoadErrorBoundary extends Component {
-  constructor(props) {
-    super(props);
-    this.state = { error: null };
-  }
-
-  static getDerivedStateFromError(error) {
-    return { error };
-  }
-
-  componentDidCatch(error, info) {
-    console.error('[property-management] failed to load:', error, info);
-  }
-
-  render() {
-    if (this.state.error) {
-      return (
-        <div style={{ minHeight: '100vh', padding: 24, background: '#0b0f14', color: '#e6edf3', fontFamily: 'system-ui, sans-serif' }}>
-          <h1 style={{ fontSize: 20, marginBottom: 12 }}>Property Management failed to load</h1>
-          <p style={{ color: '#8b97a7', marginBottom: 16, maxWidth: 560, lineHeight: 1.5 }}>
-            Hard refresh (Ctrl+Shift+R). If this persists after deploy, contact support with the error below.
-          </p>
-          <pre style={{ background: '#161c25', padding: 12, borderRadius: 8, fontSize: 13, color: '#f85149', overflow: 'auto' }}>
-            {String(this.state.error?.message || this.state.error)}
-          </pre>
-        </div>
-      );
-    }
-    return this.props.children;
-  }
-}
-
 createRoot(document.getElementById('root')).render(
   <StrictMode>
     <BrowserRouter>
       <ScrollToTop />
       <Routes>
+        {/* Home: original full page (nav/footer/hero unchanged) */}
         <Route path="/" element={<LandingPage />} />
 
+        {/* SEO pages: shared layout + calculator promo band */}
         <Route element={<MarketingLayout />}>
           <Route path="cash-offer-calculator" element={<CashOfferCalculator />} />
           <Route path="we-buy-houses/:citySlug" element={<CityWeBuyHouses />} />
@@ -86,7 +59,7 @@ createRoot(document.getElementById('root')).render(
 
         <Route path="seller/:token" element={<SellerPortalPage />} />
 
-        <Route path="referral" element={<ReferralPage />} />
+        <Route path="referral"  element={<ReferralPage />} />
         <Route path="referral-program" element={<ReferralPage />} />
         <Route path="contracts" element={<ContractsPage />} />
         <Route path="contracts/sms-consent" element={<SmsConsentPage />} />
@@ -96,16 +69,7 @@ createRoot(document.getElementById('root')).render(
         <Route path="legal/affidavit-of-heirship" element={<AffidavitHeirshipPage />} />
 
         <Route path="/app/*" element={<Suspense fallback={<MapLoading />}><App /></Suspense>} />
-        <Route
-          path="/property-management/*"
-          element={(
-            <PmLoadErrorBoundary>
-              <Suspense fallback={<PmLoading />}>
-                <PropertyManagement />
-              </Suspense>
-            </PmLoadErrorBoundary>
-          )}
-        />
+        <Route path="/property-management/*" element={<Suspense fallback={<PmLoading />}><PropertyManagement /></Suspense>} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </BrowserRouter>

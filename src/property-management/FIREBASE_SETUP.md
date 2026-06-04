@@ -1,6 +1,6 @@
 # Firestore setup for the Property Management module (beginner-friendly)
 
-This guide sets up the database that the HiveOps property-management module will
+This guide sets up the database that the Macro REI property-management module will
 use. Your Firestore database is named **`property-managment`**.
 
 > Quick mental model: a **Firebase project** is the big container. Inside it,
@@ -18,7 +18,7 @@ to click.
 
 1. **Open the project.** Go to <https://console.firebase.google.com> and open
    the project that contains your `property-managment` database. (A project has
-   a name like `hiveops-pm` and a Project ID — both are fine.)
+   a name like `macro-rei-pm` and a Project ID — both are fine.)
 
 2. **Confirm the Firestore database exists.** Left sidebar → **Build → Firestore
    Database**. You should see your data area. If there is a database picker at

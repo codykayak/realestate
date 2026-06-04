@@ -58,7 +58,7 @@ export default function DeveloperAdmin() {
 
   const envBlock = useMemo(() => {
     const c = { ...APP_CONFIG, ...config };
-    return `# HiveOps white-label — paste into .env.local
+    return `# Macro REI white-label — paste into .env.local
 VITE_PM_PRODUCT_NAME=${c.productName}
 VITE_PM_PRODUCT_TAGLINE=${c.productTagline || ''}
 VITE_PM_COMPANY_NAME=${c.companyName}
@@ -95,7 +95,7 @@ VITE_PM_SUPPORT_EMAIL=${c.supportEmail || ''}
   }
 
   function copyCursorContext() {
-    const ctx = `# HiveOps dev context — ${new Date().toISOString()}
+    const ctx = `# Macro REI dev context — ${new Date().toISOString()}
 
 ## Question / task
 ${question || '(add your task here)'}
@@ -139,7 +139,7 @@ ${(article?.body ?? '').slice(0, 4000)}
         <div className={devStyles.devBanner}>
           <Icon name="shield" size={18} style={{ flexShrink: 0, marginTop: 2 }} />
           <div>
-            <strong>Engineering only.</strong> This area documents how HiveOps works under the hood.
+            <strong>Engineering only.</strong> This area documents how Macro REI works under the hood.
             Customer-facing pages are unchanged except for this link. Key finding: <strong>Dispatched</strong> is a
             status label only — implement dispatch via Cloud Functions + PMS/notifications (see Maintenance Dispatch guide).
           </div>

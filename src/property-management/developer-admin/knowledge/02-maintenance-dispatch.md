@@ -78,8 +78,8 @@ Integrate ServiceChannel, Building Engines, or internal tech roster:
 If the customer uses **Staytus** as their status board:
 
 - Staytus is **not** in the codebase today.
-- You would sync HiveOps `workOrders` → Staytus API (or vice versa) via a scheduled job or webhook.
-- Map HiveOps `dispatched` → Staytus equivalent status id in integration config.
+- You would sync Macro REI `workOrders` → Staytus API (or vice versa) via a scheduled job or webhook.
+- Map Macro REI `dispatched` → Staytus equivalent status id in integration config.
 
 ---
 

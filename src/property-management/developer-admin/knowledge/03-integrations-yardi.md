@@ -30,9 +30,9 @@ From the Yardi manifest `capabilities`:
 
 | Capability | Direction | Data entities (planned) |
 |------------|-----------|-------------------------|
-| `residents.read` | Yardi → HiveOps | Residents, units, lease holders, contact info |
-| `leases.read` | Yardi → HiveOps | Lease start/end, rent, balances |
-| `workorders.write` | HiveOps → Yardi | Maintenance requests created or dispatched in HiveOps |
+| `residents.read` | Yardi → Macro REI | Residents, units, lease holders, contact info |
+| `leases.read` | Yardi → Macro REI | Lease start/end, rent, balances |
+| `workorders.write` | Macro REI → Yardi | Maintenance requests created or dispatched in Macro REI |
 
 ### Typical Yardi Voyager interface flow (production)
 
@@ -41,12 +41,12 @@ From the Yardi manifest `capabilities`:
    - Calls Yardi Resident/Lease APIs (Interface plugin depends on client contract).
    - Upserts into `tenants/{tenantId}/residents`.
 3. **Cloud Function** `pushWorkOrderToYardi` on Firestore `workOrders` create/update when `status === 'dispatched'` or staff clicks "Push to PMS":
-   - Maps HiveOps fields → Yardi service request XML/JSON.
+   - Maps Macro REI fields → Yardi service request XML/JSON.
    - Saves `externalId`, `externalSystem: 'yardi'`.
 
 ### Field mapping (implement in adapter)
 
-| HiveOps `residents` | Yardi source (varies by interface) |
+| Macro REI `residents` | Yardi source (varies by interface) |
 |---------------------|--------------------------------------|
 | `name` | Tenant name / primary resident |
 | `unit` | Unit code |
@@ -58,9 +58,9 @@ From the Yardi manifest `capabilities`:
 
 Unmapped columns from CSV import land in `_raw` — same pattern for Yardi extras.
 
-### Work order mapping (HiveOps → Yardi)
+### Work order mapping (Macro REI → Yardi)
 
-| HiveOps | Yardi (typical) |
+| Macro REI | Yardi (typical) |
 |---------|-----------------|
 | `unit` | Unit |
 | `issue` | Problem description |
