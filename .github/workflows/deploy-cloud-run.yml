@@ -8,24 +8,42 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    permissions:
-      contents: 'read'
-      id-token: 'write' # REQUIRED for Workload Identity
     steps:
-      - uses: actions/checkout@v4
+      # Authenticate with a service-account JSON key stored in the repo secret
+      # named PROJECTMANAGMENT. If the secret isn't set, skip (don't fail) so
+      # pushes don't produce "All jobs have failed" emails.
+      - name: Check for GCP credentials
+        id: creds
+        run: |
+          if [ -z "${{ secrets.PROJECTMANAGMENT }}" ]; then
+            echo "present=false" >> "$GITHUB_OUTPUT"
+            echo "::warning title=Cloud Run deploy skipped::Secret PROJECTMANAGMENT is not set. Add the service-account JSON key under Settings → Secrets and variables → Actions to enable deploys."
+          else
+            echo "present=true" >> "$GITHUB_OUTPUT"
+          fi
 
+      - uses: actions/checkout@v4
+        if: steps.creds.outputs.present == 'true'
+
+      # google-github-actions/auth reads the JSON key and exposes the key's
+      # project_id as an output we reuse below, so we don't hard-code it.
       - id: auth
+        if: steps.creds.outputs.present == 'true'
         uses: google-github-actions/auth@v2
         with:
-          workload_identity_provider: 'projects/886711655757/locations/global/workloadIdentityPools/github-pool-v3/providers/github-provider-v3'
-          service_account: 'macrorealestatetrytwo-us-c1@project-c223f844-6371-4c3f-a0c.iam.gserviceaccount.com'
+          credentials_json: ${{ secrets.PROJECTMANAGMENT }}
 
       - uses: google-github-actions/setup-gcloud@v2
+        if: steps.creds.outputs.present == 'true'
 
       - name: Build and deploy
+        if: steps.creds.outputs.present == 'true'
         env:
-          PROJECT_ID: 'project-c223f844-6371-4c3f-a0c' # Using your active project ID
+          # Prefer an explicit GCP_PROJECT_ID secret; otherwise use the project
+          # baked into the service-account key.
+          PROJECT_ID: ${{ secrets.GCP_PROJECT_ID || steps.auth.outputs.project_id }}
         run: |
+          echo "Deploying to project: ${PROJECT_ID}"
           gcloud builds submit --tag "gcr.io/${PROJECT_ID}/seller-map"
           gcloud run deploy seller-map \
             --image "gcr.io/${PROJECT_ID}/seller-map" \
