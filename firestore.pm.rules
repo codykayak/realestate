@@ -1,0 +1,82 @@
+// ============================================================================
+// Security rules for the Property Management module's Cloud Firestore database.
+//
+// Database name: "property-managment"  (a NAMED Firestore database — make sure
+// you are editing the rules for THIS database, not "(default)").
+//
+// How to apply (easiest, no CLI):
+//   Firebase Console → Build → Firestore Database → pick the
+//   "property-managment" database → Rules tab → paste this whole file → Publish.
+//
+// What these rules do:
+//   • Deny everything by default.
+//   • Require the user to be signed in (Firebase Authentication).
+//   • Scope ALL data to a tenant (a property-management company); a user can
+//     only touch a tenant's data if they are listed as a member of it.
+//   • Let admins/owners manage team membership, settings, and integrations.
+//   • Make provider SECRETS (API keys/tokens) completely unreachable from the
+//     browser — only the Admin SDK (Cloud Functions) can read/write them.
+//
+// The match path uses /databases/{database}/documents, so pasting it on the
+// "property-managment" database scopes it correctly to that database.
+// ============================================================================
+
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function signedIn() {
+      return request.auth != null;
+    }
+    function isMember(tenantId) {
+      return signedIn()
+        && exists(/databases/$(database)/documents/tenants/$(tenantId)/members/$(request.auth.uid));
+    }
+    function role(tenantId) {
+      return get(/databases/$(database)/documents/tenants/$(tenantId)/members/$(request.auth.uid)).data.role;
+    }
+    function isAdmin(tenantId) {
+      return isMember(tenantId) && role(tenantId) in ['owner', 'admin'];
+    }
+
+    match /tenants/{tenantId} {
+      // Tenant settings doc: members read; admins update.
+      // Create/delete is done with the Admin SDK (server), never the client.
+      allow read:   if isMember(tenantId);
+      allow update: if isAdmin(tenantId);
+      allow create, delete: if false;
+
+      // Team roster: members can see the team; admins manage it.
+      match /members/{uid} {
+        allow read:  if isMember(tenantId);
+        allow write: if isAdmin(tenantId);
+      }
+
+      // Operational data: any member of the tenant can read/write.
+      match /residents/{docId}     { allow read, write: if isMember(tenantId); }
+      match /conversations/{docId} { allow read, write: if isMember(tenantId); }
+      match /leasingLeads/{docId}  { allow read, write: if isMember(tenantId); }
+      match /workOrders/{docId}    { allow read, write: if isMember(tenantId); }
+      match /knowledge/{docId}     { allow read, write: if isMember(tenantId); }
+      match /financials/{docId}    { allow read, write: if isMember(tenantId); }
+
+      // Integration connection STATUS (non-secret): members read, admins write.
+      match /integrations/{docId} {
+        allow read:  if isMember(tenantId);
+        allow write: if isAdmin(tenantId);
+      }
+
+      // Provider SECRETS (API keys/tokens): never readable/writable by clients.
+      // Only the Admin SDK (Cloud Functions) can access these.
+      match /secrets/{document=**} {
+        allow read, write: if false;
+      }
+    }
+
+    // Lookup index so a signed-in user can find which tenants they belong to.
+    match /userTenants/{uid} {
+      allow read:  if signedIn() && request.auth.uid == uid;
+      allow write: if false; // maintained by the Admin SDK
+    }
+  }
+}
