@@ -125,6 +125,7 @@ function ModuleInner() {
               if (!Page || !enabledIds.has(f.id)) return null;
               return <Route key={f.id} path={f.route} element={<Page />} />;
             })}
+            <Route path="developer-admin" element={<DeveloperAdmin />} />
             <Route path="*" element={<Navigate to={config.basePath} replace />} />
           </Routes>
         </ErrorBoundary>
