@@ -2,14 +2,14 @@
  * Property Management module — entry point.
  *
  * This is the ONLY file the host app imports. Everything below lives entirely
- * inside `src/property-management/**` with zero host-site imports, so the whole
- * folder can be lifted into another site (or its own repo) and mounted at any
- * base path with just a config/env change.
+ * inside `src/property-management/**` with zero host-site imports.
  *
- * The host mounts this at `/property-management/*`. Sidebar links use ABSOLUTE
- * paths built from `config.basePath` so navigating between tabs from any
- * sub-page always resolves correctly (relative links would append to the
- * current sub-path and land on a non-existent route → blank screen).
+ * SAFETY: Never add <Route element={<SomeComponent />} /> without importing
+ * SomeComponent (or lazy-loading it). PR #11 broke production by referencing
+ * DeveloperAdmin without an import — the entire app rendered a black screen.
+ *
+ * Developer Admin is optional (VITE_PM_DEV_ADMIN=false) and lazy-loaded via
+ * devAdminRoute.jsx so it cannot break Dashboard, Maintenance, etc.
  */
 
 import { lazy, Suspense } from 'react';
@@ -29,8 +29,12 @@ import Settings from './pages/Settings';
 import styles from './pm.module.css';
 import './components/print.css';
 
-/** Loaded only on /developer-admin so a dev-tools bug cannot break the whole PM app. */
-const DeveloperAdmin = lazy(() => import('./developer-admin/DeveloperAdmin'));
+/** Set VITE_PM_DEV_ADMIN=false at build time to hide dev tools (core app unchanged). */
+const DEV_ADMIN_ENABLED = import.meta.env.VITE_PM_DEV_ADMIN !== 'false';
+
+const DevAdminRoute = DEV_ADMIN_ENABLED
+  ? lazy(() => import('./devAdminRoute.jsx'))
+  : null;
 
 const PAGE_MAP = {
   dashboard: Dashboard,
@@ -99,27 +103,21 @@ function Sidebar() {
       })}
 
       <div className={styles.navSpacer} />
-      <NavLink
-        to={hrefFor(base, 'developer-admin')}
-        className={({ isActive }) => `${styles.navItem} ${styles.navDev} ${isActive ? styles.navActive : ''}`}
-        title="Internal engineering docs, pitch deck, and tools"
-      >
-        <Icon name="doc" size={16} className={styles.navIcon} />
-        <span>Developer admin</span>
-      </NavLink>
+      {DEV_ADMIN_ENABLED && DevAdminRoute && (
+        <NavLink
+          to={hrefFor(base, 'developer-admin')}
+          className={({ isActive }) => `${styles.navItem} ${styles.navDev} ${isActive ? styles.navActive : ''}`}
+          title="Internal engineering docs, pitch deck, and tools"
+        >
+          <Icon name="doc" size={16} className={styles.navIcon} />
+          <span>Developer admin</span>
+        </NavLink>
+      )}
       <div className={styles.sidebarFoot}>
         {config.productName} · build-and-pitch demo
         <br />Data is local to this browser until a Firebase project is connected.
       </div>
     </aside>
-  );
-}
-
-function DevAdminFallback() {
-  return (
-    <div className={styles.content}>
-      <div className={styles.hint}>Loading developer tools…</div>
-    </div>
   );
 }
 
@@ -135,7 +133,6 @@ function ModuleInner() {
     >
       <Sidebar />
       <main className={styles.main}>
-        {/* Reset the boundary whenever the route changes so a fixed page recovers. */}
         <ErrorBoundary key={location.pathname}>
           <Routes>
             <Route index element={<Dashboard />} />
@@ -145,14 +142,21 @@ function ModuleInner() {
               if (!Page || !enabledIds.has(f.id)) return null;
               return <Route key={f.id} path={f.route} element={<Page />} />;
             })}
-            <Route
-              path="developer-admin"
-              element={(
-                <Suspense fallback={<DevAdminFallback />}>
-                  <DeveloperAdmin />
-                </Suspense>
-              )}
-            />
+            {DEV_ADMIN_ENABLED && DevAdminRoute && (
+              <Route
+                path="developer-admin"
+                element={(
+                  <Suspense fallback={(
+                    <div className={styles.content}>
+                      <div className={styles.hint}>Loading developer tools…</div>
+                    </div>
+                  )}
+                  >
+                    <DevAdminRoute />
+                  </Suspense>
+                )}
+              />
+            )}
             <Route path="*" element={<Navigate to={config.basePath} replace />} />
           </Routes>
         </ErrorBoundary>
