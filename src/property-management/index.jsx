@@ -25,6 +25,7 @@ import Maintenance from './pages/Maintenance';
 import Residents from './pages/Residents';
 import KnowledgeBase from './pages/KnowledgeBase';
 import Settings from './pages/Settings';
+import DeveloperAdmin from './developer-admin/DeveloperAdmin';
 import styles from './pm.module.css';
 import './components/print.css';
 
@@ -95,6 +96,14 @@ function Sidebar() {
       })}
 
       <div className={styles.navSpacer} />
+      <NavLink
+        to={hrefFor(base, 'developer-admin')}
+        className={({ isActive }) => `${styles.navItem} ${styles.navDev} ${isActive ? styles.navActive : ''}`}
+        title="Internal engineering docs, pitch deck, and tools"
+      >
+        <Icon name="doc" size={16} className={styles.navIcon} />
+        <span>Developer admin</span>
+      </NavLink>
       <div className={styles.sidebarFoot}>
         {config.productName} · build-and-pitch demo
         <br />Data is local to this browser until a Firebase project is connected.
