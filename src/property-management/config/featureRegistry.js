@@ -26,7 +26,7 @@ export const FEATURES = [
     description: 'ROI metrics: deflection rate, time saved, pipeline, open work orders.',
     category: FEATURE_CATEGORIES.CORE,
     icon: 'grid',
-    route: '',
+    route: 'dashboard',
     defaultEnabled: true,
     locked: true,
   },

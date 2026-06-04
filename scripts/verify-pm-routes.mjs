@@ -8,7 +8,8 @@ const PORT = 4174;
 const BASE = `http://127.0.0.1:${PORT}/property-management`;
 
 const routes = [
-  { path: '', mustInclude: 'Operations Dashboard' },
+  { path: '', mustInclude: 'Enter platform' },
+  { path: '/dashboard', mustInclude: 'Operations Dashboard' },
   { path: '/owner', mustInclude: 'Owner Portal' },
   { path: '/communications', mustInclude: 'AI Resident' },
   { path: '/maintenance', mustInclude: 'Maintenance' },
@@ -62,7 +63,7 @@ try {
     if (navCount > 6) {
       console.error(`FAIL redirect loop on ${bad} (${navCount} navigations)`);
       failed += 1;
-    } else if (!body.includes('Operations Dashboard')) {
+    } else if (!body.includes('Enter platform')) {
       console.error(`FAIL unknown route ${bad} should show dashboard`);
       failed += 1;
     } else {
