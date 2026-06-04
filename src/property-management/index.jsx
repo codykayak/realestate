@@ -6,14 +6,17 @@
  * folder can be lifted into another site (or its own repo) and mounted at any
  * base path with just a config/env change.
  *
- * The host mounts this at `/property-management/*`; internal navigation uses
- * relative routes so the base path is not hard-coded.
+ * The host mounts this at `/property-management/*`. Sidebar links use ABSOLUTE
+ * paths built from `config.basePath` so navigating between tabs from any
+ * sub-page always resolves correctly (relative links would append to the
+ * current sub-path and land on a non-existent route → blank screen).
  */
 
-import { Routes, Route, NavLink, Navigate } from 'react-router-dom';
+import { Routes, Route, NavLink, Navigate, useLocation } from 'react-router-dom';
 import { PmProvider, usePm } from './context/PmContext';
 import { FEATURE_CATEGORIES } from './config/featureRegistry';
 import Icon from './components/Icon';
+import ErrorBoundary from './components/ErrorBoundary';
 import Dashboard from './pages/Dashboard';
 import OwnerPortal from './pages/OwnerPortal';
 import Communications from './pages/Communications';
@@ -36,9 +39,16 @@ const PAGE_MAP = {
   settings: Settings,
 };
 
+/** Join the module base path with a feature route into an absolute href. */
+function hrefFor(base, route) {
+  const b = (base || '/property-management').replace(/\/$/, '');
+  return route ? `${b}/${route}` : b;
+}
+
 function Sidebar() {
   const { config, tenant, features } = usePm();
   const enabled = features.filter((f) => f.enabled);
+  const base = config.basePath;
 
   const order = [
     FEATURE_CATEGORIES.CORE,
@@ -72,7 +82,7 @@ function Sidebar() {
             {items.map((f) => (
               <NavLink
                 key={f.id}
-                to={f.route}
+                to={hrefFor(base, f.route)}
                 end={f.route === ''}
                 className={({ isActive }) => `${styles.navItem} ${isActive ? styles.navActive : ''}`}
               >
@@ -95,6 +105,7 @@ function Sidebar() {
 
 function ModuleInner() {
   const { config, features } = usePm();
+  const location = useLocation();
   const enabledIds = new Set(features.filter((f) => f.enabled).map((f) => f.id));
 
   return (
@@ -104,16 +115,19 @@ function ModuleInner() {
     >
       <Sidebar />
       <main className={styles.main}>
-        <Routes>
-          <Route index element={<Dashboard />} />
-          {features.map((f) => {
-            if (f.id === 'dashboard' || !f.route) return null;
-            const Page = PAGE_MAP[f.id];
-            if (!Page || !enabledIds.has(f.id)) return null;
-            return <Route key={f.id} path={f.route} element={<Page />} />;
-          })}
-          <Route path="*" element={<Navigate to="" replace />} />
-        </Routes>
+        {/* Reset the boundary whenever the route changes so a fixed page recovers. */}
+        <ErrorBoundary key={location.pathname}>
+          <Routes>
+            <Route index element={<Dashboard />} />
+            {features.map((f) => {
+              if (f.id === 'dashboard' || !f.route) return null;
+              const Page = PAGE_MAP[f.id];
+              if (!Page || !enabledIds.has(f.id)) return null;
+              return <Route key={f.id} path={f.route} element={<Page />} />;
+            })}
+            <Route path="*" element={<Navigate to={config.basePath} replace />} />
+          </Routes>
+        </ErrorBoundary>
       </main>
     </div>
   );
