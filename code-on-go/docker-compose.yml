@@ -1,0 +1,18 @@
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    ports:
+      - "8080:8080"
+    environment:
+      PORT: 8080
+      NODE_ENV: development
+      USE_IN_MEMORY_STORE: "true"
+      CORS_ORIGINS: "*"
+      GIT_WORKSPACES_DIR: /workspaces
+    volumes:
+      - git-workspaces:/workspaces
+
+volumes:
+  git-workspaces:

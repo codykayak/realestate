@@ -1,0 +1,12 @@
+node_modules
+dist
+.expo
+.expo-shared
+*.local
+.env
+.env.*
+!.env.example
+backend/.workspaces
+backend/data
+*.log
+.DS_Store

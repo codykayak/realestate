@@ -1,0 +1,30 @@
+{
+  "expo": {
+    "name": "Code on Go",
+    "slug": "code-on-go",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "dark",
+    "scheme": "codeongo",
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.codeongo.app"
+    },
+    "android": {
+      "package": "com.codeongo.app",
+      "adaptiveIcon": {
+        "backgroundColor": "#0d1117",
+        "foregroundImage": "./assets/android-icon-foreground.png",
+        "backgroundImage": "./assets/android-icon-background.png",
+        "monochromeImage": "./assets/android-icon-monochrome.png"
+      }
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "extra": {
+      "apiBaseUrl": "http://localhost:8080"
+    }
+  }
+}
