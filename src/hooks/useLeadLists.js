@@ -20,6 +20,10 @@ function listDoc(uid, listId) {
   return doc(db, 'users', uid, 'leadLists', listId);
 }
 
+function settingsDoc(uid) {
+  return doc(db, 'users', uid, 'data', 'settings');
+}
+
 function newListId() {
   return `list_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
 }
@@ -63,7 +67,7 @@ export function useLeadLists(uid) {
     const meta = {
       ...payload,
       updatedAt: uid && isFirebaseConfigured ? serverTimestamp() : Date.now(),
-      leadCount: payload.leads?.length ?? 0,
+      leadCount: payload.leads?.length ?? payload.leadCount ?? 0,
     };
     if (uid && isFirebaseConfigured) {
       await setDoc(listDoc(uid, listId), meta, { merge: true });
@@ -96,12 +100,19 @@ export function useLeadLists(uid) {
       saveListsLocal(local);
     }
     saveActiveListIdLocal(id);
+    if (uid && isFirebaseConfigured) {
+      await setDoc(settingsDoc(uid), { activeListId: id }, { merge: true });
+    }
     return id;
   }, [uid]);
 
   const deleteList = useCallback(async (listId) => {
     if (uid && isFirebaseConfigured) {
       await deleteDoc(listDoc(uid, listId));
+      const snap = await getDoc(settingsDoc(uid));
+      if (snap.exists() && snap.data().activeListId === listId) {
+        await setDoc(settingsDoc(uid), { activeListId: null }, { merge: true });
+      }
     } else {
       const local = loadListsLocal();
       delete local[listId];
@@ -110,11 +121,30 @@ export function useLeadLists(uid) {
     if (loadActiveListIdLocal() === listId) saveActiveListIdLocal(null);
   }, [uid]);
 
-  const getActiveListId = useCallback(() => loadActiveListIdLocal(), []);
+  const getActiveListId = useCallback(async () => {
+    if (uid && isFirebaseConfigured) {
+      try {
+        const snap = await getDoc(settingsDoc(uid));
+        if (snap.exists() && snap.data().activeListId) {
+          return snap.data().activeListId;
+        }
+      } catch (e) {
+        console.error('[lists] getActiveListId:', e);
+      }
+    }
+    return loadActiveListIdLocal();
+  }, [uid]);
 
-  const setActiveListId = useCallback((listId) => {
+  const setActiveListId = useCallback(async (listId) => {
     saveActiveListIdLocal(listId);
-  }, []);
+    if (uid && isFirebaseConfigured) {
+      try {
+        await setDoc(settingsDoc(uid), { activeListId: listId ?? null }, { merge: true });
+      } catch (e) {
+        console.error('[lists] setActiveListId:', e);
+      }
+    }
+  }, [uid]);
 
   /** Migrate legacy single-doc leads into first list. */
   const migrateLegacyLeads = useCallback(async (legacyLeads) => {
