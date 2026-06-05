@@ -37,6 +37,9 @@ export default function DialerView({
   fetchLeadActivity,
   smsSending = false,
   smsError = null,
+  onShowInfo,
+  emailTemplates,
+  agentName,
 }) {
   const [idx, setIdx]             = useState(0);
   const [jumped, setJumped]       = useState(false);
