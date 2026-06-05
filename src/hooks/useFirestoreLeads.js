@@ -14,7 +14,8 @@ import {
 } from 'firebase/firestore';
 import { db, isFirebaseConfigured } from '../firebase';
 
-const STRIP = new Set(['_raw', '_headers', '_addressSource']);
+// Keep _raw/_headers so Info view and re-import work after reload
+const STRIP = new Set(['_addressSource']);
 
 function stripLead(lead) {
   const out = {};

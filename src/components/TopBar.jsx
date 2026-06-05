@@ -3,7 +3,8 @@ import styles from './TopBar.module.css';
 export default function TopBar({
   leadCount, geocodedCount,
   zoningVisible, onToggleZoning, zoningLoading,
-  onReset, onResumeGeocoding, bgGeocoding,
+  onOpenLists, activeListName,
+  onResumeGeocoding, bgGeocoding,
   teamLabel, onOpenTeam,
 }) {
   const unmapped = leadCount - geocodedCount;
@@ -16,7 +17,7 @@ export default function TopBar({
           <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z" stroke="#58a6ff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
           <circle cx="12" cy="10" r="3" stroke="#58a6ff" strokeWidth="2"/>
         </svg>
-        <span className={styles.title}>{teamLabel ? teamLabel : 'Leads'}</span>
+        <span className={styles.title}>{activeListName || (teamLabel ? teamLabel : 'Leads')}</span>
       </div>
 
       {/* Lead stats */}
@@ -76,15 +77,17 @@ export default function TopBar({
           <span className={styles.zoneLabel}>Layers</span>
         </button>
 
-        {/* New CSV */}
-        <button className={styles.resetBtn} onClick={onReset} aria-label="Upload new CSV">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-            <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-            <polyline points="17 8 12 3 7 8" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-            <line x1="12" y1="3" x2="12" y2="15" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-          </svg>
-          <span className={styles.resetLabel}>New CSV</span>
-        </button>
+        {onOpenLists && (
+          <button className={styles.resetBtn} onClick={onOpenLists} aria-label="My Lists">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+              <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" stroke="currentColor" strokeWidth="2"/>
+              <polyline points="14 2 14 8 20 8" stroke="currentColor" strokeWidth="2"/>
+              <line x1="8" y1="13" x2="16" y2="13" stroke="currentColor" strokeWidth="2"/>
+              <line x1="8" y1="17" x2="13" y2="17" stroke="currentColor" strokeWidth="2"/>
+            </svg>
+            <span className={styles.resetLabel}>My Lists</span>
+          </button>
+        )}
       </div>
     </div>
   );

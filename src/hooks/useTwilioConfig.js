@@ -3,6 +3,7 @@ import { doc, onSnapshot, setDoc, serverTimestamp } from 'firebase/firestore';
 import { httpsCallable } from 'firebase/functions';
 import { db, functions, isFirebaseConfigured } from '../firebase';
 import { DEFAULT_MISSED_TEMPLATE, DEFAULT_TEMPLATES } from '../utils/smsTemplates';
+import { DEFAULT_EMAIL_TEMPLATES } from '../utils/emailTemplates';
 import { parseCallableError } from '../utils/callableError';
 
 const TWILIO_DOC = 'twilio';
