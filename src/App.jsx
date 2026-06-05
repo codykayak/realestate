@@ -94,6 +94,26 @@ export default function App() {
   const [bgTotal, setBgTotal]                   = useState(0);
   const bgAbortRef                              = useRef(null);
   const abortRef = useRef(null);
+  const leadsCacheRef                           = useRef({});
+
+  const {
+    listAll, loadList, saveList, createList, deleteList,
+    getActiveListId, setActiveListId: setStoredActiveListId,
+    migrateLegacyLeads,
+  } = useLeadLists(uid);
+
+  const [listsMeta, setListsMeta]               = useState([]);
+  const [activeListId, setActiveListId]         = useState(null);
+  const [myListsOpen, setMyListsOpen]           = useState(false);
+  const [listsLoading, setListsLoading]         = useState(false);
+  const [infoModal, setInfoModal]               = useState(null);
+  const [importPreview, setImportPreview]       = useState(null);
+  const [importBusy, setImportBusy]             = useState(false);
+
+  const persistActiveListId = useCallback((listId) => {
+    setStoredActiveListId(listId);
+    setActiveListId(listId);
+  }, [setStoredActiveListId]);
 
   const { geojson: eugeneGeojson, loading: eugeneLoading } = useZoningData();
   const { uploadPhoto, deletePhoto } = useLeadPhotos(uid);

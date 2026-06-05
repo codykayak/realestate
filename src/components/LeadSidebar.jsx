@@ -31,7 +31,7 @@ const PRIORITY_FIELDS = [
   { key: 'mls',       label: 'MLS #' },
 ];
 
-export default function LeadSidebar({ lead, onClose, onUpdate, onSyncPortal, onViewInSheets }) {
+export default function LeadSidebar({ lead, onClose, onUpdate, onSyncPortal, onViewInSheets, onShowInfo }) {
   const sheetRef = useRef(null);
 
   if (!lead) return null;
@@ -80,18 +80,11 @@ export default function LeadSidebar({ lead, onClose, onUpdate, onSyncPortal, onV
               <p className={styles.addrLine}>{lead._addressForGeocode}</p>
             )}
           </div>
-          <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-            {onShowInfo && (
-              <button type="button" className={styles.closeBtn} onClick={onShowInfo} aria-label="All fields" title="All fields">
-                Info
-              </button>
-            )}
-            <button className={styles.closeBtn} onClick={onClose} aria-label="Close">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-                <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"/>
-              </svg>
-            </button>
-          </div>
+          <button className={styles.closeBtn} onClick={onClose} aria-label="Close">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+              <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"/>
+            </svg>
+          </button>
         </div>
 
         {/* No geocode warning */}
