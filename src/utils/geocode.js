@@ -11,6 +11,15 @@ const OR_VIEWBOX   = '-124.6,41.8,-116.5,46.3';
 
 function sleep(ms) { return new Promise((r) => setTimeout(r, ms)); }
 
+/** True when a lead has coordinates suitable for map pins. */
+export function hasMapPin(lead) {
+  const g = lead?.geocoded;
+  if (!g) return false;
+  const lat = Number(g.lat);
+  const lng = Number(g.lng);
+  return Number.isFinite(lat) && Number.isFinite(lng);
+}
+
 export async function geocodeAddress(address) {
   if (!address || address.trim().length < 5) {
     console.warn('[geocode] Skipping — too short:', JSON.stringify(address));
@@ -72,7 +81,7 @@ export async function geocodeAddress(address) {
   }
 }
 
-export async function geocodeLeads(leads, onProgress, signal, onUpdate) {
+export async function geocodeLeads(leads, onProgress, signal) {
   const results  = [...leads];
   let done       = 0;
   let successes  = 0;

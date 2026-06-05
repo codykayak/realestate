@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useMemo } from 'react';
 import maplibregl from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import { ZONE_COLORS, DEFAULT_ZONE_COLOR, ZONE_DESCRIPTIONS } from '../constants/zoning';

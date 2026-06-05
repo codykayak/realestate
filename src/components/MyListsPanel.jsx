@@ -93,7 +93,10 @@ export default function MyListsPanel({
                         <button
                           type="button"
                           className={styles.delConfirm}
-                          onClick={() => { onDeleteList(item.id); setConfirmDelete(null); }}
+                          onClick={async () => {
+                            setConfirmDelete(null);
+                            await onDeleteList(item.id);
+                          }}
                         >
                           Delete
                         </button>

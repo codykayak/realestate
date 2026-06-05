@@ -2,7 +2,6 @@ import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { fileIcon, isImage, formatSize } from '../hooks/useLeadPhotos';
 import { smsCountForPhone } from '../utils/smsTemplates';
 import { isSmsBlocked, isCallBlocked, complianceLabel } from '../utils/leadCompliance';
-import { DEFAULT_EMAIL_TEMPLATES, openEmailClient } from '../utils/emailTemplates';
 import TxtNowSheet from './TxtNowSheet';
 import LeadActivityTimeline from './LeadActivityTimeline';
 import SellerDealPanel from './SellerDealPanel';
@@ -100,6 +99,7 @@ export default function DialerView({
   }, [lead, onUpdateLead]);
 
   const handleTxtNow = useCallback(() => {
+    if (!lead) return;
     if (!twilioReady) {
       onOpenTwilioSetup?.();
       return;
