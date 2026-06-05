@@ -15,7 +15,7 @@ import TwilioOnboarding from './components/TwilioOnboarding';
 import SheetsView from './components/SheetsView';
 import { useTwilioConfig } from './hooks/useTwilioConfig';
 import BgGeocodingBanner from './components/BgGeocodingBanner';
-import { geocodeLeads, geocodeAddress } from './utils/geocode';
+import { geocodeLeads, geocodeAddress, hasMapPin } from './utils/geocode';
 import { useLeadPhotos } from './hooks/useLeadPhotos';
 import { lookupProperty } from './utils/propertyLookup';
 import { assignZones } from './utils/assignZones';
@@ -94,6 +94,8 @@ export default function App() {
   const bgAbortRef                              = useRef(null);
   const abortRef = useRef(null);
   const leadsCacheRef                           = useRef({});
+  const sessionInitRef                          = useRef(null);
+  const enrichingRef                            = useRef(false);
 
   const {
     listAll, loadList, saveList, createList, deleteList,
@@ -130,6 +132,9 @@ export default function App() {
   // ── Load leads on mount / auth / team pool switch (background) ───────────
   useEffect(() => {
     if (authLoading) return;
+    const sessionKey = `${uid ?? 'anon'}|${activeOrgId ?? ''}|${isTeamMode}`;
+    if (sessionInitRef.current === sessionKey) return;
+    sessionInitRef.current = sessionKey;
     let cancelled = false;
     async function init() {
       try {
@@ -192,12 +197,14 @@ export default function App() {
     if (!uid || !isFirebaseConfigured) lsSave(leads);
   }, [leads, activeListId, isTeamMode, geocoding]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // ── Zone assignment ──────────────────────────────────────────────────────
+  // ── Zone assignment (once per lead — empty string means "no zone found") ─
   useEffect(() => {
     if (!leads || !eugeneGeojson) return;
-    if (leads.some((l) => l.geocoded && l.zoneCode === undefined)) {
-      setLeads((prev) => assignZones(prev, eugeneGeojson));
-    }
+    if (!leads.some((l) => hasMapPin(l) && l.zoneCode === undefined)) return;
+    setLeads((prev) => {
+      if (!prev?.some((l) => hasMapPin(l) && l.zoneCode === undefined)) return prev;
+      return assignZones(prev, eugeneGeojson);
+    });
   }, [leads, eugeneGeojson]);
 
   // ── Today's call log (for dialer stats) ─────────────────────────────────
@@ -219,6 +226,11 @@ export default function App() {
   })), []);
 
   const activateListLeads = useCallback(async (listId, { savePrevious = false } = {}) => {
+    if (listId === activeListId && leads?.length) {
+      setMyListsOpen(false);
+      return;
+    }
+
     if (savePrevious && activeListId && leads) {
       const prevId = activeListId;
       const snapshot = leads;
@@ -227,9 +239,12 @@ export default function App() {
     }
     await persistActiveListId(listId);
 
-    const doc = await loadList(listId);
-    const rows = doc?.leads ?? [];
-    leadsCacheRef.current[listId] = rows;
+    let rows = leadsCacheRef.current[listId];
+    if (!rows) {
+      const doc = await loadList(listId);
+      rows = doc?.leads ?? [];
+      leadsCacheRef.current[listId] = rows;
+    }
 
     setSelectedId(null);
     setZoneFilter(null);
@@ -237,8 +252,11 @@ export default function App() {
     setActiveTab('map');
     setLeads(rows.length ? rows : null);
 
-    const needsGeocode = rows.some((l) => !l.geocoded?.lat && l._addressForGeocode?.trim());
-    if (!needsGeocode) return;
+    const needsGeocode = rows.some((l) => !hasMapPin(l) && l._addressForGeocode?.trim());
+    if (!needsGeocode) {
+      enrichLeadsFromPublicRecords(rows);
+      return;
+    }
 
     setGeocodeDone(0);
     setGeocodeSuccesses(0);
@@ -316,15 +334,28 @@ export default function App() {
   }, [activeListId, activateListLeads]);
 
   const handleDeleteList = useCallback(async (listId) => {
-    await deleteList(listId);
+    const wasActive = activeListId === listId;
+    setListsMeta((prev) => prev.filter((l) => l.id !== listId));
     delete leadsCacheRef.current[listId];
-    const items = await refreshListsMeta();
-    if (activeListId === listId) {
-      const next = items[0];
-      if (next) await switchList(next.id);
-      else { setActiveListId(null); setLeads(null); }
+
+    try {
+      await deleteList(listId);
+    } catch (e) {
+      console.error('[deleteList]', e);
+      await refreshListsMeta();
+      return;
     }
-  }, [activeListId, deleteList, refreshListsMeta, switchList]);
+
+    if (wasActive) {
+      const items = await refreshListsMeta();
+      if (items[0]) {
+        await activateListLeads(items[0].id, { savePrevious: false });
+      } else {
+        await persistActiveListId(null);
+        setLeads(null);
+      }
+    }
+  }, [activeListId, deleteList, refreshListsMeta, activateListLeads, persistActiveListId]);
 
   const handleAddListFile = useCallback(async (file) => {
     setMyListsOpen(false);
@@ -337,20 +368,29 @@ export default function App() {
     }
   }, [handleLeadsLoaded]);
 
-  // Background enrichment: Lane County taxlot data for each geocoded lead
+  // Background enrichment: Lane County taxlot data — batched to avoid map flicker
   async function enrichLeadsFromPublicRecords(geocodedLeads) {
-    const mapped = geocodedLeads.filter(l => l.geocoded);
-    for (const lead of mapped) {
-      try {
-        const rec = await lookupProperty(lead.geocoded.lat, lead.geocoded.lng);
-        if (rec) {
-          setLeads(prev =>
-            prev.map(l => l.id === lead.id ? { ...l, publicRecord: rec } : l)
-          );
-        }
-      } catch { /* silent fail per lead */ }
-      // Small delay to avoid hammering the GIS server
-      await new Promise(r => setTimeout(r, 200));
+    if (enrichingRef.current) return;
+    const mapped = geocodedLeads.filter((l) => hasMapPin(l) && !l.publicRecord);
+    if (!mapped.length) return;
+
+    enrichingRef.current = true;
+    const pending = new Map();
+    try {
+      for (const lead of mapped) {
+        try {
+          const rec = await lookupProperty(lead.geocoded.lat, lead.geocoded.lng);
+          if (rec) pending.set(lead.id, rec);
+        } catch { /* silent fail per lead */ }
+        await new Promise((r) => setTimeout(r, 200));
+      }
+      if (pending.size) {
+        setLeads((prev) => prev?.map((l) => (
+          pending.has(l.id) ? { ...l, publicRecord: pending.get(l.id) } : l
+        )) ?? prev);
+      }
+    } finally {
+      enrichingRef.current = false;
     }
   }
 
@@ -393,7 +433,7 @@ export default function App() {
     if (bgGeocoding || !leads) return;
 
     // Leads that still need geocoding — must have an address to try
-    const pending = leads.filter((l) => !l.geocoded && l._addressForGeocode?.trim());
+    const pending = leads.filter((l) => !hasMapPin(l) && l._addressForGeocode?.trim());
 
     console.log('[resumeGeocode] Pending leads:', pending.length);
     if (pending.length === 0) {
@@ -503,7 +543,7 @@ export default function App() {
 
   // ── Shared props ─────────────────────────────────────────────────────────
   const selectedLead  = leads?.find((l) => l.id === selectedId) ?? null;
-  const geocodedCount = leads?.filter((l) => l.geocoded).length ?? 0;
+  const geocodedCount = leads?.filter(hasMapPin).length ?? 0;
   const anyZoningOn   = eugeneVisible || enabledCounties.size > 0;
 
   const mapProps = {
@@ -511,6 +551,7 @@ export default function App() {
     zoningGeojson: eugeneGeojson, zoningVisible: eugeneVisible,
     regionalGeojson, regionalVisible: enabledCounties.size > 0,
     zoneFilter, onBoundsChange: handleBoundsChange,
+    fitKey: activeListId ?? (leads?.length ? 'loaded' : 'empty'),
   };
 
   const unmappedCount = (leads?.length ?? 0) - geocodedCount;

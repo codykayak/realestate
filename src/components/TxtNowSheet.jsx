@@ -13,7 +13,7 @@ export default function TxtNowSheet({
   sending,
   error,
 }) {
-  const [templateId, setTemplateId] = useState(templates[0]?.id ?? 'intro');
+  const [templateId, setTemplateId] = useState(templates?.[0]?.id ?? 'intro');
   const [selectedPhone, setSelectedPhone] = useState(activePhone || lead?.phone || '');
   const [sent, setSent] = useState(false);
 
