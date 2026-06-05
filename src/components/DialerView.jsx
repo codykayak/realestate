@@ -2,6 +2,7 @@ import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { fileIcon, isImage, formatSize } from '../hooks/useLeadPhotos';
 import { smsCountForPhone } from '../utils/smsTemplates';
 import { isSmsBlocked, isCallBlocked, complianceLabel } from '../utils/leadCompliance';
+import { DEFAULT_EMAIL_TEMPLATES, openEmailClient } from '../utils/emailTemplates';
 import TxtNowSheet from './TxtNowSheet';
 import LeadActivityTimeline from './LeadActivityTimeline';
 import SellerDealPanel from './SellerDealPanel';
@@ -37,9 +38,6 @@ export default function DialerView({
   fetchLeadActivity,
   smsSending = false,
   smsError = null,
-  onShowInfo,
-  emailTemplates,
-  agentName,
 }) {
   const [idx, setIdx]             = useState(0);
   const [jumped, setJumped]       = useState(false);
@@ -503,26 +501,6 @@ export default function DialerView({
             )}
           </button>
         )}
-
-        <div className={styles.callActionRow} style={{ marginTop: 10 }}>
-          {onShowInfo && (
-            <button type="button" className={styles.txtBtn} onClick={() => onShowInfo(lead)}>
-              Info
-            </button>
-          )}
-          {lead.email && (
-            <button
-              type="button"
-              className={styles.txtBtn}
-              onClick={() => {
-                const tpl = (emailTemplates ?? DEFAULT_EMAIL_TEMPLATES)[0];
-                if (tpl) openEmailClient(lead, tpl, agentName || twilioConfig?.agentName);
-              }}
-            >
-              Email
-            </button>
-          )}
-        </div>
       </div>
 
       <TxtNowSheet

@@ -72,7 +72,7 @@ export async function geocodeAddress(address) {
   }
 }
 
-export async function geocodeLeads(leads, onProgress, signal) {
+export async function geocodeLeads(leads, onProgress, signal, onUpdate) {
   const results  = [...leads];
   let done       = 0;
   let successes  = 0;

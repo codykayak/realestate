@@ -1,6 +1,5 @@
 import { useRef, useState } from 'react';
-import { parseFilePreview, buildLeadsFromImport } from '../utils/parseCSV';
-import ColumnMapStep from './ColumnMapStep';
+import { parseCSV } from '../utils/parseCSV';
 import styles from './UploadScreen.module.css';
 
 const ACCEPTED_TYPES = ['.csv', '.xlsx', '.xls', '.xlsm'];
@@ -10,12 +9,11 @@ function isAcceptedFile(file) {
   return ACCEPTED_TYPES.some((ext) => name.endsWith(ext));
 }
 
-export default function UploadScreen({ onLeadsLoaded, listName }) {
+export default function UploadScreen({ onLeadsLoaded }) {
   const inputRef = useRef(null);
   const [dragging, setDragging] = useState(false);
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
-  const [preview, setPreview] = useState(null);
 
   async function handleFile(file) {
     if (!file || !isAcceptedFile(file)) {
@@ -25,12 +23,12 @@ export default function UploadScreen({ onLeadsLoaded, listName }) {
     setError(null);
     setLoading(true);
     try {
-      const result = await parseFilePreview(file);
-      if (!result.rows.length) {
+      const result = await parseCSV(file);
+      if (!result.leads.length) {
         setError('The file appears to be empty or has no data rows.');
         return;
       }
-      setPreview(result);
+      await onLeadsLoaded({ ...result, fileName: file.name });
     } catch (e) {
       setError(e.message ?? 'Failed to parse file. Check the format and try again.');
     } finally {
@@ -51,53 +49,6 @@ export default function UploadScreen({ onLeadsLoaded, listName }) {
     if (file) handleFile(file);
   }
 
-  async function handleConfirmColumns(selectedHeaders) {
-    if (!preview) return;
-    setLoading(true);
-    setError(null);
-    try {
-      const leads = buildLeadsFromImport({
-        rows: preview.rows,
-        headers: preview.headers,
-        selectedHeaders,
-        startId: 0,
-      });
-      onLeadsLoaded({
-        leads,
-        fieldMap: preview.autoFieldMap,
-        headers: preview.headers,
-        selectedHeaders,
-        fileName: preview.fileName,
-        listName: listName || preview.fileName?.replace(/\.[^.]+$/, '') || 'New list',
-        previewRows: preview.rows.slice(0, 10),
-      });
-      setPreview(null);
-    } catch (e) {
-      setError(e.message ?? 'Import failed.');
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  if (preview) {
-    return (
-      <div className={styles.screen}>
-        <div className={styles.card}>
-          <ColumnMapStep
-            fileName={preview.fileName}
-            headers={preview.headers}
-            autoFieldMap={preview.autoFieldMap}
-            previewRows={preview.rows}
-            onBack={() => setPreview(null)}
-            onConfirm={handleConfirmColumns}
-            busy={loading}
-          />
-          {error && <p className={styles.error}>{error}</p>}
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className={styles.screen}>
       <div className={styles.card}>
@@ -109,7 +60,7 @@ export default function UploadScreen({ onLeadsLoaded, listName }) {
           </svg>
         </div>
         <h1 className={styles.title}>Motivated Seller Map</h1>
-        <p className={styles.subtitle}>Upload a CSV or Excel file — pick columns on the next step</p>
+        <p className={styles.subtitle}>Upload a CSV or Excel file to plot leads on the map</p>
 
         <div
           className={`${styles.dropzone} ${dragging ? styles.dragging : ''}`}
@@ -144,13 +95,27 @@ export default function UploadScreen({ onLeadsLoaded, listName }) {
                 {dragging ? 'Drop it here' : 'Drag & drop or tap to browse'}
               </p>
               <p className={styles.dropHint}>
-                Homeowners, attorneys, property managers — any column layout
+                Supports CSV and Excel (.xlsx) — works with Propradar, PropStream, and other exports
               </p>
             </>
           )}
         </div>
 
         {error && <p className={styles.error}>{error}</p>}
+
+        <div className={styles.exampleBox}>
+          <p className={styles.exampleTitle}>Detected columns (any name variation):</p>
+          <div className={styles.tags}>
+            {['Address', 'City', 'State', 'ZIP', 'Owner / Name', 'Phone', 'Email',
+              'Est Value', 'Est Equity', 'Sq Ft', 'Beds', 'Baths', 'Distress Score'].map((t) => (
+              <span key={t} className={styles.tag}>{t}</span>
+            ))}
+          </div>
+          <p className={styles.exampleHint}>
+            All columns are shown in the detail panel. If your file has no State column,
+            Oregon is assumed automatically.
+          </p>
+        </div>
       </div>
     </div>
   );
