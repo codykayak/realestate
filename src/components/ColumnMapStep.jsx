@@ -105,7 +105,12 @@ export default function ColumnMapStep({
           type="button"
           className={styles.primaryBtn}
           disabled={busy || selected.size === 0}
-          onClick={() => onConfirm([...selected])}
+          onClick={() => {
+            const cols = [...selected];
+            const addrCol = autoFieldMap?.address;
+            if (addrCol && !cols.includes(addrCol)) cols.push(addrCol);
+            onConfirm(cols);
+          }}
         >
           {busy ? 'Importing…' : `Import ${selected.size} column${selected.size === 1 ? '' : 's'}`}
         </button>

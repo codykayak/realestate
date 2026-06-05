@@ -29,9 +29,7 @@ import { useSellerPortalSync } from './hooks/useSellerPortalSync';
 import TeamPoolPanel from './components/TeamPoolPanel';
 import MyListsPanel from './components/MyListsPanel';
 import LeadInfoModal from './components/LeadInfoModal';
-import ColumnMapStep from './components/ColumnMapStep';
 import { useLeadLists } from './hooks/useLeadLists';
-import { parseFilePreview, buildLeadsFromImport } from './utils/parseCSV';
 import { isFirebaseConfigured } from './firebase';
 import './App.css';
 
@@ -107,8 +105,7 @@ export default function App() {
   const [myListsOpen, setMyListsOpen]           = useState(false);
   const [listsLoading, setListsLoading]         = useState(false);
   const [infoModal, setInfoModal]               = useState(null);
-  const [importPreview, setImportPreview]       = useState(null);
-  const [importBusy, setImportBusy]             = useState(false);
+  const [uploadOverlay, setUploadOverlay]       = useState(null); // null | true | File
 
   const persistActiveListId = useCallback((listId) => {
     setStoredActiveListId(listId);
@@ -182,6 +179,7 @@ export default function App() {
   // ── Persist leads ────────────────────────────────────────────────────────
   useEffect(() => {
     if (!leads) return;
+    if (geocoding) return;
     if (uid && isFirebaseConfigured && isTeamMode) { fsSave(leads); return; }
     if (activeListId) {
       leadsCacheRef.current[activeListId] = leads;
@@ -189,7 +187,7 @@ export default function App() {
       return;
     }
     if (!uid || !isFirebaseConfigured) lsSave(leads);
-  }, [leads, activeListId, isTeamMode]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [leads, activeListId, isTeamMode, geocoding]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // ── Zone assignment ──────────────────────────────────────────────────────
   useEffect(() => {
@@ -238,6 +236,7 @@ export default function App() {
       initial,
       (done, _, successes) => { setGeocodeDone(done); setGeocodeSuccesses(successes); },
       ctrl.signal,
+      (partial) => setLeads(partial),
     );
     setGeocoding(false);
     enrichLeadsFromPublicRecords(geocoded);
@@ -250,20 +249,27 @@ export default function App() {
     const initial = normalizeImportedLeads(Array.isArray(parsed) ? parsed : []);
     setSelectedId(null);
     setZoneFilter(null);
+    setUploadOverlay(null);
+    setMyListsOpen(false);
+    setActiveTab('map');
+    // Show map + geocoding progress immediately (pre-#19 behavior)
+    setLeads(initial);
+
     let listId = activeListId;
-    if (payload.fileName && !isTeamMode) {
+    const isNewList = Boolean(payload.fileName && !isTeamMode);
+    if (isNewList) {
       listId = await createList({
         name: payload.listName || payload.fileName.replace(/\.[^.]+$/, ''),
         fileName: payload.fileName,
         headers: payload.headers,
         selectedHeaders: payload.selectedHeaders,
         previewRows: payload.previewRows,
-        leads: initial,
+        leads: [],
       });
-      setActiveListId(listId);
       persistActiveListId(listId);
       await refreshListsMeta();
     }
+
     const geocoded = await runGeocodeIfNeeded(initial);
     setLeads(geocoded);
     if (listId) {
@@ -277,9 +283,6 @@ export default function App() {
         name: payload.listName,
       });
     }
-    setImportPreview(null);
-    setMyListsOpen(false);
-    setActiveTab('map');
   }, [activeListId, createList, isTeamMode, normalizeImportedLeads, persistActiveListId, refreshListsMeta, runGeocodeIfNeeded, saveList]);
 
   const switchList = useCallback(async (listId) => {
@@ -313,33 +316,15 @@ export default function App() {
     }
   }, [activeListId, deleteList, refreshListsMeta, switchList]);
 
-  const handleAddListFile = useCallback(async (file) => {
-    setImportBusy(true);
-    try { setImportPreview(await parseFilePreview(file)); }
-    catch (e) { console.error(e); }
-    finally { setImportBusy(false); }
+  const handleAddListFile = useCallback((file) => {
+    setMyListsOpen(false);
+    setUploadOverlay(file);
   }, []);
 
-  const handleConfirmImport = useCallback(async (selectedHeaders) => {
-    if (!importPreview) return;
-    setImportBusy(true);
-    try {
-      const leadsBuilt = buildLeadsFromImport({
-        rows: importPreview.rows,
-        headers: importPreview.headers,
-        selectedHeaders,
-        startId: 0,
-      });
-      await handleLeadsLoaded({
-        leads: leadsBuilt,
-        fileName: importPreview.fileName,
-        listName: importPreview.fileName.replace(/\.[^.]+$/, ''),
-        headers: importPreview.headers,
-        selectedHeaders,
-        previewRows: importPreview.rows.slice(0, 10),
-      });
-    } finally { setImportBusy(false); }
-  }, [handleLeadsLoaded, importPreview]);
+  const handleOpenUpload = useCallback(() => {
+    setMyListsOpen(false);
+    setUploadOverlay(true);
+  }, []);
 
   // Background enrichment: Lane County taxlot data for each geocoded lead
   async function enrichLeadsFromPublicRecords(geocodedLeads) {
@@ -673,6 +658,7 @@ export default function App() {
         onSelectList={switchList}
         onDeleteList={handleDeleteList}
         onAddList={handleAddListFile}
+        onOpenImport={handleOpenUpload}
         onShowListInfo={async (item) => {
           const doc = await loadList(item.id);
           setInfoModal({ listMeta: { ...item, ...doc } });
@@ -686,28 +672,13 @@ export default function App() {
         listMeta={infoModal?.listMeta}
       />
 
-      {importPreview && (
-        <div style={{
-          position: 'fixed', inset: 0, zIndex: 130, background: 'rgba(0,0,0,0.75)',
-          display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16,
-        }}
-        >
-          <div style={{
-            background: '#161b22', border: '1px solid #30363d', borderRadius: 14,
-            padding: 20, maxWidth: 520, width: '100%', maxHeight: '90vh', overflow: 'auto',
-          }}
-          >
-            <ColumnMapStep
-              fileName={importPreview.fileName}
-              headers={importPreview.headers}
-              autoFieldMap={importPreview.autoFieldMap}
-              previewRows={importPreview.rows}
-              onBack={() => setImportPreview(null)}
-              onConfirm={handleConfirmImport}
-              busy={importBusy}
-            />
-          </div>
-        </div>
+      {uploadOverlay && (
+        <UploadScreen
+          overlay
+          initialFile={uploadOverlay instanceof File ? uploadOverlay : null}
+          onLeadsLoaded={handleLeadsLoaded}
+          onCancel={() => setUploadOverlay(null)}
+        />
       )}
 
       <TabBar
