@@ -29,9 +29,8 @@ import { useSellerPortalSync } from './hooks/useSellerPortalSync';
 import TeamPoolPanel from './components/TeamPoolPanel';
 import MyListsPanel from './components/MyListsPanel';
 import LeadInfoModal from './components/LeadInfoModal';
-import ColumnMapStep from './components/ColumnMapStep';
 import { useLeadLists } from './hooks/useLeadLists';
-import { parseFilePreview, buildLeadsFromImport } from './utils/parseCSV';
+import { parseCSV } from './utils/parseCSV';
 import { isFirebaseConfigured } from './firebase';
 import './App.css';
 
@@ -107,8 +106,6 @@ export default function App() {
   const [myListsOpen, setMyListsOpen]           = useState(false);
   const [listsLoading, setListsLoading]         = useState(false);
   const [infoModal, setInfoModal]               = useState(null);
-  const [importPreview, setImportPreview]       = useState(null);
-  const [importBusy, setImportBusy]             = useState(false);
 
   const persistActiveListId = useCallback((listId) => {
     setStoredActiveListId(listId);
@@ -182,6 +179,7 @@ export default function App() {
   // ── Persist leads ────────────────────────────────────────────────────────
   useEffect(() => {
     if (!leads) return;
+    if (geocoding) return;
     if (uid && isFirebaseConfigured && isTeamMode) { fsSave(leads); return; }
     if (activeListId) {
       leadsCacheRef.current[activeListId] = leads;
@@ -189,7 +187,7 @@ export default function App() {
       return;
     }
     if (!uid || !isFirebaseConfigured) lsSave(leads);
-  }, [leads, activeListId, isTeamMode]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [leads, activeListId, isTeamMode, geocoding]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // ── Zone assignment ──────────────────────────────────────────────────────
   useEffect(() => {
@@ -205,15 +203,6 @@ export default function App() {
     getTodayCallLogs().then(setTodayCalls).catch(() => {});
   }, [uid]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  useEffect(() => {
-    if (
-      activeTab === 'dialer' && uid && !twilioLoading &&
-      !twilioReady && !twilioConfig?.onboardingComplete
-    ) {
-      setTwilioSetupOpen(true);
-    }
-  }, [activeTab, uid, twilioLoading, twilioConfig, twilioReady]);
-
   const normalizeImportedLeads = useCallback((parsed) => parsed.map((l) => ({
     ...l,
     status: l.status || 'New',
@@ -226,61 +215,54 @@ export default function App() {
     smsOptOut: l.smsOptOut ?? false,
   })), []);
 
-  const runGeocodeIfNeeded = useCallback(async (initial) => {
-    const needsGeocode = initial.some((l) => l._addressForGeocode?.trim() && !l.geocoded);
-    if (!needsGeocode) return initial;
+  // ── Lead handlers ────────────────────────────────────────────────────────
+  const handleLeadsLoaded = useCallback(async (result) => {
+    const parsed = result?.leads ?? result;
+    if (!Array.isArray(parsed) || !parsed.length) return;
+
+    const initial = normalizeImportedLeads(parsed);
+    setSelectedId(null);
+    setZoneFilter(null);
     setGeocodeDone(0);
     setGeocodeSuccesses(0);
+    setMyListsOpen(false);
+    setActiveTab('map');
+    setLeads(initial);
     setGeocoding(true);
+
     const ctrl = new AbortController();
     abortRef.current = ctrl;
     const geocoded = await geocodeLeads(
       initial,
       (done, _, successes) => { setGeocodeDone(done); setGeocodeSuccesses(successes); },
       ctrl.signal,
+      (partial) => setLeads(partial),
     );
+    setLeads(geocoded);
     setGeocoding(false);
     enrichLeadsFromPublicRecords(geocoded);
-    return geocoded;
-  }, []);
 
-  // ── Lead handlers ────────────────────────────────────────────────────────
-  const handleLeadsLoaded = useCallback(async (payload) => {
-    const parsed = payload.leads ?? payload;
-    const initial = normalizeImportedLeads(Array.isArray(parsed) ? parsed : []);
-    setSelectedId(null);
-    setZoneFilter(null);
-    let listId = activeListId;
-    if (payload.fileName && !isTeamMode) {
-      listId = await createList({
-        name: payload.listName || payload.fileName.replace(/\.[^.]+$/, ''),
-        fileName: payload.fileName,
-        headers: payload.headers,
-        selectedHeaders: payload.selectedHeaders,
-        previewRows: payload.previewRows,
-        leads: initial,
-      });
-      setActiveListId(listId);
-      persistActiveListId(listId);
-      await refreshListsMeta();
+    if (uid && isFirebaseConfigured && !isTeamMode) {
+      const listName = result.fileName?.replace(/\.[^.]+$/, '') || 'Imported list';
+      const headers = parsed[0]?._headers ?? [];
+      try {
+        const listId = await createList({
+          name: listName,
+          fileName: result.fileName || '',
+          headers,
+          selectedHeaders: headers,
+          previewRows: parsed.slice(0, 5).map((l) => l._raw ?? l),
+          leads: [],
+        });
+        persistActiveListId(listId);
+        leadsCacheRef.current[listId] = geocoded;
+        await saveList(listId, { leads: geocoded, name: listName, leadCount: geocoded.length });
+        await refreshListsMeta();
+      } catch (e) {
+        console.error('[MyLists] save after import:', e);
+      }
     }
-    const geocoded = await runGeocodeIfNeeded(initial);
-    setLeads(geocoded);
-    if (listId) {
-      leadsCacheRef.current[listId] = geocoded;
-      await saveList(listId, {
-        leads: geocoded,
-        headers: payload.headers,
-        selectedHeaders: payload.selectedHeaders,
-        previewRows: payload.previewRows,
-        fileName: payload.fileName,
-        name: payload.listName,
-      });
-    }
-    setImportPreview(null);
-    setMyListsOpen(false);
-    setActiveTab('map');
-  }, [activeListId, createList, isTeamMode, normalizeImportedLeads, persistActiveListId, refreshListsMeta, runGeocodeIfNeeded, saveList]);
+  }, [uid, createList, isTeamMode, normalizeImportedLeads, persistActiveListId, refreshListsMeta, saveList]);
 
   const switchList = useCallback(async (listId) => {
     if (listId === activeListId) { setMyListsOpen(false); return; }
@@ -314,32 +296,15 @@ export default function App() {
   }, [activeListId, deleteList, refreshListsMeta, switchList]);
 
   const handleAddListFile = useCallback(async (file) => {
-    setImportBusy(true);
-    try { setImportPreview(await parseFilePreview(file)); }
-    catch (e) { console.error(e); }
-    finally { setImportBusy(false); }
-  }, []);
-
-  const handleConfirmImport = useCallback(async (selectedHeaders) => {
-    if (!importPreview) return;
-    setImportBusy(true);
+    setMyListsOpen(false);
     try {
-      const leadsBuilt = buildLeadsFromImport({
-        rows: importPreview.rows,
-        headers: importPreview.headers,
-        selectedHeaders,
-        startId: 0,
-      });
-      await handleLeadsLoaded({
-        leads: leadsBuilt,
-        fileName: importPreview.fileName,
-        listName: importPreview.fileName.replace(/\.[^.]+$/, ''),
-        headers: importPreview.headers,
-        selectedHeaders,
-        previewRows: importPreview.rows.slice(0, 10),
-      });
-    } finally { setImportBusy(false); }
-  }, [handleLeadsLoaded, importPreview]);
+      const result = await parseCSV(file);
+      if (!result.leads?.length) return;
+      await handleLeadsLoaded({ ...result, fileName: file.name });
+    } catch (e) {
+      console.error('[import]', e);
+    }
+  }, [handleLeadsLoaded]);
 
   // Background enrichment: Lane County taxlot data for each geocoded lead
   async function enrichLeadsFromPublicRecords(geocodedLeads) {
@@ -685,30 +650,6 @@ export default function App() {
         lead={infoModal?.lead}
         listMeta={infoModal?.listMeta}
       />
-
-      {importPreview && (
-        <div style={{
-          position: 'fixed', inset: 0, zIndex: 130, background: 'rgba(0,0,0,0.75)',
-          display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16,
-        }}
-        >
-          <div style={{
-            background: '#161b22', border: '1px solid #30363d', borderRadius: 14,
-            padding: 20, maxWidth: 520, width: '100%', maxHeight: '90vh', overflow: 'auto',
-          }}
-          >
-            <ColumnMapStep
-              fileName={importPreview.fileName}
-              headers={importPreview.headers}
-              autoFieldMap={importPreview.autoFieldMap}
-              previewRows={importPreview.rows}
-              onBack={() => setImportPreview(null)}
-              onConfirm={handleConfirmImport}
-              busy={importBusy}
-            />
-          </div>
-        </div>
-      )}
 
       <TabBar
         activeTab={activeTab}
