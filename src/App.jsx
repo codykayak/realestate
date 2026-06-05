@@ -106,9 +106,10 @@ export default function App() {
   const [myListsOpen, setMyListsOpen]           = useState(false);
   const [listsLoading, setListsLoading]         = useState(false);
   const [infoModal, setInfoModal]               = useState(null);
+  const [sessionReady, setSessionReady]         = useState(false);
 
-  const persistActiveListId = useCallback((listId) => {
-    setStoredActiveListId(listId);
+  const persistActiveListId = useCallback(async (listId) => {
+    await setStoredActiveListId(listId);
     setActiveListId(listId);
   }, [setStoredActiveListId]);
 
@@ -130,48 +131,47 @@ export default function App() {
   // ── Load leads on mount / auth / team pool switch ───────────────────────
   useEffect(() => {
     if (authLoading) return;
+    setSessionReady(false);
     async function init() {
-      if (uid && isFirebaseConfigured && isTeamMode) {
-        const fsLeads = await fsLoad();
-        setLeads(fsLeads ?? []);
-        setActiveListId(null);
-        return;
-      }
-      if (uid && isFirebaseConfigured) {
-        const items = await refreshListsMeta();
-        let listId = getActiveListId();
-        if (!listId && items.length) listId = items[0].id;
-        if (!listId) {
-          const legacy = await fsLoad();
-          if (legacy?.length) listId = await migrateLegacyLeads(legacy);
-          if (listId) await refreshListsMeta();
-        }
-        if (listId) {
-          persistActiveListId(listId);
-          setActiveListId(listId);
-          const cached = leadsCacheRef.current[listId];
-          if (cached) { setLeads(cached); return; }
-          const doc = await loadList(listId);
-          const loaded = doc?.leads ?? [];
-          leadsCacheRef.current[listId] = loaded;
-          setLeads(loaded.length ? loaded : null);
+      try {
+        if (uid && isFirebaseConfigured && isTeamMode) {
+          const fsLeads = await fsLoad();
+          setLeads(fsLeads ?? []);
+          setActiveListId(null);
           return;
         }
+        if (uid && isFirebaseConfigured) {
+          const items = await refreshListsMeta();
+          let listId = await getActiveListId();
+          if (!listId && items.length) listId = items[0].id;
+          if (!listId) {
+            const legacy = await fsLoad();
+            if (legacy?.length) listId = await migrateLegacyLeads(legacy);
+            if (listId) await refreshListsMeta();
+          }
+          if (listId) {
+            await activateListLeads(listId, { savePrevious: false });
+            return;
+          }
+          setLeads(null);
+          return;
+        }
+        const items = await listAll();
+        setListsMeta(items);
+        let listId = await getActiveListId();
+        if (!listId && items.length) listId = items[0].id;
+        if (listId) {
+          await activateListLeads(listId, { savePrevious: false });
+          return;
+        }
+        const saved = lsLoad();
+        setLeads(saved?.length ? saved : null);
+      } catch (e) {
+        console.error('[init]', e);
         setLeads(null);
-        return;
+      } finally {
+        setSessionReady(true);
       }
-      const items = await listAll();
-      setListsMeta(items);
-      let listId = getActiveListId();
-      if (!listId && items.length) listId = items[0].id;
-      if (listId) {
-        setActiveListId(listId);
-        const doc = await loadList(listId);
-        setLeads(doc?.leads?.length ? doc.leads : null);
-        return;
-      }
-      const saved = lsLoad();
-      setLeads(saved?.length ? saved : null);
     }
     init();
   }, [uid, authLoading, activeOrgId, isTeamMode]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -215,6 +215,49 @@ export default function App() {
     smsOptOut: l.smsOptOut ?? false,
   })), []);
 
+  const activateListLeads = useCallback(async (listId, { savePrevious = false } = {}) => {
+    if (savePrevious && activeListId && leads) {
+      leadsCacheRef.current[activeListId] = leads;
+      await saveList(activeListId, { leads });
+    }
+    await persistActiveListId(listId);
+
+    const doc = await loadList(listId);
+    const rows = doc?.leads ?? [];
+    leadsCacheRef.current[listId] = rows;
+
+    setSelectedId(null);
+    setZoneFilter(null);
+    setMyListsOpen(false);
+    setActiveTab('map');
+
+    if (!rows.length) {
+      setLeads(null);
+      return;
+    }
+
+    setLeads(rows);
+    const needsGeocode = rows.some((l) => !l.geocoded?.lat && l._addressForGeocode?.trim());
+    if (!needsGeocode) return;
+
+    setGeocodeDone(0);
+    setGeocodeSuccesses(0);
+    setGeocoding(true);
+    const ctrl = new AbortController();
+    abortRef.current = ctrl;
+    const geocoded = await geocodeLeads(
+      rows,
+      (done, _, successes) => { setGeocodeDone(done); setGeocodeSuccesses(successes); },
+      ctrl.signal,
+      (partial) => setLeads(partial),
+    );
+    setLeads(geocoded);
+    setGeocoding(false);
+    leadsCacheRef.current[listId] = geocoded;
+    await saveList(listId, { leads: geocoded });
+    enrichLeadsFromPublicRecords(geocoded);
+  }, [activeListId, leads, loadList, persistActiveListId, saveList]);
+
   // ── Lead handlers ────────────────────────────────────────────────────────
   const handleLeadsLoaded = useCallback(async (result) => {
     const parsed = result?.leads ?? result;
@@ -238,8 +281,6 @@ export default function App() {
       ctrl.signal,
       (partial) => setLeads(partial),
     );
-    setLeads(geocoded);
-    setGeocoding(false);
     enrichLeadsFromPublicRecords(geocoded);
 
     if (uid && isFirebaseConfigured && !isTeamMode) {
@@ -254,7 +295,7 @@ export default function App() {
           previewRows: parsed.slice(0, 5).map((l) => l._raw ?? l),
           leads: [],
         });
-        persistActiveListId(listId);
+        await persistActiveListId(listId);
         leadsCacheRef.current[listId] = geocoded;
         await saveList(listId, { leads: geocoded, name: listName, leadCount: geocoded.length });
         await refreshListsMeta();
@@ -262,27 +303,14 @@ export default function App() {
         console.error('[MyLists] save after import:', e);
       }
     }
+    setLeads(geocoded);
+    setGeocoding(false);
   }, [uid, createList, isTeamMode, normalizeImportedLeads, persistActiveListId, refreshListsMeta, saveList]);
 
   const switchList = useCallback(async (listId) => {
-    if (listId === activeListId) { setMyListsOpen(false); return; }
-    if (activeListId && leads) {
-      leadsCacheRef.current[activeListId] = leads;
-      await saveList(activeListId, { leads });
-    }
-    persistActiveListId(listId);
-    setActiveListId(listId);
-    let next = leadsCacheRef.current[listId];
-    if (!next) {
-      const doc = await loadList(listId);
-      next = doc?.leads ?? [];
-      leadsCacheRef.current[listId] = next;
-    }
-    setLeads(next.length ? next : null);
-    setSelectedId(null);
-    setZoneFilter(null);
     setMyListsOpen(false);
-  }, [activeListId, leads, loadList, persistActiveListId, saveList]);
+    await activateListLeads(listId, { savePrevious: listId !== activeListId });
+  }, [activeListId, activateListLeads]);
 
   const handleDeleteList = useCallback(async (listId) => {
     await deleteList(listId);
@@ -467,6 +495,14 @@ export default function App() {
         error={authError}
         setError={setAuthError}
       />
+    );
+  }
+
+  if (uid && isFirebaseConfigured && !isTeamMode && !sessionReady) {
+    return (
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100dvh', background: '#0d1117', color: '#8b949e', fontSize: '15px' }}>
+        Loading your lists…
+      </div>
     );
   }
 
