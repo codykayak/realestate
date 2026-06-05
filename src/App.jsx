@@ -27,6 +27,11 @@ import { useFirestoreLeads } from './hooks/useFirestoreLeads';
 import { useOrgPool } from './hooks/useOrgPool';
 import { useSellerPortalSync } from './hooks/useSellerPortalSync';
 import TeamPoolPanel from './components/TeamPoolPanel';
+import MyListsPanel from './components/MyListsPanel';
+import LeadInfoModal from './components/LeadInfoModal';
+import ColumnMapStep from './components/ColumnMapStep';
+import { useLeadLists } from './hooks/useLeadLists';
+import { parseFilePreview, buildLeadsFromImport } from './utils/parseCSV';
 import { isFirebaseConfigured } from './firebase';
 import './App.css';
 
@@ -94,27 +99,77 @@ export default function App() {
   const { uploadPhoto, deletePhoto } = useLeadPhotos(uid);
   const { geojson: regionalGeojson, loading: regionalLoading } = useRegionalZoning(mapBounds, mapZoom, enabledCounties);
 
+  const refreshListsMeta = useCallback(async () => {
+    setListsLoading(true);
+    try {
+      const items = await listAll();
+      setListsMeta(items);
+      return items;
+    } finally {
+      setListsLoading(false);
+    }
+  }, [listAll]);
+
   // ── Load leads on mount / auth / team pool switch ───────────────────────
   useEffect(() => {
     if (authLoading) return;
     async function init() {
-      if (uid && isFirebaseConfigured) {
+      if (uid && isFirebaseConfigured && isTeamMode) {
         const fsLeads = await fsLoad();
         setLeads(fsLeads ?? []);
+        setActiveListId(null);
+        return;
+      }
+      if (uid && isFirebaseConfigured) {
+        const items = await refreshListsMeta();
+        let listId = getActiveListId();
+        if (!listId && items.length) listId = items[0].id;
+        if (!listId) {
+          const legacy = await fsLoad();
+          if (legacy?.length) listId = await migrateLegacyLeads(legacy);
+          if (listId) await refreshListsMeta();
+        }
+        if (listId) {
+          persistActiveListId(listId);
+          setActiveListId(listId);
+          const cached = leadsCacheRef.current[listId];
+          if (cached) { setLeads(cached); return; }
+          const doc = await loadList(listId);
+          const loaded = doc?.leads ?? [];
+          leadsCacheRef.current[listId] = loaded;
+          setLeads(loaded.length ? loaded : null);
+          return;
+        }
+        setLeads(null);
+        return;
+      }
+      const items = await listAll();
+      setListsMeta(items);
+      let listId = getActiveListId();
+      if (!listId && items.length) listId = items[0].id;
+      if (listId) {
+        setActiveListId(listId);
+        const doc = await loadList(listId);
+        setLeads(doc?.leads?.length ? doc.leads : null);
         return;
       }
       const saved = lsLoad();
-      if (saved?.length) setLeads(saved);
+      setLeads(saved?.length ? saved : null);
     }
     init();
-  }, [uid, authLoading, activeOrgId]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [uid, authLoading, activeOrgId, isTeamMode]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // ── Persist leads ────────────────────────────────────────────────────────
   useEffect(() => {
     if (!leads) return;
-    if (uid && isFirebaseConfigured) fsSave(leads);
-    else lsSave(leads);
-  }, [leads]); // eslint-disable-line react-hooks/exhaustive-deps
+    if (uid && isFirebaseConfigured && isTeamMode) { fsSave(leads); return; }
+    if (activeListId) {
+      leadsCacheRef.current[activeListId] = leads;
+      saveList(activeListId, { leads });
+      return;
+    }
+    if (!uid || !isFirebaseConfigured) lsSave(leads);
+  }, [leads, activeListId, isTeamMode]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // ── Zone assignment ──────────────────────────────────────────────────────
   useEffect(() => {
@@ -139,22 +194,21 @@ export default function App() {
     }
   }, [activeTab, uid, twilioLoading, twilioConfig, twilioReady]);
 
-  // ── Lead handlers ────────────────────────────────────────────────────────
-  const handleLeadsLoaded = useCallback(async ({ leads: parsed }) => {
-    const initial = parsed.map((l) => ({
-      ...l,
-      status: l.status || 'New',
-      notes: l.notes || '',
-      callCount: l.callCount ?? 0,
-      smsCount: l.smsCount ?? 0,
-      smsCountsByPhone: l.smsCountsByPhone ?? {},
-      doNotCall: l.doNotCall ?? false,
-      doNotText: l.doNotText ?? false,
-      smsOptOut: l.smsOptOut ?? false,
-    }));
-    setLeads(initial);
-    setSelectedId(null);
-    setZoneFilter(null);
+  const normalizeImportedLeads = useCallback((parsed) => parsed.map((l) => ({
+    ...l,
+    status: l.status || 'New',
+    notes: l.notes || '',
+    callCount: l.callCount ?? 0,
+    smsCount: l.smsCount ?? 0,
+    smsCountsByPhone: l.smsCountsByPhone ?? {},
+    doNotCall: l.doNotCall ?? false,
+    doNotText: l.doNotText ?? false,
+    smsOptOut: l.smsOptOut ?? false,
+  })), []);
+
+  const runGeocodeIfNeeded = useCallback(async (initial) => {
+    const needsGeocode = initial.some((l) => l._addressForGeocode?.trim() && !l.geocoded);
+    if (!needsGeocode) return initial;
     setGeocodeDone(0);
     setGeocodeSuccesses(0);
     setGeocoding(true);
@@ -165,13 +219,107 @@ export default function App() {
       (done, _, successes) => { setGeocodeDone(done); setGeocodeSuccesses(successes); },
       ctrl.signal,
     );
-    setLeads(geocoded);
     setGeocoding(false);
-
-    // After geocoding, enrich each mapped lead with Lane County property records
-    // Run in the background — non-blocking, low priority
     enrichLeadsFromPublicRecords(geocoded);
+    return geocoded;
   }, []);
+
+  // ── Lead handlers ────────────────────────────────────────────────────────
+  const handleLeadsLoaded = useCallback(async (payload) => {
+    const parsed = payload.leads ?? payload;
+    const initial = normalizeImportedLeads(Array.isArray(parsed) ? parsed : []);
+    setSelectedId(null);
+    setZoneFilter(null);
+    let listId = activeListId;
+    if (payload.fileName && !isTeamMode) {
+      listId = await createList({
+        name: payload.listName || payload.fileName.replace(/\.[^.]+$/, ''),
+        fileName: payload.fileName,
+        headers: payload.headers,
+        selectedHeaders: payload.selectedHeaders,
+        previewRows: payload.previewRows,
+        leads: initial,
+      });
+      setActiveListId(listId);
+      persistActiveListId(listId);
+      await refreshListsMeta();
+    }
+    const geocoded = await runGeocodeIfNeeded(initial);
+    setLeads(geocoded);
+    if (listId) {
+      leadsCacheRef.current[listId] = geocoded;
+      await saveList(listId, {
+        leads: geocoded,
+        headers: payload.headers,
+        selectedHeaders: payload.selectedHeaders,
+        previewRows: payload.previewRows,
+        fileName: payload.fileName,
+        name: payload.listName,
+      });
+    }
+    setImportPreview(null);
+    setMyListsOpen(false);
+    setActiveTab('map');
+  }, [activeListId, createList, isTeamMode, normalizeImportedLeads, persistActiveListId, refreshListsMeta, runGeocodeIfNeeded, saveList]);
+
+  const switchList = useCallback(async (listId) => {
+    if (listId === activeListId) { setMyListsOpen(false); return; }
+    if (activeListId && leads) {
+      leadsCacheRef.current[activeListId] = leads;
+      await saveList(activeListId, { leads });
+    }
+    persistActiveListId(listId);
+    setActiveListId(listId);
+    let next = leadsCacheRef.current[listId];
+    if (!next) {
+      const doc = await loadList(listId);
+      next = doc?.leads ?? [];
+      leadsCacheRef.current[listId] = next;
+    }
+    setLeads(next.length ? next : null);
+    setSelectedId(null);
+    setZoneFilter(null);
+    setMyListsOpen(false);
+  }, [activeListId, leads, loadList, persistActiveListId, saveList]);
+
+  const handleDeleteList = useCallback(async (listId) => {
+    await deleteList(listId);
+    delete leadsCacheRef.current[listId];
+    const items = await refreshListsMeta();
+    if (activeListId === listId) {
+      const next = items[0];
+      if (next) await switchList(next.id);
+      else { setActiveListId(null); setLeads(null); }
+    }
+  }, [activeListId, deleteList, refreshListsMeta, switchList]);
+
+  const handleAddListFile = useCallback(async (file) => {
+    setImportBusy(true);
+    try { setImportPreview(await parseFilePreview(file)); }
+    catch (e) { console.error(e); }
+    finally { setImportBusy(false); }
+  }, []);
+
+  const handleConfirmImport = useCallback(async (selectedHeaders) => {
+    if (!importPreview) return;
+    setImportBusy(true);
+    try {
+      const leadsBuilt = buildLeadsFromImport({
+        rows: importPreview.rows,
+        headers: importPreview.headers,
+        selectedHeaders,
+        startId: 0,
+      });
+      await handleLeadsLoaded({
+        leads: leadsBuilt,
+        fileName: importPreview.fileName,
+        listName: importPreview.fileName.replace(/\.[^.]+$/, ''),
+        headers: importPreview.headers,
+        selectedHeaders,
+        previewRows: importPreview.rows.slice(0, 10),
+      });
+    } finally { setImportBusy(false); }
+  }, [handleLeadsLoaded, importPreview]);
 
   // Background enrichment: Lane County taxlot data for each geocoded lead
   async function enrichLeadsFromPublicRecords(geocodedLeads) {
@@ -209,18 +357,6 @@ export default function App() {
       return next;
     });
   }, [user?.email, syncPortal]);
-
-  const handleReset = useCallback(async () => {
-    abortRef.current?.abort();
-    if (uid && isFirebaseConfigured) await fsClear();
-    else lsClear();
-    setLeads(null);
-    setSelectedId(null);
-    setGeocoding(false);
-    setGeocodeDone(0);
-    setGeocodeSuccesses(0);
-    setZoneFilter(null);
-  }, [uid, fsClear]);
 
   const handleLogCall = useCallback(async (callData) => {
     if (uid && isFirebaseConfigured) {
@@ -363,12 +499,15 @@ export default function App() {
 
   const unmappedCount = (leads?.length ?? 0) - geocodedCount;
 
+  const activeListMeta = listsMeta.find((l) => l.id === activeListId);
+
   const topBarProps = {
     leadCount: leads?.length ?? 0, geocodedCount,
     zoningVisible: anyZoningOn,
     onToggleZoning: () => setShowLayerPanel((p) => !p),
     zoningLoading: eugeneLoading,
-    onReset: leads ? handleReset : null,
+    onOpenLists: !isTeamMode ? () => setMyListsOpen(true) : undefined,
+    activeListName: !isTeamMode ? activeListMeta?.name : null,
     onResumeGeocoding: unmappedCount > 0 && !bgGeocoding ? handleResumeGeocoding : undefined,
     bgGeocoding,
     teamLabel: isTeamMode ? org?.name : null,
@@ -428,6 +567,7 @@ export default function App() {
                 onUpdate={handleUpdateLead}
                 onSyncPortal={syncPortal}
                 onViewInSheets={() => handleViewInSheets(selectedLead?.id)}
+                onShowInfo={() => setInfoModal({ lead: selectedLead })}
               />
             </>
           )}
@@ -445,6 +585,7 @@ export default function App() {
             onSelectLead={handleSelectLead}
             onViewOnMap={handleViewOnMap}
             onUpdateLead={handleUpdateLead}
+            onShowInfo={(lead) => setInfoModal({ lead })}
           />
         </div>
       )}
@@ -472,6 +613,9 @@ export default function App() {
             fetchLeadActivity={getLeadActivity}
             smsSending={smsSending}
             smsError={smsError}
+            onShowInfo={(lead) => setInfoModal({ lead })}
+            emailTemplates={twilioConfig?.emailTemplates}
+            agentName={twilioConfig?.agentName}
           />
         </div>
       )}
@@ -499,6 +643,52 @@ export default function App() {
         webhooks={webhooks}
         uid={uid}
       />
+
+      <MyListsPanel
+        open={myListsOpen}
+        onClose={() => setMyListsOpen(false)}
+        lists={listsMeta}
+        activeListId={activeListId}
+        loading={listsLoading}
+        onSelectList={switchList}
+        onDeleteList={handleDeleteList}
+        onAddList={handleAddListFile}
+        onShowListInfo={async (item) => {
+          const doc = await loadList(item.id);
+          setInfoModal({ listMeta: { ...item, ...doc } });
+        }}
+      />
+
+      <LeadInfoModal
+        open={!!infoModal}
+        onClose={() => setInfoModal(null)}
+        lead={infoModal?.lead}
+        listMeta={infoModal?.listMeta}
+      />
+
+      {importPreview && (
+        <div style={{
+          position: 'fixed', inset: 0, zIndex: 130, background: 'rgba(0,0,0,0.75)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16,
+        }}
+        >
+          <div style={{
+            background: '#161b22', border: '1px solid #30363d', borderRadius: 14,
+            padding: 20, maxWidth: 520, width: '100%', maxHeight: '90vh', overflow: 'auto',
+          }}
+          >
+            <ColumnMapStep
+              fileName={importPreview.fileName}
+              headers={importPreview.headers}
+              autoFieldMap={importPreview.autoFieldMap}
+              previewRows={importPreview.rows}
+              onBack={() => setImportPreview(null)}
+              onConfirm={handleConfirmImport}
+              busy={importBusy}
+            />
+          </div>
+        </div>
+      )}
 
       <TabBar
         activeTab={activeTab}

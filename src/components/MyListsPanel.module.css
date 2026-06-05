@@ -1,0 +1,183 @@
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  z-index: 110;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+}
+
+@media (min-width: 600px) {
+  .overlay {
+    align-items: center;
+    padding: 20px;
+  }
+}
+
+.sheet {
+  background: #161b22;
+  border: 1px solid #30363d;
+  border-radius: 16px 16px 0 0;
+  width: 100%;
+  max-width: 480px;
+  max-height: 85vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+@media (min-width: 600px) {
+  .sheet {
+    border-radius: 14px;
+  }
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 18px;
+  border-bottom: 1px solid #30363d;
+}
+
+.title {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.close {
+  background: none;
+  border: none;
+  color: #8b949e;
+  font-size: 18px;
+  cursor: pointer;
+}
+
+.lead {
+  margin: 0;
+  padding: 12px 18px;
+  font-size: 13px;
+  color: #8b949e;
+  line-height: 1.45;
+  border-bottom: 1px solid #21262d;
+}
+
+.addRow {
+  padding: 12px 18px;
+}
+
+.fileInput {
+  display: none;
+}
+
+.addBtn {
+  width: 100%;
+  padding: 12px;
+  border-radius: 10px;
+  border: 1px dashed #484f58;
+  background: #0d1117;
+  color: #58a6ff;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.addBtn:hover {
+  border-color: #58a6ff;
+  background: #161b22;
+}
+
+.list {
+  list-style: none;
+  margin: 0;
+  padding: 8px 12px 20px;
+  overflow-y: auto;
+  flex: 1;
+}
+
+.item {
+  display: flex;
+  align-items: stretch;
+  gap: 8px;
+  margin-bottom: 8px;
+  border: 1px solid #30363d;
+  border-radius: 10px;
+  overflow: hidden;
+  background: #0d1117;
+}
+
+.itemActive {
+  border-color: #f5a623;
+  box-shadow: 0 0 0 1px rgba(245, 166, 35, 0.25);
+}
+
+.itemMain {
+  flex: 1;
+  text-align: left;
+  padding: 12px 14px;
+  background: none;
+  border: none;
+  color: inherit;
+  cursor: pointer;
+}
+
+.itemName {
+  display: block;
+  font-size: 15px;
+  font-weight: 600;
+  color: #e6edf3;
+}
+
+.itemMeta {
+  display: block;
+  font-size: 12px;
+  color: #8b949e;
+  margin-top: 4px;
+}
+
+.itemFile {
+  display: block;
+  font-size: 11px;
+  color: #6e7681;
+  margin-top: 2px;
+}
+
+.itemActions {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 4px;
+  padding: 8px;
+}
+
+.infoBtn,
+.delBtn,
+.delConfirm,
+.delCancel {
+  font-size: 12px;
+  padding: 6px 10px;
+  border-radius: 6px;
+  border: 1px solid #30363d;
+  background: #21262d;
+  color: #e6edf3;
+  cursor: pointer;
+}
+
+.delConfirm {
+  background: #f85149;
+  border-color: transparent;
+  color: #fff;
+}
+
+.delCancel {
+  font-size: 11px;
+}
+
+.empty {
+  padding: 24px 18px;
+  text-align: center;
+  color: #8b949e;
+  font-size: 14px;
+}

@@ -32,7 +32,7 @@ function phoneCount(lead) {
   return 0;
 }
 
-export default function SheetsView({ leads, selectedId, isTeamMode, onDialLead, onSelectLead, onViewOnMap, onUpdateLead }) {
+export default function SheetsView({ leads, selectedId, isTeamMode, onDialLead, onSelectLead, onViewOnMap, onUpdateLead, onShowInfo }) {
   const [search,   setSearch]   = useState('');
   const [sort,     setSort]     = useState('distress_desc');
   const [showSort, setShowSort] = useState(false);

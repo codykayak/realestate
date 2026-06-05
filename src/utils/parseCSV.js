@@ -471,3 +471,96 @@ export function parseCSV(file) {
   }
   return parseCSVFile(file);
 }
+
+export { FIELD_ALIASES, mapHeaders };
+
+/** Build leads from raw rows with only selected spreadsheet columns. */
+export function buildLeadsFromImport({ rows, headers, selectedHeaders, startId = 0 }) {
+  const selected = (selectedHeaders?.length ? selectedHeaders : headers).filter((h) => headers.includes(h));
+  const selectedSet = new Set(selected);
+  const autoMap = mapHeaders(headers);
+  const fieldMap = {};
+  for (const [canon, orig] of Object.entries(autoMap)) {
+    if (selectedSet.has(orig)) fieldMap[canon] = orig;
+  }
+  for (const h of selected) {
+    if (!Object.values(fieldMap).includes(h)) fieldMap[`_raw_${h}`] = h;
+  }
+  const trimmed = rows.map((row) => {
+    const o = {};
+    for (const h of selected) o[h] = row[h] ?? '';
+    return o;
+  });
+  return trimmed.map((row, i) => rowToLead(row, startId + i, selected, fieldMap));
+}
+
+function parseXLSXRaw(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const data = new Uint8Array(e.target.result);
+        const workbook = XLSX.read(data, { type: 'array', cellDates: false });
+        const sheet = workbook.Sheets[workbook.SheetNames[0]];
+        const aoa = XLSX.utils.sheet_to_json(sheet, {
+          header: 1, defval: '', blankrows: false, raw: true,
+        });
+        if (!aoa.length) return reject(new Error('Spreadsheet appears to be empty.'));
+        const rawHeaders = aoa[0].map((h) => (h != null ? String(h).trim() : ''));
+        const headers = rawHeaders.map((h, i) => h || `__Col_${i + 1}__`);
+        const rowObjects = aoa.slice(1).map((rowArr) => {
+          const obj = {};
+          for (let i = 0; i < headers.length; i++) obj[headers[i]] = rowArr[i] != null ? rowArr[i] : '';
+          return obj;
+        });
+        const rows = rowObjects.filter((row) => Object.values(row).some((v) => v !== '' && v != null));
+        if (!rows.length) return reject(new Error('No data rows found.'));
+        const namedHeaders = headers.filter((h) => !h.startsWith('__Col_'));
+        resolve({ rows, headers: namedHeaders.length ? namedHeaders : headers });
+      } catch (err) {
+        reject(new Error(`Failed to parse spreadsheet: ${err.message}`));
+      }
+    };
+    reader.onerror = () => reject(new Error('Failed to read file.'));
+    reader.readAsArrayBuffer(file);
+  });
+}
+
+function parseCSVRaw(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      let text = unwrapSingleColumnCSV(e.target.result);
+      Papa.parse(text, {
+        header: true,
+        skipEmptyLines: 'greedy',
+        transformHeader: (h) => (h ? h.trim() : h),
+        transform: (v) => (typeof v === 'string' ? v.trim() : v),
+        complete: ({ data, meta, errors }) => {
+          if (!data.length && errors.length) return reject(new Error(errors[0].message));
+          const headers = (meta.fields ?? []).filter(Boolean);
+          const rows = data.filter((row) => Object.values(row).some((v) => v !== '' && v != null));
+          resolve({ rows, headers });
+        },
+        error: (err) => reject(err),
+      });
+    };
+    reader.onerror = () => reject(new Error('Failed to read CSV file.'));
+    reader.readAsText(file, 'utf-8');
+  });
+}
+
+/** Parse file to raw rows + headers (before column picker). */
+export async function parseFilePreview(file) {
+  const name = file.name.toLowerCase();
+  const { rows, headers } = name.endsWith('.xlsx') || name.endsWith('.xls') || name.endsWith('.xlsm')
+    ? await parseXLSXRaw(file)
+    : await parseCSVRaw(file);
+  return {
+    fileName: file.name,
+    rows,
+    headers,
+    autoFieldMap: mapHeaders(headers),
+    rowCount: rows.length,
+  };
+}

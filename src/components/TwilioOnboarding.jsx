@@ -39,6 +39,9 @@ export default function TwilioOnboarding({
     setAgentPhone(config?.agentPhone ?? '');
     setAgentName(config?.agentName ?? 'Macro REI');
     setTemplates(config?.templates ?? DEFAULT_TEMPLATES);
+    setEmailTemplates(config?.emailTemplates ?? DEFAULT_EMAIL_TEMPLATES);
+    setSendgridApiKey(config?.sendgridApiKey ?? '');
+    setSendgridFromEmail(config?.sendgridFromEmail ?? '');
     setMissedTpl(config?.missedCallTemplate ?? DEFAULT_MISSED_TEMPLATE);
     setRingSeconds(config?.ringSeconds ?? 25);
     setAutoMissed(config?.autoMissedCallSms !== false);
