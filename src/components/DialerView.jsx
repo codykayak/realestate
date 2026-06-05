@@ -503,26 +503,6 @@ export default function DialerView({
             )}
           </button>
         )}
-
-        <div className={styles.callActionRow} style={{ marginTop: 10 }}>
-          {onShowInfo && (
-            <button type="button" className={styles.txtBtn} onClick={() => onShowInfo(lead)}>
-              Info
-            </button>
-          )}
-          {lead.email && (
-            <button
-              type="button"
-              className={styles.txtBtn}
-              onClick={() => {
-                const tpl = (emailTemplates ?? DEFAULT_EMAIL_TEMPLATES)[0];
-                if (tpl) openEmailClient(lead, tpl, agentName || twilioConfig?.agentName);
-              }}
-            >
-              Email
-            </button>
-          )}
-        </div>
       </div>
 
       <TxtNowSheet

@@ -72,7 +72,7 @@ export async function geocodeAddress(address) {
   }
 }
 
-export async function geocodeLeads(leads, onProgress, signal) {
+export async function geocodeLeads(leads, onProgress, signal, onUpdate) {
   const results  = [...leads];
   let done       = 0;
   let successes  = 0;
@@ -100,6 +100,7 @@ export async function geocodeLeads(leads, onProgress, signal) {
 
     done++;
     onProgress?.(done, leads.length, successes);
+    onUpdate?.([...results]);
 
     if (i < leads.length - 1) await sleep(DELAY_MS);
   }

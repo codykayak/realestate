@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react';
+import { useRef, useState, useEffect } from 'react';
 import { parseFilePreview, buildLeadsFromImport } from '../utils/parseCSV';
 import ColumnMapStep from './ColumnMapStep';
 import styles from './UploadScreen.module.css';
@@ -10,7 +10,13 @@ function isAcceptedFile(file) {
   return ACCEPTED_TYPES.some((ext) => name.endsWith(ext));
 }
 
-export default function UploadScreen({ onLeadsLoaded, listName }) {
+export default function UploadScreen({
+  onLeadsLoaded,
+  listName,
+  initialFile = null,
+  onCancel,
+  overlay = false,
+}) {
   const inputRef = useRef(null);
   const [dragging, setDragging] = useState(false);
   const [error, setError] = useState(null);
@@ -38,6 +44,11 @@ export default function UploadScreen({ onLeadsLoaded, listName }) {
     }
   }
 
+  useEffect(() => {
+    if (initialFile) handleFile(initialFile);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [initialFile]);
+
   function onInputChange(e) {
     const file = e.target.files?.[0];
     if (file) handleFile(file);
@@ -62,7 +73,7 @@ export default function UploadScreen({ onLeadsLoaded, listName }) {
         selectedHeaders,
         startId: 0,
       });
-      onLeadsLoaded({
+      await onLeadsLoaded({
         leads,
         fieldMap: preview.autoFieldMap,
         headers: preview.headers,
@@ -79,10 +90,17 @@ export default function UploadScreen({ onLeadsLoaded, listName }) {
     }
   }
 
+  const screenClass = overlay ? `${styles.screen} ${styles.screenOverlay}` : styles.screen;
+
   if (preview) {
     return (
-      <div className={styles.screen}>
+      <div className={screenClass}>
         <div className={styles.card}>
+          {onCancel && (
+            <button type="button" className={styles.cancelBtn} onClick={onCancel} aria-label="Close">
+              ✕
+            </button>
+          )}
           <ColumnMapStep
             fileName={preview.fileName}
             headers={preview.headers}
@@ -99,8 +117,13 @@ export default function UploadScreen({ onLeadsLoaded, listName }) {
   }
 
   return (
-    <div className={styles.screen}>
+    <div className={screenClass}>
       <div className={styles.card}>
+        {onCancel && (
+          <button type="button" className={styles.cancelBtn} onClick={onCancel} aria-label="Close">
+            ✕
+          </button>
+        )}
         <div className={styles.logo}>
           <svg width="40" height="40" viewBox="0 0 24 24" fill="none">
             <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"

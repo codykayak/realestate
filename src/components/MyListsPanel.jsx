@@ -16,6 +16,7 @@ export default function MyListsPanel({
   onSelectList,
   onDeleteList,
   onAddList,
+  onOpenImport,
   onShowListInfo,
 }) {
   const fileRef = useRef(null);
@@ -54,6 +55,11 @@ export default function MyListsPanel({
           <button type="button" className={styles.addBtn} onClick={() => fileRef.current?.click()}>
             + Add spreadsheet
           </button>
+          {onOpenImport && (
+            <button type="button" className={styles.addBtnSecondary} onClick={onOpenImport}>
+              Import (drop file)
+            </button>
+          )}
         </div>
 
         {loading ? (

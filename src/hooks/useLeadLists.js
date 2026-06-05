@@ -24,12 +24,22 @@ function newListId() {
   return `list_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
 }
 
+/** List metadata for My Lists panel — omit heavy lead arrays. */
+function toListMeta(id, data) {
+  const { leads, previewRows, ...rest } = data ?? {};
+  return {
+    id,
+    ...rest,
+    leadCount: rest.leadCount ?? leads?.length ?? 0,
+  };
+}
+
 export function useLeadLists(uid) {
   const listAll = useCallback(async () => {
     if (uid && isFirebaseConfigured) {
       const snap = await getDocs(listCol(uid));
       return snap.docs
-        .map((d) => ({ id: d.id, ...d.data() }))
+        .map((d) => toListMeta(d.id, d.data()))
         .sort((a, b) => {
           const ta = a.updatedAt?.toMillis?.() ?? a.updatedAt ?? 0;
           const tb = b.updatedAt?.toMillis?.() ?? b.updatedAt ?? 0;
@@ -38,7 +48,7 @@ export function useLeadLists(uid) {
     }
     const local = loadListsLocal();
     return Object.entries(local)
-      .map(([id, data]) => ({ id, ...data }))
+      .map(([id, data]) => toListMeta(id, data))
       .sort((a, b) => (b.updatedAt ?? 0) - (a.updatedAt ?? 0));
   }, [uid]);
 
