@@ -13,13 +13,14 @@ export default function TxtNowSheet({
   sending,
   error,
 }) {
-  const [templateId, setTemplateId] = useState(templates?.[0]?.id ?? 'intro');
+  const safeTemplates = templates?.length ? templates : [];
+  const [templateId, setTemplateId] = useState(safeTemplates[0]?.id ?? 'intro');
   const [selectedPhone, setSelectedPhone] = useState(activePhone || lead?.phone || '');
   const [sent, setSent] = useState(false);
 
-  const template = templates.find((t) => t.id === templateId) ?? templates[0];
+  const template = safeTemplates.find((t) => t.id === templateId) ?? safeTemplates[0];
   const preview = useMemo(() => {
-    if (!template || !lead) return '';
+    if (!template?.body || !lead) return '';
     return mergeTemplate(template.body, lead, config ?? {});
   }, [template, lead, config]);
 
@@ -102,7 +103,7 @@ export default function TxtNowSheet({
 
         <p className={styles.sectionLabel}>Choose template</p>
         <div className={styles.templateGrid}>
-          {templates.map((t) => (
+          {safeTemplates.map((t) => (
             <button
               key={t.id}
               type="button"

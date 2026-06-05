@@ -58,6 +58,7 @@ export default function App() {
     config: twilioConfig,
     loading: twilioLoading,
     isReady: twilioReady,
+    hasCredentials: twilioHasCredentials,
     saveConfig: saveTwilioConfig,
     testCredentials,
     fetchWebhooks,
@@ -661,6 +662,7 @@ export default function App() {
             onUploadPhoto={uploadPhoto}
             onDeletePhoto={deletePhoto}
             twilioReady={twilioReady}
+            twilioHasCredentials={twilioHasCredentials}
             twilioConfig={twilioConfig}
             twilioTemplates={twilioTemplates}
             onOpenTwilioSetup={() => { setSmsError(null); setTwilioSetupOpen(true); }}
