@@ -12,6 +12,7 @@ import Icon from './components/Icon';
 import ErrorBoundary from './components/ErrorBoundary';
 import OnboardingBanner from './components/OnboardingBanner';
 import OnboardingWizard from './components/OnboardingWizard';
+import DevAdminRoute from './devAdminRoute';
 import Dashboard from './pages/Dashboard';
 import OwnerPortal from './pages/OwnerPortal';
 import Communications from './pages/Communications';
@@ -93,6 +94,14 @@ function Sidebar() {
       })}
 
       <div className={styles.navSpacer} />
+      <NavLink
+        to={hrefFor(base, 'developer-admin')}
+        className={({ isActive }) => `${styles.navItem} ${styles.navDev} ${isActive ? styles.navActive : ''}`}
+        title="Internal engineering docs, pitch deck, and tools"
+      >
+        <Icon name="settings" size={18} className={styles.navIcon} />
+        <span>Developer admin</span>
+      </NavLink>
       <div className={styles.sidebarFoot}>
         {config.productName} · {config.futureSite}
         <br />Data is local to this browser until Firebase is connected.
@@ -127,6 +136,7 @@ function ModuleInner() {
               if (!Page || !enabledIds.has(f.id)) return null;
               return <Route key={f.id} path={f.route} element={<Page />} />;
             })}
+            <Route path="developer-admin" element={<DevAdminRoute />} />
             <Route path="*" element={<Navigate to={config.basePath} replace />} />
           </Routes>
         </ErrorBoundary>

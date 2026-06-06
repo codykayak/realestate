@@ -6,9 +6,9 @@ import Icon from './Icons';
 import Logo from './Logo';
 
 const links = [
-  { to: '/features', label: 'Features' },
-  { to: '/platform', label: 'Platform' },
-  { to: '/support', label: 'Support' },
+  { to: '/manydoors/features', label: 'Features' },
+  { to: '/manydoors/platform', label: 'Platform' },
+  { to: '/manydoors/support', label: 'Support' },
 ];
 
 export default function Navbar() {
@@ -37,6 +37,9 @@ export default function Navbar() {
         </nav>
 
         <div className="hidden items-center gap-3 md:flex">
+          <Link to="/" className="text-sm font-medium text-zinc-400 transition hover:text-md-cyan">
+            MacroREI Home
+          </Link>
           <a href={`mailto:${SITE.supportEmail}`} className="text-sm font-medium text-zinc-400 transition hover:text-md-cyan">
             Contact
           </a>

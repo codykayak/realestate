@@ -5,7 +5,7 @@ const SOURCES = {
   mark: '/manydoors-logo-mark.svg',
 };
 
-export default function Logo({ variant = 'full', className = '', linked = true }) {
+export default function Logo({ variant = 'full', className = '', linked = true, homePath = '/manydoors' }) {
   const img = (
     <img
       src={SOURCES[variant] || SOURCES.full}
@@ -18,7 +18,7 @@ export default function Logo({ variant = 'full', className = '', linked = true }
   if (!linked) return img;
 
   return (
-    <Link to="/" className="inline-flex shrink-0 items-center transition hover:opacity-90">
+    <Link to={homePath} className="inline-flex shrink-0 items-center transition hover:opacity-90">
       {img}
     </Link>
   );

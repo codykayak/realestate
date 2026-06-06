@@ -17,7 +17,7 @@ export const APP_CONFIG = {
   heroImage: env.VITE_PM_HERO_IMAGE || '/Template/manydoors-ai-hero.png',
   companyName: env.VITE_PM_COMPANY_NAME || 'ManyDoors AI',
   futureSite: env.VITE_PM_FUTURE_SITE || 'manydoorsai.com',
-  accent: env.VITE_PM_ACCENT || '#3ab5b0',
+  accent: env.VITE_PM_ACCENT || '#00d2d3',
   accentSoft: env.VITE_PM_ACCENT_SOFT || 'rgba(58, 181, 176, 0.14)',
   basePath: PM_BASE_PATH,
   defaultTenantId: env.VITE_PM_DEFAULT_TENANT || 'demo',

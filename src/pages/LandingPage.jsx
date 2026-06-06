@@ -597,6 +597,26 @@ export default function LandingPage() {
         </div>
       </section>
 
+      {/* ── MANYDOORS AI PROMO ───────────────────────────────────────────── */}
+      <section className={styles.mdPromo} data-reveal="up">
+        <div className={styles.container}>
+          <div className={styles.mdPromoInner}>
+            <img src="/manydoors-logo-mark.svg" alt="ManyDoors AI" className={styles.mdPromoLogo} />
+            <div>
+              <p className={styles.sectionLabel}>Property management</p>
+              <h2 className={styles.mdPromoTitle}>ManyDoors AI — modern ops for PM teams</h2>
+              <p className={styles.sectionSub}>
+                AI maintenance triage, automated leasing, and resident communications — with our team beside you every step.
+              </p>
+            </div>
+            <div className={styles.mdPromoActions}>
+              <Link to="/manydoors" className={styles.mdPromoBtnPrimary}>Explore ManyDoors AI</Link>
+              <Link to="/property-management" className={styles.mdPromoBtnGhost}>Open PM platform</Link>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* ── FOOTER ───────────────────────────────────────────────────────── */}
       <footer className={styles.footer}>
         <div className={styles.container}>
