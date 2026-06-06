@@ -1,6 +1,6 @@
 import { StrictMode, lazy, Suspense } from 'react';
 import { createRoot } from 'react-dom/client';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import ScrollToTop from './components/ScrollToTop';
 import LandingPage from './pages/LandingPage';
 import MarketingLayout from './layout/MarketingLayout';
@@ -18,10 +18,16 @@ import SellerDealTrackerPage from './pages/SellerDealTrackerPage';
 import './index.css';
 
 const App = lazy(() => import('./App'));
-// Self-contained Property Management module (ManyDoors AI). The host only references
-// this one lazy entry point; the module imports nothing from the host site, so
-// it can be migrated to another site or its own repo with a config change.
 const PropertyManagement = lazy(() => import('./property-management/index.jsx'));
+const ManyDoorsSite = lazy(() => import('./manydoors-site/index.jsx'));
+
+function SiteLoading() {
+  return (
+    <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#07080c', color: '#8b97a7' }}>
+      Loading…
+    </div>
+  );
+}
 
 function MapLoading() {
   return (
@@ -44,10 +50,8 @@ createRoot(document.getElementById('root')).render(
     <BrowserRouter>
       <ScrollToTop />
       <Routes>
-        {/* Home: original full page (nav/footer/hero unchanged) */}
-        <Route path="/" element={<LandingPage />} />
+        <Route path="/macrorei" element={<LandingPage />} />
 
-        {/* SEO pages: shared layout + calculator promo band */}
         <Route element={<MarketingLayout />}>
           <Route path="cash-offer-calculator" element={<CashOfferCalculator />} />
           <Route path="we-buy-houses/:citySlug" element={<CityWeBuyHouses />} />
@@ -59,7 +63,7 @@ createRoot(document.getElementById('root')).render(
 
         <Route path="seller/:token" element={<SellerPortalPage />} />
 
-        <Route path="referral"  element={<ReferralPage />} />
+        <Route path="referral" element={<ReferralPage />} />
         <Route path="referral-program" element={<ReferralPage />} />
         <Route path="contracts" element={<ContractsPage />} />
         <Route path="contracts/sms-consent" element={<SmsConsentPage />} />
@@ -70,7 +74,8 @@ createRoot(document.getElementById('root')).render(
 
         <Route path="/app/*" element={<Suspense fallback={<MapLoading />}><App /></Suspense>} />
         <Route path="/property-management/*" element={<Suspense fallback={<PmLoading />}><PropertyManagement /></Suspense>} />
-        <Route path="*" element={<Navigate to="/" replace />} />
+
+        <Route path="/*" element={<Suspense fallback={<SiteLoading />}><ManyDoorsSite /></Suspense>} />
       </Routes>
     </BrowserRouter>
   </StrictMode>,
