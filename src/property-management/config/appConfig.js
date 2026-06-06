@@ -12,12 +12,13 @@ export const APP_CONFIG = {
   productTagline:
     env.VITE_PM_PRODUCT_TAGLINE ||
     'AI-powered property operations — maintenance triage, leasing, and resident communications',
-  logo: env.VITE_PM_LOGO || '',
+  logo: env.VITE_PM_LOGO || '/manydoors-logo-mark.svg',
+  logoWordmark: env.VITE_PM_LOGO_WORDMARK || '/manydoors-logo.svg',
   heroImage: env.VITE_PM_HERO_IMAGE || '/Template/manydoors-ai-hero.png',
   companyName: env.VITE_PM_COMPANY_NAME || 'ManyDoors AI',
   futureSite: env.VITE_PM_FUTURE_SITE || 'manydoorsai.com',
-  accent: env.VITE_PM_ACCENT || '#1a9e96',
-  accentSoft: env.VITE_PM_ACCENT_SOFT || 'rgba(26, 158, 150, 0.14)',
+  accent: env.VITE_PM_ACCENT || '#3ab5b0',
+  accentSoft: env.VITE_PM_ACCENT_SOFT || 'rgba(58, 181, 176, 0.14)',
   basePath: PM_BASE_PATH,
   defaultTenantId: env.VITE_PM_DEFAULT_TENANT || 'demo',
   supportEmail: env.VITE_PM_SUPPORT_EMAIL || 'hello@manydoorsai.com',
