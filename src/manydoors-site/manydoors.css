@@ -1,0 +1,47 @@
+@import 'tailwindcss';
+
+@theme {
+  --color-md-bg: #07080c;
+  --color-md-surface: #0f1117;
+  --color-md-elevated: #161922;
+  --color-md-border: rgba(255, 255, 255, 0.08);
+  --color-md-teal: #1ec9be;
+  --color-md-teal-dim: #14a89f;
+  --color-md-gold: #e8b84a;
+  --color-md-violet: #8b7cf6;
+  --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif;
+}
+
+@layer base {
+  .manydoors-site {
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    background: var(--color-md-bg);
+    color: #e8eaed;
+  }
+
+  .manydoors-site ::selection {
+    background: rgba(30, 201, 190, 0.35);
+  }
+}
+
+@layer utilities {
+  .md-gradient-text {
+    background: linear-gradient(135deg, #fff 0%, #1ec9be 45%, #e8b84a 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  .md-grid-bg {
+    background-image:
+      linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+    background-size: 64px 64px;
+    mask-image: radial-gradient(ellipse 80% 60% at 50% 0%, black, transparent);
+  }
+
+  .md-glow-teal {
+    box-shadow: 0 0 80px rgba(30, 201, 190, 0.15), 0 0 1px rgba(30, 201, 190, 0.4);
+  }
+}
