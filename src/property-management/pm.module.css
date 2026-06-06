@@ -3,14 +3,14 @@
    from the white-label config. */
 
 .app {
-  --pm-bg: #0b0f14;
-  --pm-panel: #11161d;
-  --pm-panel-2: #161c25;
-  --pm-border: #232b36;
-  --pm-text: #e6edf3;
+  --pm-bg: #0c1524;
+  --pm-panel: #132033;
+  --pm-panel-2: #1b2d48;
+  --pm-border: #243652;
+  --pm-text: #e8edf4;
   --pm-muted: #8b97a7;
-  --pm-accent: #f5a623;
-  --pm-accent-soft: rgba(245, 166, 35, 0.14);
+  --pm-accent: #3ab5b0;
+  --pm-accent-soft: rgba(58, 181, 176, 0.14);
   --pm-green: #3fb950;
   --pm-red: #f85149;
   --pm-amber: #d29922;
@@ -47,7 +47,7 @@
   border-bottom: 1px solid var(--pm-border);
   margin-bottom: 10px;
 }
-.brand img { width: 34px; height: 34px; object-fit: contain; border-radius: 7px; }
+.brand img { width: 36px; height: 36px; object-fit: contain; flex-shrink: 0; }
 .brandText { display: flex; flex-direction: column; line-height: 1.15; }
 .brandName { font-weight: 700; font-size: 15px; }
 .brandSub { font-size: 11px; color: var(--pm-muted); }
@@ -70,7 +70,7 @@
 .navActive {
   background: var(--pm-accent-soft);
   color: var(--pm-text);
-  border-color: rgba(245, 166, 35, 0.3);
+  border-color: rgba(58, 181, 176, 0.35);
 }
 .navIcon { width: 18px; height: 18px; flex-shrink: 0; }
 .navSpacer { flex: 1; }
