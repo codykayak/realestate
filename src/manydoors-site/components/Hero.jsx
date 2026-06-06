@@ -64,7 +64,7 @@ export default function Hero() {
               Start onboarding
               <Icon name="arrow" className="h-4 w-4 transition group-hover:translate-x-0.5" />
             </Link>
-            <Link to="/platform" className="md-btn-ghost gap-2">
+            <Link to="/manydoors/platform" className="md-btn-ghost gap-2">
               See how it works
             </Link>
           </motion.div>

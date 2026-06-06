@@ -14,7 +14,7 @@ export default function ManyDoorsSite() {
         <Route path="features" element={<Features />} />
         <Route path="platform" element={<Platform />} />
         <Route path="support" element={<Support />} />
-        <Route path="*" element={<Navigate to="/" replace />} />
+        <Route path="*" element={<Navigate to="/manydoors" replace />} />
       </Route>
     </Routes>
   );

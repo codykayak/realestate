@@ -16,15 +16,15 @@ export default function Footer() {
           <div>
             <p className="text-xs font-semibold uppercase tracking-wider text-zinc-500">Product</p>
             <ul className="mt-4 space-y-2 text-sm text-zinc-400">
-              <li><Link to="/features" className="transition hover:text-md-cyan">Features</Link></li>
-              <li><Link to="/platform" className="transition hover:text-md-cyan">Platform</Link></li>
+              <li><Link to="/manydoors/features" className="transition hover:text-md-cyan">Features</Link></li>
+              <li><Link to="/manydoors/platform" className="transition hover:text-md-cyan">Platform</Link></li>
               <li><Link to={SITE.appPath} className="transition hover:text-md-cyan">Live demo</Link></li>
             </ul>
           </div>
           <div>
             <p className="text-xs font-semibold uppercase tracking-wider text-zinc-500">Company</p>
             <ul className="mt-4 space-y-2 text-sm text-zinc-400">
-              <li><Link to="/support" className="transition hover:text-md-cyan">Support & integrations</Link></li>
+              <li><Link to="/manydoors/support" className="transition hover:text-md-cyan">Support & integrations</Link></li>
               <li><a href={`mailto:${SITE.supportEmail}`} className="transition hover:text-md-cyan">{SITE.supportEmail}</a></li>
             </ul>
           </div>

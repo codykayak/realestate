@@ -21,7 +21,7 @@ export default function SupportBanner() {
             </p>
           </div>
           <Link
-            to="/support"
+            to="/manydoors/support"
             className="inline-flex shrink-0 items-center justify-center gap-2 rounded-full border border-md-cyan/25 bg-md-navy/40 px-6 py-3 text-sm font-semibold text-white transition hover:border-md-cyan/50 hover:bg-md-navy/60"
           >
             Talk to our team

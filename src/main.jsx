@@ -1,6 +1,6 @@
 import { StrictMode, lazy, Suspense } from 'react';
 import { createRoot } from 'react-dom/client';
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import ScrollToTop from './components/ScrollToTop';
 import LandingPage from './pages/LandingPage';
 import MarketingLayout from './layout/MarketingLayout';
@@ -23,7 +23,7 @@ const ManyDoorsSite = lazy(() => import('./manydoors-site/index.jsx'));
 
 function SiteLoading() {
   return (
-    <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#07080c', color: '#8b97a7' }}>
+    <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#0c1524', color: '#8b97a7' }}>
       Loading…
     </div>
   );
@@ -39,7 +39,7 @@ function MapLoading() {
 
 function PmLoading() {
   return (
-    <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#0b0f14', color: '#8b97a7' }}>
+    <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#0c1524', color: '#8b97a7' }}>
       Loading Property Management…
     </div>
   );
@@ -50,7 +50,8 @@ createRoot(document.getElementById('root')).render(
     <BrowserRouter>
       <ScrollToTop />
       <Routes>
-        <Route path="/macrorei" element={<LandingPage />} />
+        {/* MacroREI cash-buyer home (original homepage) */}
+        <Route path="/" element={<LandingPage />} />
 
         <Route element={<MarketingLayout />}>
           <Route path="cash-offer-calculator" element={<CashOfferCalculator />} />
@@ -75,7 +76,16 @@ createRoot(document.getElementById('root')).render(
         <Route path="/app/*" element={<Suspense fallback={<MapLoading />}><App /></Suspense>} />
         <Route path="/property-management/*" element={<Suspense fallback={<PmLoading />}><PropertyManagement /></Suspense>} />
 
-        <Route path="/*" element={<Suspense fallback={<SiteLoading />}><ManyDoorsSite /></Suspense>} />
+        {/* ManyDoors AI marketing site */}
+        <Route path="/manydoors/*" element={<Suspense fallback={<SiteLoading />}><ManyDoorsSite /></Suspense>} />
+
+        {/* Legacy redirects */}
+        <Route path="/macrorei" element={<Navigate to="/" replace />} />
+        <Route path="/features" element={<Navigate to="/manydoors/features" replace />} />
+        <Route path="/platform" element={<Navigate to="/manydoors/platform" replace />} />
+        <Route path="/support" element={<Navigate to="/manydoors/support" replace />} />
+
+        <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </BrowserRouter>
   </StrictMode>,

@@ -1,15 +1,15 @@
 @import 'tailwindcss';
 
 @theme {
-  --color-md-navy: #1b2d48;
+  --color-md-navy: #1e272e;
   --color-md-bg: #0c1524;
   --color-md-surface: #132033;
-  --color-md-elevated: #1b2d48;
+  --color-md-elevated: #1e272e;
   --color-md-border: rgba(255, 255, 255, 0.08);
   --color-md-teal: #208b8b;
   --color-md-teal-dim: #1a7575;
-  --color-md-cyan: #3ab5b0;
-  --color-md-gold: #d4af37;
+  --color-md-cyan: #00d2d3;
+  --color-md-gold: #f9ca24;
   --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif;
 }
 
@@ -28,14 +28,14 @@
 
 @layer utilities {
   .md-gradient-text {
-    background: linear-gradient(135deg, #ffffff 0%, #3ab5b0 42%, #d4af37 100%);
+    background: linear-gradient(135deg, #ffffff 0%, #00d2d3 42%, #f9ca24 100%);
     -webkit-background-clip: text;
     background-clip: text;
     color: transparent;
   }
 
   .md-gradient-brand {
-    background: linear-gradient(135deg, #208b8b 0%, #3ab5b0 55%, #d4af37 100%);
+    background: linear-gradient(135deg, #208b8b 0%, #00d2d3 55%, #f9ca24 100%);
   }
 
   .md-grid-bg {
