@@ -1,0 +1,35 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function isOwner(userId) {
+      return request.auth != null && request.auth.uid == userId;
+    }
+
+    match /users/{userId} {
+      allow read, write: if isOwner(userId);
+
+      match /repos/{repoId} {
+        allow read, write: if isOwner(userId);
+      }
+
+      match /sessions/{sessionId} {
+        allow read, write: if isOwner(userId);
+
+        match /messages/{messageId} {
+          allow read, write: if isOwner(userId);
+        }
+      }
+
+      // Mirrored repo file tree — backend service account writes; user reads via API
+      match /mirrors/{mirrorId} {
+        allow read: if isOwner(userId);
+        allow write: if false;
+      }
+    }
+
+    // Secret key references — backend only (no client direct access)
+    match /secrets/{userId} {
+      allow read, write: if false;
+    }
+  }
+}
