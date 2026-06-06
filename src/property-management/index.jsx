@@ -14,6 +14,7 @@ import OnboardingBanner from './components/OnboardingBanner';
 import OnboardingWizard from './components/OnboardingWizard';
 import GatewayPage from './pages/GatewayPage';
 import FeaturePage from './pages/FeaturePage';
+import FaqPage from './pages/FaqPage';
 import Dashboard from './pages/Dashboard';
 import OwnerPortal from './pages/OwnerPortal';
 import Communications from './pages/Communications';
@@ -47,7 +48,7 @@ function hrefFor(base, route) {
 function isGatewayPath(pathname, basePath) {
   const base = (basePath || '/property-management').replace(/\/$/, '');
   if (pathname === base || pathname === `${base}/`) return true;
-  return pathname.startsWith(`${base}/features`);
+  return pathname.startsWith(`${base}/features`) || pathname.startsWith(`${base}/faq`);
 }
 
 function Sidebar() {
@@ -160,6 +161,7 @@ function ModuleInner() {
           <Routes>
             <Route index element={<GatewayPage />} />
             <Route path="features/:slug" element={<FeaturePage />} />
+            <Route path="faq" element={<FaqPage />} />
             {features.map((f) => {
               if (!f.route) return null;
               const Page = PAGE_MAP[f.id];

@@ -19,6 +19,8 @@ import {
   FEATURE_PAGES,
   gatewayJsonLd,
 } from '../content/gatewayContent';
+import GatewayFooter from '../components/GatewayFooter';
+import SiteChatbot from '../components/SiteChatbot';
 import gw from './gateway.module.css';
 
 function hrefFor(base, route) {
@@ -312,6 +314,9 @@ export default function GatewayPage() {
           </button>
         </footer>
       </div>
+
+      <GatewayFooter />
+      <SiteChatbot />
     </div>
   );
 }

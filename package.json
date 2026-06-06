@@ -5,23 +5,20 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
+    "build": "node scripts/build-pm-knowledge.mjs && vite build",
+    "build:pm-knowledge": "node scripts/build-pm-knowledge.mjs",
     "lint": "eslint .",
-    "preview": "vite preview",
-    "verify:pm": "npm run build && node scripts/verify-pm-routes.mjs"
+    "preview": "vite preview"
   },
   "dependencies": {
     "@emailjs/browser": "^4.4.1",
-    "@tailwindcss/vite": "^4.3.0",
     "firebase": "^11.8.1",
-    "framer-motion": "^12.40.0",
+    "xlsx": "^0.18.5",
     "maplibre-gl": "^5.24.0",
     "papaparse": "^5.5.3",
     "react": "^19.2.5",
     "react-dom": "^19.2.5",
-    "react-router-dom": "^7.6.1",
-    "tailwindcss": "^4.3.0",
-    "xlsx": "^0.18.5"
+    "react-router-dom": "^7.6.1"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
@@ -32,7 +29,6 @@
     "eslint-plugin-react-hooks": "^7.1.1",
     "eslint-plugin-react-refresh": "^0.5.2",
     "globals": "^17.5.0",
-    "playwright": "^1.49.1",
     "vite": "^8.0.10"
   }
 }

@@ -41,30 +41,16 @@
 
 ## ManyDoors AI — Property Management Software
 - Product: ManyDoors AI (manydoorsai.com) — AI property management for multifamily operators
-- Tagline: AI-powered property operations — maintenance triage, leasing, and resident communications
-- Support: U.S.-based onboarding and on-call escalation; continuous platform updates
-- Live demo host: https://www.macrorei.com/property-management
-
-### ManyDoors public pages (index these)
-- https://www.macrorei.com/property-management — Gateway home: ROI, NOI charts, video hero, Enter platform CTA
-- https://www.macrorei.com/property-management/features/communications — AI resident communication (50–70% inquiry deflection)
-- https://www.macrorei.com/property-management/features/leasing — Automated leasing, speed-to-lead, pre-screen, fraud audit
-- https://www.macrorei.com/property-management/features/maintenance — AI maintenance triage, emergencies, self-help deflection
-- https://www.macrorei.com/property-management/features/owner-portal — Owner portal, NOI reporting, PDF reports
-- https://www.macrorei.com/property-management/features/us-support — U.S. support teams, continuous updates, compliance
-
-### ManyDoors product modules (live demo behind Enter)
-- Operations dashboard — deflection rate, time saved, leasing pipeline, open work orders
-- AI resident communication — SMS + email inbox with property knowledge base
-- Automated leasing — lead response, pre-screening, application audit
-- AI maintenance triage — priority routing, on-call tech, self-help
-- Owner portal — NOI MTD/YTD, budget variance, AI impact, owner PDF reports
-- Knowledge base — per-property FAQs and policies powering AI answers
+- Support: U.S.-based teams; email hello@manydoorsai.com (phone/address in footer — being updated)
+- Live demo: https://www.macrorei.com/property-management
+- Site chatbot: Gemini-powered assistant on gateway pages; answers from full site knowledge corpus
+- FAQ (footer link only): https://www.macrorei.com/property-management/faq — 62+ questions
+- Feature pages: /property-management/features/communications, /leasing, /maintenance, /owner-portal, /us-support
 
 ## Do not index (private)
 - /app — Investor Map CMS (login required)
 - /seller/* — Private magic-link seller deal status (per seller)
-- /property-management/dashboard — Live operations demo (app shell; gateway pages above are the marketing entry)
+- /property-management/dashboard — Live operations demo app shell
 
 ## Sitemap
 https://www.macrorei.com/sitemap.xml
