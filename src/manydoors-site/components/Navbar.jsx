@@ -17,8 +17,8 @@ export default function Navbar() {
   return (
     <header className="fixed top-0 inset-x-0 z-50 border-b border-white/[0.06] bg-md-bg/85 backdrop-blur-xl">
       <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-5 lg:px-8">
-        <Logo variant="full" className="hidden h-8 w-auto sm:block" />
-        <Logo variant="mark" className="h-9 w-9 sm:hidden" />
+        <Logo variant="full" className="hidden h-10 w-auto max-w-[200px] sm:block" />
+        <Logo variant="mark" className="h-9 w-auto max-w-[120px] sm:hidden" />
 
         <nav className="hidden items-center gap-1 md:flex">
           {links.map((l) => (

@@ -37,12 +37,11 @@
 }
 
 .brandRow img {
-  width: min(280px, 72vw);
+  width: min(320px, 85vw);
   height: auto;
-  max-height: 140px;
+  max-height: 96px;
   object-fit: contain;
   object-position: left center;
-  border-radius: 12px;
 }
 
 .brandText {
@@ -146,7 +145,6 @@
 .kpi {
   background: var(--pm-panel, #11161d);
   border: 1px solid var(--pm-border, #232b36);
-  border-radius: 12px;
   padding: 18px 16px;
 }
 
@@ -207,7 +205,6 @@
 .chartCard {
   background: var(--pm-panel, #11161d);
   border: 1px solid var(--pm-border, #232b36);
-  border-radius: 12px;
   padding: 18px;
 }
 
@@ -237,7 +234,6 @@
 .moduleCard {
   background: var(--pm-panel, #11161d);
   border: 1px solid var(--pm-border, #232b36);
-  border-radius: 12px;
   padding: 18px;
 }
 

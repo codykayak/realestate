@@ -26,7 +26,7 @@ export const FEATURES = [
     description: 'ROI metrics: deflection rate, time saved, pipeline, open work orders.',
     category: FEATURE_CATEGORIES.CORE,
     icon: 'grid',
-    route: '',
+    route: 'dashboard',
     defaultEnabled: true,
     locked: true,
   },
@@ -83,12 +83,6 @@ export const FEATURES = [
     config: {
       selfHelpDeflection: true,
       emergencyAlerts: true,
-      technicians: [
-        { id: 'tech_mike', name: 'Mike Torres', phone: '(541) 555-0301' },
-        { id: 'tech_jen', name: 'Jen Park', phone: '(541) 555-0302' },
-        { id: 'tech_dan', name: 'Dan Rivera', phone: '(541) 555-0303' },
-      ],
-      onCallTechId: 'tech_mike',
     },
   },
   {

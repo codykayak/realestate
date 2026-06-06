@@ -1,8 +1,8 @@
 import { Link } from 'react-router-dom';
 
 const SOURCES = {
-  full: '/manydoors-logo.svg',
-  mark: '/manydoors-logo-mark.svg',
+  full: '/manydoors-logo.png',
+  mark: '/manydoors-logo.png',
 };
 
 export default function Logo({ variant = 'full', className = '', linked = true, homePath = '/manydoors' }) {

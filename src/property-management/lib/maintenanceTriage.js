@@ -34,7 +34,8 @@ const SELF_HELP = {
 };
 
 export function triageRequest(text, config = {}) {
-  const { selfHelpDeflection = true } = config;
+  const { selfHelpDeflection = true, technicians = [], onCallTechId } = config;
+  const onCall = technicians.find((t) => t.id === onCallTechId) || technicians[0] || null;
   const isEmergency = EMERGENCY_RE.test(text);
 
   let category = 'General';
@@ -53,23 +54,15 @@ export function triageRequest(text, config = {}) {
     if (candidate && candidate.match.test(text)) selfHelp = candidate.tip;
   }
 
-  let routing;
-  if (isEmergency) {
-    routing = onCall
-      ? `EMERGENCY — forward call to on-call tech ${onCall.name}${onCall.phone ? ` (${onCall.phone})` : ''}. Labeled EMERGENCY for immediate dispatch.`
-      : 'Escalate now: on-call emergency maintenance + notify property manager.';
-  } else {
-    routing = `Route to ${category} queue (${priority} priority).`;
-  }
-
   return {
     category,
     priority,
     isEmergency,
     selfHelp,
-    onCallTech: onCall?.name ?? null,
     recommendedStatus: isEmergency ? 'dispatched' : selfHelp ? 'self-help-sent' : 'open',
-    routing,
+    routing: isEmergency
+      ? 'Escalate now: on-call emergency maintenance + notify property manager.'
+      : `Route to ${category} queue (${priority} priority).`,
   };
 }
 

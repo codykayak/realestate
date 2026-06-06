@@ -1,10 +1,10 @@
 /**
  * Property Management module — entry point.
  *
- * Mounted at `/property-management/*` on macrorei.com (migrating to manydoorsai.com).
+ * Gateway landing at `/property-management`; operations app at sub-routes.
  */
 
-import { useState } from 'react';
+import { lazy, Suspense, useState } from 'react';
 import { Routes, Route, NavLink, Navigate, useLocation } from 'react-router-dom';
 import { PmProvider, usePm } from './context/PmContext';
 import { FEATURE_CATEGORIES } from './config/featureRegistry';
@@ -12,7 +12,7 @@ import Icon from './components/Icon';
 import ErrorBoundary from './components/ErrorBoundary';
 import OnboardingBanner from './components/OnboardingBanner';
 import OnboardingWizard from './components/OnboardingWizard';
-import DevAdminRoute from './devAdminRoute';
+import GatewayPage from './pages/GatewayPage';
 import Dashboard from './pages/Dashboard';
 import OwnerPortal from './pages/OwnerPortal';
 import Communications from './pages/Communications';
@@ -23,6 +23,9 @@ import KnowledgeBase from './pages/KnowledgeBase';
 import Settings from './pages/Settings';
 import styles from './pm.module.css';
 import './components/print.css';
+
+const DEV_ADMIN_ENABLED = import.meta.env.VITE_PM_DEV_ADMIN !== 'false';
+const DevAdminRoute = DEV_ADMIN_ENABLED ? lazy(() => import('./devAdminRoute.jsx')) : null;
 
 const PAGE_MAP = {
   dashboard: Dashboard,
@@ -38,6 +41,11 @@ const PAGE_MAP = {
 function hrefFor(base, route) {
   const b = (base || '/property-management').replace(/\/$/, '');
   return route ? `${b}/${route}` : b;
+}
+
+function isGatewayPath(pathname, basePath) {
+  const base = (basePath || '/property-management').replace(/\/$/, '');
+  return pathname === base || pathname === `${base}/`;
 }
 
 function Sidebar() {
@@ -72,6 +80,15 @@ function Sidebar() {
         <span>{tenant?.name || 'Demo Tenant'}</span>
       </div>
 
+      <NavLink
+        to={hrefFor(base, '')}
+        end
+        className={({ isActive }) => `${styles.navItem} ${isActive ? styles.navActive : ''}`}
+      >
+        <Icon name="home" size={18} className={styles.navIcon} />
+        <span>Gateway home</span>
+      </NavLink>
+
       {order.map((cat) => {
         const items = enabled.filter((f) => f.category === cat);
         if (!items.length) return null;
@@ -82,7 +99,6 @@ function Sidebar() {
               <NavLink
                 key={f.id}
                 to={hrefFor(base, f.route)}
-                end={f.route === ''}
                 className={({ isActive }) => `${styles.navItem} ${isActive ? styles.navActive : ''}`}
               >
                 <Icon name={f.icon} size={18} className={styles.navIcon} />
@@ -94,19 +110,29 @@ function Sidebar() {
       })}
 
       <div className={styles.navSpacer} />
-      <NavLink
-        to={hrefFor(base, 'developer-admin')}
-        className={({ isActive }) => `${styles.navItem} ${styles.navDev} ${isActive ? styles.navActive : ''}`}
-        title="Internal engineering docs, pitch deck, and tools"
-      >
-        <Icon name="settings" size={18} className={styles.navIcon} />
-        <span>Developer admin</span>
-      </NavLink>
+      {DEV_ADMIN_ENABLED && DevAdminRoute && (
+        <NavLink
+          to={hrefFor(base, 'developer-admin')}
+          className={({ isActive }) => `${styles.navItem} ${styles.navDev} ${isActive ? styles.navActive : ''}`}
+          title="Internal engineering docs, pitch deck, and tools"
+        >
+          <Icon name="settings" size={18} className={styles.navIcon} />
+          <span>Developer admin</span>
+        </NavLink>
+      )}
       <div className={styles.sidebarFoot}>
         {config.productName} · {config.futureSite}
         <br />Data is local to this browser until Firebase is connected.
       </div>
     </aside>
+  );
+}
+
+function DevAdminFallback() {
+  return (
+    <div className={styles.content}>
+      <div className={styles.hint}>Loading developer tools…</div>
+    </div>
   );
 }
 
@@ -116,38 +142,50 @@ function ModuleInner() {
   const enabledIds = new Set(features.filter((f) => f.enabled).map((f) => f.id));
   const [onboardingOpen, setOnboardingOpen] = useState(false);
   const defaultTechs = featureMap.maintenance?.config?.technicians || [];
+  const gateway = isGatewayPath(location.pathname, config.basePath);
 
   return (
     <div
       className={styles.app}
       style={{ '--pm-accent': config.accent, '--pm-accent-soft': config.accentSoft }}
     >
-      <Sidebar />
-      <main className={styles.main}>
-        {!onboardingComplete && (
+      {!gateway && <Sidebar />}
+      <main className={gateway ? styles.mainFull : styles.main}>
+        {!gateway && !onboardingComplete && (
           <OnboardingBanner onStart={() => setOnboardingOpen(true)} />
         )}
         <ErrorBoundary key={location.pathname}>
           <Routes>
-            <Route index element={<Dashboard />} />
+            <Route index element={<GatewayPage />} />
             {features.map((f) => {
-              if (f.id === 'dashboard' || !f.route) return null;
+              if (!f.route) return null;
               const Page = PAGE_MAP[f.id];
               if (!Page || !enabledIds.has(f.id)) return null;
               return <Route key={f.id} path={f.route} element={<Page />} />;
             })}
-            <Route path="developer-admin" element={<DevAdminRoute />} />
+            {DEV_ADMIN_ENABLED && DevAdminRoute && (
+              <Route
+                path="developer-admin"
+                element={(
+                  <Suspense fallback={<DevAdminFallback />}>
+                    <DevAdminRoute />
+                  </Suspense>
+                )}
+              />
+            )}
             <Route path="*" element={<Navigate to={config.basePath} replace />} />
           </Routes>
         </ErrorBoundary>
       </main>
 
-      <OnboardingWizard
-        open={onboardingOpen}
-        onClose={() => setOnboardingOpen(false)}
-        onComplete={completeOnboarding}
-        defaultTechnicians={defaultTechs}
-      />
+      {!gateway && (
+        <OnboardingWizard
+          open={onboardingOpen}
+          onClose={() => setOnboardingOpen(false)}
+          onComplete={completeOnboarding}
+          defaultTechnicians={defaultTechs}
+        />
+      )}
     </div>
   );
 }
