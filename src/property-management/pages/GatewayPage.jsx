@@ -1,34 +1,36 @@
-import { useMemo } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useMemo, useRef, useEffect } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { usePm } from '../context/PmContext';
 import Icon from '../components/Icon';
+import GatewayNavbar from '../components/GatewayNavbar';
+import PmSeoHead from '../components/PmSeoHead';
 import { LineChart, BarChart, GroupedBar, PieChart } from '../components/charts/Charts';
 import { summarize, usd, pct } from '../lib/finance';
 import { monthLabel } from '../data/financials';
 import {
   computePortfolioRoi,
   DEFAULT_PORTFOLIO,
-  MODULES,
+  GATEWAY_MODULES,
   DEFLECTION_COMPARISON,
 } from '../developer-admin/pitchData';
+import {
+  GATEWAY_ASSETS,
+  US_SUPPORT,
+  FEATURE_PAGES,
+  gatewayJsonLd,
+} from '../content/gatewayContent';
 import gw from './gateway.module.css';
-
-const HERO_IMG = '/pm-pitch/pm-pitch-hero-community.png';
-const OPS_IMG = '/pm-pitch/pm-pitch-operations-team.png';
 
 function hrefFor(base, route) {
   const b = (base || '/property-management').replace(/\/$/, '');
   return route ? `${b}/${route}` : b;
 }
 
-/**
- * Public-facing gateway at /property-management — pitch-style ROI & NOI story
- * with a large Enter CTA into the operations app.
- */
 export default function GatewayPage() {
   const { config, tenant } = usePm();
   const navigate = useNavigate();
   const base = config.basePath;
+  const videoRef = useRef(null);
 
   const units = (tenant?.properties || []).reduce((s, p) => s + (p.units || 0), 0) || DEFAULT_PORTFOLIO.units;
   const properties = (tenant?.properties || []).length || DEFAULT_PORTFOLIO.properties;
@@ -45,7 +47,7 @@ export default function GatewayPage() {
   const noiSeries = {
     labels: noiLabels,
     series: [
-      { label: 'NOI', points: last12.map((m) => m.noi), color: '#f5a623' },
+      { label: 'NOI', points: last12.map((m) => m.noi), color: '#00d2d3' },
       { label: 'Budget', points: last12.map((m) => m.budgetNOI), color: '#58a6ff', dashed: true },
     ],
   };
@@ -54,60 +56,104 @@ export default function GatewayPage() {
     const ramp = Array.from({ length: 12 }, (_, i) => Math.round(roi.monthlyTotal * (0.35 + (i / 11) * 0.65)));
     return {
       labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
-      series: [{ label: 'Monthly AI impact ($)', points: ramp, color: '#f5a623' }],
+      series: [{ label: 'Monthly AI impact ($)', points: ramp, color: '#00d2d3' }],
     };
   }, [roi.monthlyTotal]);
 
   const pieData = roi.lines.map((l, i) => ({
     label: l.label,
     value: l.value,
-    color: ['#f5a623', '#58a6ff', '#3fb950', '#d29922', '#a371f7', '#f85149'][i % 6],
+    color: ['#00d2d3', '#58a6ff', '#3fb950', '#d29922', '#a371f7', '#f85149'][i % 6],
   }));
 
   const noiBar = last12.slice(-6).map((m) => ({
     label: monthLabel(m.month).split(' ')[0],
     value: m.noi,
-    color: m.noi >= m.budgetNOI ? '#3fb950' : '#f5a623',
+    color: m.noi >= m.budgetNOI ? '#3fb950' : '#00d2d3',
   }));
 
   const enter = () => navigate(hrefFor(base, 'dashboard'));
 
+  useEffect(() => {
+    const v = videoRef.current;
+    if (!v) return;
+    v.play().catch(() => {});
+  }, []);
+
+  const seoTitle = `${config.productName} | AI Property Management Software — NOI, Leasing & Maintenance`;
+  const seoDesc =
+    `${config.productName} is AI property management software for multifamily operators: 24/7 resident communications, automated leasing, maintenance triage, and owner-grade NOI reporting — backed by U.S. support teams. Live demo at macrorei.com/property-management.`;
+
   return (
     <div className={gw.gateway}>
+      <PmSeoHead
+        title={seoTitle}
+        description={seoDesc}
+        path={base}
+        keywords={`ManyDoors AI, property management software, AI leasing, maintenance triage, multifamily NOI, ${config.futureSite}, investor property management`}
+        ogImage={GATEWAY_ASSETS.softwareImage}
+        jsonLd={gatewayJsonLd(config, base)}
+      />
+      <GatewayNavbar onEnter={enter} />
+
+      <section className={gw.videoHero} aria-label="Hero">
+        <video
+          ref={videoRef}
+          className={gw.videoBg}
+          autoPlay
+          muted
+          loop
+          playsInline
+          poster={GATEWAY_ASSETS.softwareImage}
+        >
+          <source src={GATEWAY_ASSETS.heroVideo} type="video/mp4" />
+        </video>
+        <div className={gw.videoOverlay} />
+        <div className={gw.videoContent}>
+          <p className={gw.eyebrow}>Multifamily operations platform</p>
+          <h1 className={gw.videoTitle}>
+            Protect NOI. Prove ROI. Run the portfolio on AI — not overtime.
+          </h1>
+          <p className={gw.videoLead}>
+            {config.productName} is the AI operations layer on top of the PMS you already use:
+            24/7 resident communication, automated leasing, and maintenance triage — with owner-grade
+            NOI reporting and U.S.-based support on call.
+          </p>
+          <button type="button" className={gw.enterBtn} onClick={enter}>
+            Enter platform
+            <Icon name="bolt" size={22} />
+          </button>
+          <p className={gw.enterHint}>
+            Live demo · {tenant?.name || 'Demo tenant'} · data stored locally until Firebase is connected
+          </p>
+        </div>
+      </section>
+
       <div className={gw.gatewayInner}>
-        <section className={gw.hero}>
-          <div>
-            <div className={gw.brandRow}>
-              {config.logo ? (
-                <img src={config.logo} alt={`${config.productName} — ${config.companyName}`} />
-              ) : (
-                <Icon name="home" size={64} />
-              )}
-              <div className={gw.brandText}>
-                <div className={gw.brandName}>{config.productName}</div>
-                <div className={gw.brandSub}>{config.companyName} · {config.productTagline}</div>
-              </div>
-            </div>
-            <p className={gw.eyebrow}>Multifamily operations platform</p>
-            <h1 className={gw.heroTitle}>
-              Protect NOI. Prove ROI. Run the portfolio on AI — not overtime.
-            </h1>
-            <p className={gw.heroLead}>
-              {config.productName} is the AI operations layer on top of the PMS you already use:
-              24/7 resident communication, automated leasing, and maintenance triage — with owner-grade
-              NOI reporting built in.
+        <section className={gw.softwareSection} aria-labelledby="software-heading">
+          <div className={gw.softwareCopy}>
+            <h2 id="software-heading" className={gw.sectionTitle}>
+              Property management software built for operators and investors
+            </h2>
+            <p className={gw.sectionSub}>
+              One platform replaces scattered inboxes, leasing spreadsheets, and after-hours answering services.
+              ManyDoors AI connects to the PMS you already run — Yardi, RealPage, AppFolio, Entrata — and layers
+              intelligent automation without a rip-and-replace project.
             </p>
-            <button type="button" className={gw.enterBtn} onClick={enter}>
-              Enter platform
-              <Icon name="bolt" size={22} />
-            </button>
-            <p className={gw.enterHint}>
-              Live demo · {tenant?.name || 'Demo tenant'} · data stored locally until Firebase is connected
-            </p>
+            <ul className={gw.bulletList}>
+              <li>AI answers resident questions from your property knowledge base — not generic chatbots</li>
+              <li>Leasing pipeline with speed-to-lead, pre-screen, and application fraud audit</li>
+              <li>Maintenance triage with emergency routing and self-help deflection</li>
+            </ul>
           </div>
-          <div className={gw.heroVisual}>
-            <img src={HERO_IMG} alt="Multifamily community" className={gw.heroImg} />
-          </div>
+          <img
+            src={GATEWAY_ASSETS.softwareImage}
+            alt={`${config.productName} property management software dashboard for multifamily operators`}
+            className={gw.softwareImg}
+            width={640}
+            height={420}
+            loading="eager"
+          />
         </section>
 
         <div className={gw.kpiStrip}>
@@ -134,6 +180,14 @@ export default function GatewayPage() {
             <div className={gw.kpiSub}>{properties} properties · demo portfolio</div>
           </div>
         </div>
+
+        <section className={gw.supportBanner} aria-label="U.S. support">
+          <Icon name="shield" size={28} className={gw.supportIcon} />
+          <div>
+            <h2 className={gw.supportTitle}>{US_SUPPORT.headline}</h2>
+            <p className={gw.sectionSub}>{US_SUPPORT.body}</p>
+          </div>
+        </section>
 
         <section>
           <div className={gw.sectionHead}>
@@ -171,14 +225,14 @@ export default function GatewayPage() {
           </div>
         </section>
 
-        <section>
+        <section className={gw.investorSection} aria-labelledby="investor-heading">
           <div className={gw.sectionHead}>
-            <h2 className={gw.sectionTitle}>NOI you can defend in the owner meeting</h2>
+            <h2 id="investor-heading" className={gw.sectionTitle}>NOI you can defend in the owner meeting</h2>
             <p className={gw.sectionSub}>
               Trailing-twelve NOI vs budget — simulated ledger data; production connects to your PMS.
             </p>
           </div>
-          <div className={gw.chartGrid}>
+          <div className={gw.investorGrid}>
             <div className={`${gw.chartCard} ${gw.chartCardWide}`}>
               <div className={gw.chartLabel}>NOI vs budget — last 12 months</div>
               <LineChart {...noiSeries} height={240} formatY={(v) => `$${Math.round(v / 1000)}k`} />
@@ -187,21 +241,37 @@ export default function GatewayPage() {
               <div className={gw.chartLabel}>Recent monthly NOI</div>
               <BarChart data={noiBar} height={200} formatY={(v) => `$${Math.round(v / 1000)}k`} />
             </div>
-            <div className={gw.chartCard}>
-              <div className={gw.chartLabel}>Operations team</div>
-              <img src={OPS_IMG} alt="Property operations team" className={gw.heroImg} style={{ borderRadius: 10 }} />
+            <div className={gw.investorVisual}>
+              <img
+                src={GATEWAY_ASSETS.investorImage}
+                alt={`${config.productName} investor property management software with AI-powered NOI reporting`}
+                className={gw.heroImg}
+                width={560}
+                height={380}
+                loading="lazy"
+              />
+              <p className={gw.kpiSub}>
+                Owner-grade reporting for investors who expect transparency — AI impact itemized on every report.
+              </p>
             </div>
           </div>
         </section>
 
         <section>
           <div className={gw.sectionHead}>
-            <h2 className={gw.sectionTitle}>Three modules. One platform.</h2>
-            <p className={gw.sectionSub}>Everything behind the Enter button — ready to explore in the live demo.</p>
+            <h2 className={gw.sectionTitle}>Five modules. One platform.</h2>
+            <p className={gw.sectionSub}>
+              Everything behind the Enter button — ready to explore in the live demo.{' '}
+              <Link to={hrefFor(base, 'features/communications')}>Read feature breakdowns →</Link>
+            </p>
           </div>
           <div className={gw.moduleGrid}>
-            {MODULES.map((mod) => (
-              <div key={mod.id} className={gw.moduleCard}>
+            {GATEWAY_MODULES.map((mod) => (
+              <Link
+                key={mod.id}
+                to={hrefFor(base, `features/${mod.featureSlug}`)}
+                className={gw.moduleCard}
+              >
                 <div className={gw.moduleTitle}>
                   <Icon name={mod.icon} size={18} />
                   {mod.title}
@@ -211,7 +281,26 @@ export default function GatewayPage() {
                 <ul className={gw.moduleBullets}>
                   {mod.bullets.slice(0, 2).map((b) => <li key={b}>{b}</li>)}
                 </ul>
-              </div>
+                <span className={gw.moduleLink}>Learn more →</span>
+              </Link>
+            ))}
+          </div>
+        </section>
+
+        <section>
+          <div className={gw.sectionHead}>
+            <h2 className={gw.sectionTitle}>Deep dives by feature</h2>
+            <p className={gw.sectionSub}>How each module saves time and money — with U.S. support behind every release.</p>
+          </div>
+          <div className={gw.featureLinkGrid}>
+            {FEATURE_PAGES.map((f) => (
+              <Link key={f.slug} to={hrefFor(base, `features/${f.slug}`)} className={gw.featureLinkCard}>
+                <Icon name={f.icon} size={20} />
+                <div>
+                  <div className={gw.featureLinkTitle}>{f.title}</div>
+                  <div className={gw.kpiSub}>{f.tagline}</div>
+                </div>
+              </Link>
             ))}
           </div>
         </section>

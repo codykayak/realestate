@@ -13,6 +13,7 @@ import ErrorBoundary from './components/ErrorBoundary';
 import OnboardingBanner from './components/OnboardingBanner';
 import OnboardingWizard from './components/OnboardingWizard';
 import GatewayPage from './pages/GatewayPage';
+import FeaturePage from './pages/FeaturePage';
 import Dashboard from './pages/Dashboard';
 import OwnerPortal from './pages/OwnerPortal';
 import Communications from './pages/Communications';
@@ -45,7 +46,8 @@ function hrefFor(base, route) {
 
 function isGatewayPath(pathname, basePath) {
   const base = (basePath || '/property-management').replace(/\/$/, '');
-  return pathname === base || pathname === `${base}/`;
+  if (pathname === base || pathname === `${base}/`) return true;
+  return pathname.startsWith(`${base}/features`);
 }
 
 function Sidebar() {
@@ -157,6 +159,7 @@ function ModuleInner() {
         <ErrorBoundary key={location.pathname}>
           <Routes>
             <Route index element={<GatewayPage />} />
+            <Route path="features/:slug" element={<FeaturePage />} />
             {features.map((f) => {
               if (!f.route) return null;
               const Page = PAGE_MAP[f.id];

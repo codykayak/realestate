@@ -81,10 +81,10 @@ export const SPEED_TO_LEAD_DATA = {
 };
 
 export const DEFLECTION_COMPARISON = {
-  labels: ['Without AI layer', 'With Macro REI (target)'],
+  labels: ['Without AI layer', 'With ManyDoors AI (target)'],
   series: [
     { label: 'Staff-handled volume %', values: [100, 42], color: '#6b7785' },
-    { label: 'Auto-resolved %', values: [0, 58], color: '#f5a623' },
+    { label: 'Auto-resolved %', values: [0, 58], color: '#00d2d3' },
   ],
 };
 
@@ -144,6 +144,65 @@ export const MODULES = [
     ],
     stat: '1 layer',
     statLabel: 'on top of the PMS you already own',
+  },
+];
+
+/** Five product modules surfaced on the public gateway homepage. */
+export const GATEWAY_MODULES = [
+  {
+    id: 'comms',
+    featureSlug: 'communications',
+    icon: 'chat',
+    title: 'AI Resident Communication',
+    bullets: MODULES[0].bullets,
+    stat: MODULES[0].stat,
+    statLabel: MODULES[0].statLabel,
+  },
+  {
+    id: 'leasing',
+    featureSlug: 'leasing',
+    icon: 'key',
+    title: 'Automated Leasing',
+    bullets: MODULES[1].bullets,
+    stat: MODULES[1].stat,
+    statLabel: MODULES[1].statLabel,
+  },
+  {
+    id: 'maintenance',
+    featureSlug: 'maintenance',
+    icon: 'wrench',
+    title: 'AI Maintenance Triage',
+    bullets: MODULES[2].bullets,
+    stat: MODULES[2].stat,
+    statLabel: MODULES[2].statLabel,
+  },
+  {
+    id: 'owner',
+    featureSlug: 'owner-portal',
+    icon: 'chart',
+    title: 'Owner Portal & NOI',
+    bullets: [
+      'Real-time NOI MTD/YTD vs budget with property-level drill-down',
+      'One-click PDF owner reports with itemized AI impact lines',
+      'White-label branding for investor relations and asset managers',
+      'Cash-on-cash and portfolio roll-ups for renewals that stick',
+    ],
+    stat: '1-click',
+    statLabel: 'owner report generation',
+  },
+  {
+    id: 'support',
+    featureSlug: 'us-support',
+    icon: 'shield',
+    title: 'U.S. Support & Updates',
+    bullets: [
+      'U.S.-based onboarding and escalation — not an offshore ticket queue',
+      'Continuous platform updates: models, connectors, compliance patches',
+      'Knowledge-base tuning with your team during pilot and roll-out',
+      'Enterprise SLA path for large portfolios',
+    ],
+    stat: '24/7',
+    statLabel: 'AI coverage with human backup',
   },
 ];
 
