@@ -16,7 +16,7 @@ export default function Home() {
       <section className="relative border-t border-white/[0.06] py-24 md:py-32">
         <div className="mx-auto max-w-6xl px-5 lg:px-8">
           <FadeIn className="mx-auto mb-16 max-w-2xl text-center">
-            <p className="text-sm font-semibold uppercase tracking-widest text-teal-400">Platform</p>
+            <p className="text-sm font-semibold uppercase tracking-widest text-md-cyan">Platform</p>
             <h2 className="mt-3 text-3xl font-bold tracking-tight text-white sm:text-4xl">
               Everything your portfolio needs — in one place
             </h2>
@@ -37,7 +37,7 @@ export default function Home() {
           <FadeIn className="mt-12 text-center">
             <Link
               to="/features"
-              className="group inline-flex items-center gap-2 text-sm font-semibold text-teal-400 transition hover:text-teal-300"
+              className="group inline-flex items-center gap-2 text-sm font-semibold text-md-cyan transition hover:text-md-cyan"
             >
               View all features
               <Icon name="arrow" className="h-4 w-4 transition group-hover:translate-x-0.5" />
@@ -46,10 +46,10 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="border-t border-white/[0.06] bg-[#0f1117]/40 py-24 md:py-32">
+      <section className="border-t border-white/[0.06] bg-[md-surface]/40 py-24 md:py-32">
         <div className="mx-auto max-w-6xl px-5 lg:px-8">
           <FadeIn className="mb-16 text-center">
-            <p className="text-sm font-semibold uppercase tracking-widest text-amber-400/90">How it works</p>
+            <p className="text-sm font-semibold uppercase tracking-widest text-md-gold">How it works</p>
             <h2 className="mt-3 text-3xl font-bold tracking-tight text-white sm:text-4xl">
               Live in days, not months
             </h2>
@@ -60,9 +60,9 @@ export default function Home() {
               <FadeIn key={step.step} delay={i * 0.08}>
                 <motion.div
                   whileHover={{ y: -4 }}
-                  className="h-full rounded-2xl border border-white/[0.08] bg-[#0f1117] p-6"
+                  className="h-full rounded-2xl border border-white/[0.08] bg-[md-surface] p-6"
                 >
-                  <span className="text-3xl font-bold text-teal-500/25">{step.step}</span>
+                  <span className="text-3xl font-bold text-md-teal/30">{step.step}</span>
                   <h3 className="mt-3 text-lg font-semibold text-white">{step.title}</h3>
                   <p className="mt-2 text-sm leading-relaxed text-zinc-500">{step.body}</p>
                 </motion.div>
@@ -93,7 +93,7 @@ export default function Home() {
             <div className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
               <Link
                 to={SITE.appPath}
-                className="inline-flex h-12 items-center justify-center rounded-full bg-gradient-to-r from-teal-400 to-teal-500 px-8 text-sm font-semibold text-black shadow-lg shadow-teal-500/25 transition hover:scale-[1.02]"
+                className="inline-flex h-12 items-center justify-center rounded-full bg-gradient-to-r from-md-teal via-md-cyan to-md-cyan px-8 text-sm font-semibold text-black shadow-lg shadow-md-cyan/25 transition hover:scale-[1.02]"
               >
                 Open platform
               </Link>

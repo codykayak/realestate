@@ -3,6 +3,7 @@ import { Link, NavLink } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { SITE } from '../content/siteContent';
 import Icon from './Icons';
+import Logo from './Logo';
 
 const links = [
   { to: '/features', label: 'Features' },
@@ -14,14 +15,10 @@ export default function Navbar() {
   const [open, setOpen] = useState(false);
 
   return (
-    <header className="fixed top-0 inset-x-0 z-50 border-b border-white/[0.06] bg-[#07080c]/80 backdrop-blur-xl">
+    <header className="fixed top-0 inset-x-0 z-50 border-b border-white/[0.06] bg-md-bg/85 backdrop-blur-xl">
       <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-5 lg:px-8">
-        <Link to="/" className="group flex items-center gap-2.5">
-          <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-teal-400 to-teal-600 text-sm font-bold text-black shadow-lg shadow-teal-500/20 transition group-hover:scale-105">
-            MD
-          </span>
-          <span className="text-[15px] font-semibold tracking-tight text-white">{SITE.name}</span>
-        </Link>
+        <Logo variant="full" className="hidden h-8 w-auto sm:block" />
+        <Logo variant="mark" className="h-9 w-9 sm:hidden" />
 
         <nav className="hidden items-center gap-1 md:flex">
           {links.map((l) => (
@@ -30,7 +27,7 @@ export default function Navbar() {
               to={l.to}
               className={({ isActive }) =>
                 `rounded-lg px-3.5 py-2 text-sm font-medium transition-colors ${
-                  isActive ? 'bg-white/10 text-white' : 'text-zinc-400 hover:bg-white/5 hover:text-white'
+                  isActive ? 'bg-md-cyan/10 text-md-cyan' : 'text-zinc-400 hover:bg-white/5 hover:text-white'
                 }`
               }
             >
@@ -40,16 +37,16 @@ export default function Navbar() {
         </nav>
 
         <div className="hidden items-center gap-3 md:flex">
-          <a href={`mailto:${SITE.supportEmail}`} className="text-sm font-medium text-zinc-400 transition hover:text-white">
+          <a href={`mailto:${SITE.supportEmail}`} className="text-sm font-medium text-zinc-400 transition hover:text-md-cyan">
             Contact
           </a>
           <Link
             to={SITE.appPath}
-            className="group relative overflow-hidden rounded-full bg-white px-4 py-2 text-sm font-semibold text-black transition hover:shadow-lg hover:shadow-teal-500/20"
+            className="group relative overflow-hidden rounded-full bg-md-gold px-4 py-2 text-sm font-semibold text-md-navy transition hover:shadow-lg hover:shadow-md-gold/25"
           >
             <span className="relative z-10">Launch app</span>
             <motion.span
-              className="absolute inset-0 bg-gradient-to-r from-teal-300 to-amber-300 opacity-0 transition group-hover:opacity-100"
+              className="absolute inset-0 bg-gradient-to-r from-md-cyan to-md-teal opacity-0 transition group-hover:opacity-100"
               layoutId="nav-cta"
             />
           </Link>
@@ -66,7 +63,7 @@ export default function Navbar() {
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
-            className="border-t border-white/[0.06] bg-[#0a0b10] md:hidden"
+            className="border-t border-white/[0.06] bg-md-surface md:hidden"
           >
             <div className="flex flex-col gap-1 p-4">
               {links.map((l) => (
@@ -74,7 +71,7 @@ export default function Navbar() {
                   {l.label}
                 </NavLink>
               ))}
-              <Link to={SITE.appPath} onClick={() => setOpen(false)} className="mt-2 rounded-full bg-teal-500 py-2.5 text-center text-sm font-semibold text-black">
+              <Link to={SITE.appPath} onClick={() => setOpen(false)} className="mt-2 rounded-full bg-md-gold py-2.5 text-center text-sm font-semibold text-md-navy">
                 Launch app
               </Link>
             </div>

@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none" role="img" aria-label="ManyDoors AI">
+  <defs>
+    <linearGradient id="mdBrand" x1="10" y1="54" x2="54" y2="10" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#1B2D48"/>
+      <stop offset="38%" stop-color="#208B8B"/>
+      <stop offset="72%" stop-color="#3AB5B0"/>
+      <stop offset="100%" stop-color="#D4AF37"/>
+    </linearGradient>
+    <linearGradient id="mdGlow" x1="32" y1="18" x2="32" y2="46" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#3AB5B0" stop-opacity="0.9"/>
+      <stop offset="100%" stop-color="#208B8B" stop-opacity="0.5"/>
+    </linearGradient>
+  </defs>
+  <g stroke="url(#mdBrand)" stroke-width="2.2" stroke-linecap="round">
+    <path d="M32 14 L22 48 M32 14 L32 48 M32 14 L42 48" opacity="0.55"/>
+    <path d="M32 16 L18 50 M32 16 L46 50" opacity="0.85"/>
+    <path d="M26 20 C26 20 24 36 24 48 M38 20 C38 20 40 36 40 48" opacity="0.7"/>
+  </g>
+  <circle cx="32" cy="30" r="9" fill="url(#mdGlow)" stroke="url(#mdBrand)" stroke-width="1.8"/>
+  <text x="32" y="34" text-anchor="middle" font-family="Inter, ui-sans-serif, system-ui, sans-serif" font-size="9" font-weight="700" fill="#1B2D48">AI</text>
+  <g stroke="#3AB5B0" stroke-width="1.2" stroke-linecap="round" opacity="0.85">
+    <path d="M32 21 L32 14 M32 39 L32 46 M21 30 L14 30 M43 30 L50 30"/>
+    <path d="M24 24 L18 18 M40 24 L46 18 M24 36 L18 42 M40 36 L46 42"/>
+  </g>
+  <circle cx="32" cy="14" r="1.6" fill="#D4AF37"/>
+  <circle cx="14" cy="30" r="1.4" fill="#3AB5B0"/>
+  <circle cx="50" cy="30" r="1.4" fill="#3AB5B0"/>
+  <circle cx="18" cy="42" r="1.2" fill="#208B8B"/>
+  <circle cx="46" cy="42" r="1.2" fill="#208B8B"/>
+</svg>

@@ -20,7 +20,7 @@ export default function Platform() {
         <div className="mx-auto max-w-6xl px-5 lg:px-8">
           <div className="grid items-center gap-12 lg:grid-cols-2">
             <FadeIn>
-              <p className="text-sm font-semibold uppercase tracking-widest text-teal-400">Platform</p>
+              <p className="text-sm font-semibold uppercase tracking-widest text-md-cyan">Platform</p>
               <h1 className="mt-3 text-4xl font-bold tracking-tight text-white sm:text-5xl">
                 One command center for your entire portfolio
               </h1>
@@ -30,7 +30,7 @@ export default function Platform() {
               </p>
               <Link
                 to={SITE.appPath}
-                className="mt-8 inline-flex h-12 items-center justify-center rounded-full bg-gradient-to-r from-teal-400 to-teal-500 px-8 text-sm font-semibold text-black transition hover:scale-[1.02]"
+                className="mt-8 inline-flex h-12 items-center justify-center rounded-full bg-gradient-to-r from-md-teal via-md-cyan to-md-cyan px-8 text-sm font-semibold text-black transition hover:scale-[1.02]"
               >
                 Open platform
               </Link>
@@ -38,7 +38,7 @@ export default function Platform() {
 
             <FadeIn delay={0.15}>
               <motion.div
-                className="relative overflow-hidden rounded-2xl border border-white/10 shadow-2xl md-glow-teal"
+                className="relative overflow-hidden rounded-2xl border border-white/10 shadow-2xl md-glow-cyan"
                 whileHover={{ scale: 1.02 }}
                 transition={{ type: 'spring', stiffness: 300, damping: 24 }}
               >
@@ -47,7 +47,7 @@ export default function Platform() {
                   alt="ManyDoors AI platform dashboard"
                   className="w-full object-cover"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-[#07080c]/80 to-transparent" />
+                <div className="absolute inset-0 bg-gradient-to-t from-[md-bg]/80 to-transparent" />
               </motion.div>
             </FadeIn>
           </div>
@@ -62,8 +62,8 @@ export default function Platform() {
           <ul className="grid gap-4 sm:grid-cols-2">
             {CAPABILITIES.map((item, i) => (
               <FadeIn key={item} delay={i * 0.05}>
-                <li className="flex items-start gap-3 rounded-xl border border-white/[0.08] bg-[#0f1117]/60 p-5">
-                  <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-teal-500/15 text-teal-400">
+                <li className="flex items-start gap-3 rounded-xl border border-white/[0.08] bg-[md-surface]/60 p-5">
+                  <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-md-cyan/15 text-md-cyan">
                     <Icon name="shield" className="h-3 w-3" />
                   </span>
                   <span className="text-zinc-400">{item}</span>
@@ -74,7 +74,7 @@ export default function Platform() {
         </div>
       </section>
 
-      <section className="border-t border-white/[0.06] bg-[#0f1117]/30 py-20 md:py-28">
+      <section className="border-t border-white/[0.06] bg-[md-surface]/30 py-20 md:py-28">
         <div className="mx-auto max-w-6xl px-5 lg:px-8">
           <FadeIn className="mb-12 text-center">
             <h2 className="text-2xl font-bold text-white sm:text-3xl">Onboarding in four steps</h2>
@@ -84,7 +84,7 @@ export default function Platform() {
             {HOW_IT_WORKS.map((step, i) => (
               <FadeIn key={step.step} delay={i * 0.1}>
                 <div className="text-center">
-                  <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-teal-500/15 text-lg font-bold text-teal-400">
+                  <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-md-cyan/15 text-lg font-bold text-md-cyan">
                     {step.step}
                   </div>
                   <h3 className="mt-5 text-lg font-semibold text-white">{step.title}</h3>

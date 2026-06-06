@@ -6,6 +6,8 @@ export const SITE = {
   domain: 'manydoorsai.com',
   supportEmail: 'hello@manydoorsai.com',
   appPath: '/property-management',
+  logo: '/manydoors-logo.svg',
+  logoMark: '/manydoors-logo-mark.svg',
 };
 
 export const FEATURES = [
@@ -15,7 +17,7 @@ export const FEATURES = [
     description:
       'Unified SMS and email inbox that auto-answers repetitive inquiries from your property knowledge base — pool hours, rent due, packages — and escalates sensitive issues to staff.',
     icon: 'chat',
-    gradient: 'from-teal-500/20 to-cyan-500/5',
+    gradient: 'from-md-teal/25 to-md-cyan/5',
   },
   {
     id: 'leasing',
@@ -23,7 +25,7 @@ export const FEATURES = [
     description:
       'Lead-to-lease autopilot: instant response, pre-screening knockout rules, tour scheduling, and application audit to cut vacancy days and block bad applications.',
     icon: 'key',
-    gradient: 'from-violet-500/20 to-purple-500/5',
+    gradient: 'from-md-navy/50 to-md-cyan/10',
   },
   {
     id: 'maintenance',
@@ -31,7 +33,7 @@ export const FEATURES = [
     description:
       'Classify every request by category and urgency, detect emergencies, suggest resident self-help, and route to your on-call tech — labeled EMERGENCY when it matters.',
     icon: 'wrench',
-    gradient: 'from-amber-500/20 to-orange-500/5',
+    gradient: 'from-md-gold/20 to-md-teal/10',
   },
   {
     id: 'dashboard',
@@ -39,7 +41,7 @@ export const FEATURES = [
     description:
       'ROI metrics at a glance: AI deflection rate, staff time saved, leasing pipeline, and open work orders — the story your owners and ops team need.',
     icon: 'grid',
-    gradient: 'from-emerald-500/20 to-green-500/5',
+    gradient: 'from-md-teal/20 to-md-cyan/10',
   },
   {
     id: 'owner',
@@ -47,7 +49,7 @@ export const FEATURES = [
     description:
       'White-label owner dashboard with real-time NOI, cash-on-cash, portfolio drill-down, financial charts, and one-click PDF owner reports.',
     icon: 'chart',
-    gradient: 'from-blue-500/20 to-indigo-500/5',
+    gradient: 'from-md-cyan/20 to-md-navy/30',
   },
   {
     id: 'knowledge',
@@ -55,7 +57,7 @@ export const FEATURES = [
     description:
       'Per-property source of truth that powers every AI answer — policies, amenities, fees, and FAQs — so residents get consistent, accurate responses.',
     icon: 'book',
-    gradient: 'from-rose-500/20 to-pink-500/5',
+    gradient: 'from-md-cyan/15 to-md-gold/10',
   },
 ];
 

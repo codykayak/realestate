@@ -12,7 +12,7 @@ export default function Support() {
       <section className="border-b border-white/[0.06] pt-32 pb-20 md:pt-40">
         <div className="mx-auto max-w-6xl px-5 lg:px-8">
           <FadeIn className="max-w-3xl">
-            <p className="text-sm font-semibold uppercase tracking-widest text-amber-400/90">
+            <p className="text-sm font-semibold uppercase tracking-widest text-md-gold">
               Support &amp; integration
             </p>
             <h1 className="mt-3 text-4xl font-bold tracking-tight text-white sm:text-5xl">
@@ -34,9 +34,9 @@ export default function Support() {
               <StaggerItem key={pillar.title}>
                 <motion.div
                   whileHover={{ y: -6 }}
-                  className="h-full rounded-2xl border border-white/[0.08] bg-gradient-to-b from-[#0f1117] to-[#07080c] p-8"
+                  className="h-full rounded-2xl border border-white/[0.08] bg-gradient-to-b from-[md-surface] to-[md-bg] p-8"
                 >
-                  <div className="inline-flex rounded-xl border border-teal-500/20 bg-teal-500/10 p-2.5 text-teal-400">
+                  <div className="inline-flex rounded-xl border border-md-cyan/20 bg-md-cyan/10 p-2.5 text-md-cyan">
                     <Icon name={PILLAR_ICONS[i]} className="h-5 w-5" />
                   </div>
                   <h2 className="mt-5 text-xl font-semibold text-white">{pillar.title}</h2>
@@ -50,7 +50,7 @@ export default function Support() {
 
       <section className="border-t border-white/[0.06] py-20">
         <div className="mx-auto max-w-4xl px-5 sm:px-6">
-          <FadeIn className="rounded-3xl border border-teal-500/20 bg-teal-500/5 p-10 text-center md:p-14">
+          <FadeIn className="rounded-3xl border border-md-cyan/20 bg-md-teal/10 p-10 text-center md:p-14">
             <h2 className="text-2xl font-bold text-white sm:text-3xl">
               Need help connecting your stack?
             </h2>
@@ -61,7 +61,7 @@ export default function Support() {
             <div className="mt-8 flex flex-col items-center justify-center gap-4 sm:flex-row">
               <a
                 href={`mailto:${SITE.supportEmail}`}
-                className="inline-flex h-12 items-center justify-center gap-2 rounded-full bg-gradient-to-r from-teal-400 to-teal-500 px-8 text-sm font-semibold text-black transition hover:scale-[1.02]"
+                className="inline-flex h-12 items-center justify-center gap-2 rounded-full bg-gradient-to-r from-md-teal via-md-cyan to-md-cyan px-8 text-sm font-semibold text-black transition hover:scale-[1.02]"
               >
                 {SITE.supportEmail}
                 <Icon name="arrow" className="h-4 w-4" />

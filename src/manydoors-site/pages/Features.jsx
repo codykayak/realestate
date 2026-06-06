@@ -10,7 +10,7 @@ export default function Features() {
       <section className="border-b border-white/[0.06] pt-32 pb-20 md:pt-40">
         <div className="mx-auto max-w-6xl px-5 lg:px-8">
           <FadeIn className="max-w-3xl">
-            <p className="text-sm font-semibold uppercase tracking-widest text-teal-400">Features</p>
+            <p className="text-sm font-semibold uppercase tracking-widest text-md-cyan">Features</p>
             <h1 className="mt-3 text-4xl font-bold tracking-tight text-white sm:text-5xl">
               Built for how property managers actually work
             </h1>
@@ -48,7 +48,7 @@ export default function Features() {
             </p>
             <Link
               to={SITE.appPath}
-              className="mt-8 inline-flex h-12 items-center justify-center rounded-full bg-gradient-to-r from-teal-400 to-teal-500 px-8 text-sm font-semibold text-black transition hover:scale-[1.02]"
+              className="mt-8 inline-flex h-12 items-center justify-center rounded-full bg-gradient-to-r from-md-teal via-md-cyan to-md-cyan px-8 text-sm font-semibold text-black transition hover:scale-[1.02]"
             >
               Launch platform
             </Link>
