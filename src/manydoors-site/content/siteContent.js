@@ -6,8 +6,8 @@ export const SITE = {
   domain: 'manydoorsai.com',
   supportEmail: 'hello@manydoorsai.com',
   appPath: '/property-management',
-  logo: '/manydoors-logo.svg',
-  logoMark: '/manydoors-logo-mark.svg',
+  logo: '/manydoors-logo.png',
+  logoMark: '/manydoors-logo.png',
 };
 
 export const FEATURES = [

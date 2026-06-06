@@ -601,7 +601,7 @@ export default function LandingPage() {
       <section className={styles.mdPromo} data-reveal="up">
         <div className={styles.container}>
           <div className={styles.mdPromoInner}>
-            <img src="/manydoors-logo-mark.svg" alt="ManyDoors AI" className={styles.mdPromoLogo} />
+            <img src="/manydoors-logo.png" alt="ManyDoors AI" className={styles.mdPromoLogo} />
             <div>
               <p className={styles.sectionLabel}>Property management</p>
               <h2 className={styles.mdPromoTitle}>ManyDoors AI — modern ops for PM teams</h2>
