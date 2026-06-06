@@ -47,7 +47,7 @@
   border-bottom: 1px solid var(--pm-border);
   margin-bottom: 10px;
 }
-.brand img { width: auto; height: 36px; max-width: 140px; object-fit: contain; flex-shrink: 0; }
+.brand img { width: 34px; height: 34px; object-fit: contain; border-radius: 7px; }
 .brandText { display: flex; flex-direction: column; line-height: 1.15; }
 .brandName { font-weight: 700; font-size: 15px; }
 .brandSub { font-size: 11px; color: var(--pm-muted); }
@@ -84,6 +84,7 @@
 
 /* ── Main column ─────────────────────────────────────────────────────────── */
 .main { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.mainFull { flex: 1; min-width: 0; width: 100%; }
 .topbar {
   display: flex; align-items: center; justify-content: space-between;
   padding: 16px 26px; border-bottom: 1px solid var(--pm-border);
