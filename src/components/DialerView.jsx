@@ -1,6 +1,8 @@
 import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { fileIcon, isImage, formatSize } from '../hooks/useLeadPhotos';
-import { smsCountForPhone } from '../utils/smsTemplates';
+import { smsCountForPhone, mergeTemplate, DEFAULT_TEMPLATES } from '../utils/smsTemplates';
+import { DEFAULT_EMAIL_TEMPLATES } from '../utils/emailTemplates';
+import { openNativeSms, openNativeEmail } from '../utils/nativeContact';
 import { isSmsBlocked, isCallBlocked, complianceLabel } from '../utils/leadCompliance';
 import TxtNowSheet from './TxtNowSheet';
 import LeadActivityTimeline from './LeadActivityTimeline';
@@ -28,6 +30,7 @@ export default function DialerView({
   onUploadPhoto,
   onDeletePhoto,
   twilioReady = false,
+  twilioHasCredentials = false,
   twilioConfig = null,
   twilioTemplates = [],
   onOpenTwilioSetup,
@@ -37,6 +40,8 @@ export default function DialerView({
   fetchLeadActivity,
   smsSending = false,
   smsError = null,
+  emailTemplates,
+  agentName,
 }) {
   const [idx, setIdx]             = useState(0);
   const [jumped, setJumped]       = useState(false);
@@ -284,10 +289,16 @@ export default function DialerView({
           type="button"
           className={`${styles.smsSetupBtn} ${twilioReady ? styles.smsSetupReady : ''}`}
           onClick={() => onOpenTwilioSetup?.()}
-          title={twilioReady ? 'Twilio connected' : 'Set up Twilio SMS'}
+          title={twilioReady ? 'Twilio SMS active — in-app texting' : twilioHasCredentials ? 'Credentials saved — finish setup when Twilio approves' : 'Save Twilio credentials for in-app SMS'}
         >
-          {twilioReady ? '💬 SMS' : '💬 Setup'}
+          {twilioReady ? 'Twilio ✓' : twilioHasCredentials ? 'Twilio Setup ✓' : 'Twilio Setup'}
         </button>
+
+        {!twilioReady && (
+          <span className={styles.modeHint} title="Call, text, and email use your phone's apps until Twilio setup is complete">
+            📱 Phone apps
+          </span>
+        )}
 
         <button
           className={`${styles.filterBtn} ${filterStatus !== 'all' ? styles.filterActive : ''}`}
@@ -478,11 +489,16 @@ export default function DialerView({
                 onClick={handleTxtNow}
                 disabled={isSmsBlocked(lead)}
               >
-                {isSmsBlocked(lead) ? 'Text blocked' : 'Txt Now'}
+                {isSmsBlocked(lead) ? 'Text blocked' : (twilioReady ? 'Txt Now' : 'Text')}
                 {smsCountForPhone(lead, lead.phone) > 0 && (
                   <span className={styles.txtTally}>{smsCountForPhone(lead, lead.phone)}</span>
                 )}
               </button>
+              {lead.email?.trim() && (
+                <button type="button" className={styles.emailBtn} onClick={handleEmail}>
+                  Email
+                </button>
+              )}
             </div>
           </>
         )}
@@ -495,10 +511,15 @@ export default function DialerView({
             onClick={handleTxtNow}
             disabled={isSmsBlocked(lead)}
           >
-            {isSmsBlocked(lead) ? '💬 Text blocked' : '💬 Txt Now'}
+            {isSmsBlocked(lead) ? '💬 Text blocked' : (twilioReady ? '💬 Txt Now' : '💬 Text')}
             {(lead.smsCount ?? 0) > 0 && (
               <span className={styles.txtTally}>{lead.smsCount} sent</span>
             )}
+          </button>
+        )}
+        {lead.email?.trim() && (
+          <button type="button" className={styles.emailBtnFull} onClick={handleEmail}>
+            ✉️ Email {lead.email}
           </button>
         )}
       </div>

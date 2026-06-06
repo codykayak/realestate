@@ -39,9 +39,6 @@ export default function TwilioOnboarding({
     setAgentPhone(config?.agentPhone ?? '');
     setAgentName(config?.agentName ?? 'Macro REI');
     setTemplates(config?.templates ?? DEFAULT_TEMPLATES);
-    setEmailTemplates(config?.emailTemplates ?? DEFAULT_EMAIL_TEMPLATES);
-    setSendgridApiKey(config?.sendgridApiKey ?? '');
-    setSendgridFromEmail(config?.sendgridFromEmail ?? '');
     setMissedTpl(config?.missedCallTemplate ?? DEFAULT_MISSED_TEMPLATE);
     setRingSeconds(config?.ringSeconds ?? 25);
     setAutoMissed(config?.autoMissedCallSms !== false);
@@ -72,6 +69,33 @@ export default function TwilioOnboarding({
       autoMissedCallSms: autoMissed,
     });
     setStep(STEPS.indexOf('webhooks'));
+  }
+
+  async function handleSaveCredentialsAndClose() {
+    setErr(null);
+    setNotice(null);
+    const validationErr = validateTwilioFields({ accountSid, authToken, phoneNumber, agentPhone });
+    if (validationErr) {
+      setErr(validationErr);
+      return;
+    }
+    setBusy(true);
+    try {
+      await saveConfig({
+        accountSid: accountSid.trim(),
+        authToken: authToken.trim(),
+        phoneNumber,
+        agentPhone,
+        agentName,
+        ringSeconds,
+        autoMissedCallSms: autoMissed,
+      });
+      onClose();
+    } catch (e) {
+      setErr(e.message || 'Could not save settings.');
+    } finally {
+      setBusy(false);
+    }
   }
 
   async function handleTestCredentials() {
@@ -173,7 +197,7 @@ export default function TwilioOnboarding({
       <div className={styles.sheet}>
         <header className={styles.header}>
           <div>
-            <h2 className={styles.title}>Twilio SMS Setup</h2>
+            <h2 className={styles.title}>Twilio Setup</h2>
             <p className={styles.sub}>Step {step + 1} of {STEPS.length}</p>
           </div>
           <button type="button" className={styles.closeBtn} onClick={onClose} aria-label="Close">✕</button>
@@ -190,7 +214,8 @@ export default function TwilioOnboarding({
           {stepId === 'welcome' && (
             <>
               <p className={styles.lead}>
-                Connect your own Twilio account to send texts from the Dialer and auto-reply when you miss a callback.
+                Connect Twilio to send texts from the Dialer and auto-reply when you miss a callback.
+                You can keep dialing with your phone&apos;s call, text, and email apps while Twilio is pending approval.
               </p>
               <ul className={styles.checklist}>
                 <li>Twilio account (<a href="https://www.twilio.com/try-twilio" target="_blank" rel="noopener noreferrer">free trial</a> works)</li>
@@ -198,7 +223,10 @@ export default function TwilioOnboarding({
                 <li>Your cell number (rings on inbound calls)</li>
               </ul>
               <button type="button" className={styles.primaryBtn} onClick={() => setStep(1)}>
-                Get started →
+                Enter Twilio credentials →
+              </button>
+              <button type="button" className={styles.secondaryBtn} onClick={onClose}>
+                Skip — use my phone for now
               </button>
             </>
           )}
@@ -251,6 +279,14 @@ export default function TwilioOnboarding({
                 onClick={handleTestCredentials}
               >
                 {busy ? 'Verifying…' : 'Save & verify with Twilio (optional)'}
+              </button>
+              <button
+                type="button"
+                className={styles.secondaryBtn}
+                disabled={busy || !accountSid || !authToken || !phoneNumber || !agentPhone}
+                onClick={handleSaveCredentialsAndClose}
+              >
+                {busy ? 'Saving…' : 'Save credentials & close'}
               </button>
             </>
           )}

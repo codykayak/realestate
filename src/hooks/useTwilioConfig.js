@@ -3,7 +3,6 @@ import { doc, onSnapshot, setDoc, serverTimestamp } from 'firebase/firestore';
 import { httpsCallable } from 'firebase/functions';
 import { db, functions, isFirebaseConfigured } from '../firebase';
 import { DEFAULT_MISSED_TEMPLATE, DEFAULT_TEMPLATES } from '../utils/smsTemplates';
-import { DEFAULT_EMAIL_TEMPLATES } from '../utils/emailTemplates';
 import { parseCallableError } from '../utils/callableError';
 
 const TWILIO_DOC = 'twilio';
@@ -37,11 +36,15 @@ export function useTwilioConfig(uid) {
     return unsub;
   }, [uid]);
 
-  const isReady = Boolean(
-    config?.onboardingComplete &&
+  const hasCredentials = Boolean(
     config?.accountSid &&
     config?.authToken &&
     config?.phoneNumber,
+  );
+
+  const isReady = Boolean(
+    hasCredentials &&
+    config?.onboardingComplete,
   );
 
   const saveConfig = useCallback(async (patch) => {
