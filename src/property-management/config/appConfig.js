@@ -14,7 +14,7 @@ export const APP_CONFIG = {
     'AI-powered property operations — maintenance triage, leasing, and resident communications',
   logo: env.VITE_PM_LOGO || '/manydoors-logo.png',
   logoWordmark: env.VITE_PM_LOGO_WORDMARK || '/manydoors-logo.png',
-  heroImage: env.VITE_PM_HERO_IMAGE || '/Template/manydoors-ai-hero.png',
+  heroImage: env.VITE_PM_HERO_IMAGE || '/manydoors-ai-software-property-management.png',
   companyName: env.VITE_PM_COMPANY_NAME || 'ManyDoors AI',
   futureSite: env.VITE_PM_FUTURE_SITE || 'manydoorsai.com',
   accent: env.VITE_PM_ACCENT || '#00d2d3',
@@ -22,7 +22,8 @@ export const APP_CONFIG = {
   basePath: PM_BASE_PATH,
   defaultTenantId: env.VITE_PM_DEFAULT_TENANT || 'demo',
   supportEmail: env.VITE_PM_SUPPORT_EMAIL || 'hello@manydoorsai.com',
-  supportPhone: env.VITE_PM_SUPPORT_PHONE || '(contact details coming soon)',
+  supportPhone: env.VITE_PM_SUPPORT_PHONE || '541-321-2630',
+  salesPhone: env.VITE_PM_SALES_PHONE || '541-321-2630',
   supportAddress:
     env.VITE_PM_SUPPORT_ADDRESS || 'United States — full mailing address coming soon',
 };

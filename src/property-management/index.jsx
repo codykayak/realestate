@@ -25,6 +25,7 @@ import KnowledgeBase from './pages/KnowledgeBase';
 import Settings from './pages/Settings';
 import styles from './pm.module.css';
 import './components/print.css';
+import FloatingActions from './components/FloatingActions';
 
 const DEV_ADMIN_ENABLED = import.meta.env.VITE_PM_DEV_ADMIN !== 'false';
 const DevAdminRoute = DEV_ADMIN_ENABLED ? lazy(() => import('./devAdminRoute.jsx')) : null;
@@ -182,6 +183,8 @@ function ModuleInner() {
           </Routes>
         </ErrorBoundary>
       </main>
+
+      <FloatingActions />
 
       {!gateway && (
         <OnboardingWizard
