@@ -47,7 +47,7 @@
   border-bottom: 1px solid var(--pm-border);
   margin-bottom: 10px;
 }
-.brand img { width: 72px; height: 72px; object-fit: contain; border-radius: 10px; }
+.brand img { width: 34px; height: 34px; object-fit: contain; border-radius: 7px; }
 .brandText { display: flex; flex-direction: column; line-height: 1.15; }
 .brandName { font-weight: 700; font-size: 15px; }
 .brandSub { font-size: 11px; color: var(--pm-muted); }
@@ -217,6 +217,113 @@
   background: var(--pm-accent-soft); border: 1px solid rgba(245,166,35,0.3); font-size: 13px; line-height: 1.45;
 }
 .bannerRed { background: rgba(248,81,73,0.12); border-color: rgba(248,81,73,0.35); }
+
+/* ── Top onboarding banner ─────────────────────────────────────────────────── */
+.onboardBanner {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 12px 20px;
+  background: linear-gradient(90deg, rgba(26, 158, 150, 0.18), rgba(26, 158, 150, 0.06));
+  border-bottom: 1px solid rgba(26, 158, 150, 0.35);
+  font-size: 13.5px;
+  line-height: 1.45;
+  flex-wrap: wrap;
+}
+.onboardBannerIcon { color: var(--pm-accent); flex-shrink: 0; }
+.onboardBannerText { flex: 1; min-width: 200px; margin: 0; }
+
+/* ── Hero section ──────────────────────────────────────────────────────────── */
+.hero {
+  position: relative;
+  min-height: 280px;
+  background-size: cover;
+  background-position: center right;
+  border-bottom: 1px solid var(--pm-border);
+}
+.heroOverlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(105deg, rgba(11, 15, 20, 0.92) 0%, rgba(11, 15, 20, 0.55) 55%, rgba(11, 15, 20, 0.25) 100%);
+}
+.heroContent {
+  position: relative;
+  z-index: 1;
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 48px 26px 40px;
+}
+.heroEyebrow {
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--pm-accent);
+  margin: 0 0 10px;
+}
+.heroTitle {
+  font-size: clamp(28px, 4vw, 40px);
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  margin: 0 0 10px;
+  max-width: 520px;
+}
+.heroTagline {
+  font-size: 16px;
+  color: var(--pm-muted);
+  margin: 0 0 12px;
+  max-width: 540px;
+  line-height: 1.5;
+}
+.heroHint {
+  font-size: 13px;
+  color: var(--pm-muted);
+  margin: 0;
+  max-width: 520px;
+  line-height: 1.55;
+}
+
+/* ── Onboarding wizard ───────────────────────────────────────────────────── */
+.onboardList {
+  margin: 0 0 18px;
+  padding-left: 20px;
+  font-size: 13.5px;
+  line-height: 1.55;
+  color: var(--pm-muted);
+}
+.onboardList li { margin-bottom: 10px; }
+.onboardList strong { color: var(--pm-text); }
+.onboardDoneIcon {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: var(--pm-accent-soft);
+  color: var(--pm-accent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 26px;
+  font-weight: 800;
+  margin-bottom: 14px;
+}
+.techList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.techListItem {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  background: var(--pm-panel-2);
+  border: 1px solid var(--pm-border);
+  border-radius: 8px;
+  font-size: 14px;
+}
 
 @media (max-width: 900px) {
   .app { flex-direction: column; }
