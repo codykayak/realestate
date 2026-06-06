@@ -18,7 +18,7 @@ import SellerDealTrackerPage from './pages/SellerDealTrackerPage';
 import './index.css';
 
 const App = lazy(() => import('./App'));
-// Self-contained Property Management module (Macro REI). The host only references
+// Self-contained Property Management module (ManyDoors AI). The host only references
 // this one lazy entry point; the module imports nothing from the host site, so
 // it can be migrated to another site or its own repo with a config change.
 const PropertyManagement = lazy(() => import('./property-management/index.jsx'));

@@ -21,7 +21,8 @@ export function seedSettings() {
   return {
     tenant: DEMO_TENANT,
     features: defaultFeatureState(),
-    onboardedAt: Date.now(),
+    onboardingComplete: false,
+    companyProfile: null,
   };
 }
 

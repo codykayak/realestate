@@ -1,7 +1,7 @@
 /**
  * Isolated Firebase init for the Property Management module.
  *
- * This uses a SEPARATE Firebase project from the host site (MacroREI), wired
+ * This uses a SEPARATE Firebase project from the host site, wired
  * through `VITE_PM_FIREBASE_*` env vars, so client/resident data is never
  * mingled with the host's data. If no PM Firebase config is present, the
  * module runs fully on the local store (localStorage) — so it works the

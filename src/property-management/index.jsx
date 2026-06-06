@@ -1,24 +1,17 @@
 /**
  * Property Management module — entry point.
  *
- * This is the ONLY file the host app imports. Everything below lives entirely
- * inside `src/property-management/**` with zero host-site imports.
- *
- * SAFETY: Never add <Route element={<SomeComponent />} /> without importing
- * SomeComponent (or lazy-loading it). PR #11 broke production by referencing
- * DeveloperAdmin without an import — the entire app rendered a black screen.
- *
- * Developer Admin is optional (VITE_PM_DEV_ADMIN=false) and lazy-loaded via
- * devAdminRoute.jsx so it cannot break Dashboard, Maintenance, etc.
+ * Mounted at `/property-management/*` on macrorei.com (migrating to manydoorsai.com).
  */
 
-import { lazy, Suspense } from 'react';
-import { Routes, Route, NavLink, useLocation } from 'react-router-dom';
+import { useState } from 'react';
+import { Routes, Route, NavLink, Navigate, useLocation } from 'react-router-dom';
 import { PmProvider, usePm } from './context/PmContext';
 import { FEATURE_CATEGORIES } from './config/featureRegistry';
 import Icon from './components/Icon';
 import ErrorBoundary from './components/ErrorBoundary';
-import GatewayPage from './pages/GatewayPage';
+import OnboardingBanner from './components/OnboardingBanner';
+import OnboardingWizard from './components/OnboardingWizard';
 import Dashboard from './pages/Dashboard';
 import OwnerPortal from './pages/OwnerPortal';
 import Communications from './pages/Communications';
@@ -29,13 +22,6 @@ import KnowledgeBase from './pages/KnowledgeBase';
 import Settings from './pages/Settings';
 import styles from './pm.module.css';
 import './components/print.css';
-
-/** Set VITE_PM_DEV_ADMIN=false at build time to hide dev tools (core app unchanged). */
-const DEV_ADMIN_ENABLED = import.meta.env.VITE_PM_DEV_ADMIN !== 'false';
-
-const DevAdminRoute = DEV_ADMIN_ENABLED
-  ? lazy(() => import('./devAdminRoute.jsx'))
-  : null;
 
 const PAGE_MAP = {
   dashboard: Dashboard,
@@ -48,15 +34,9 @@ const PAGE_MAP = {
   settings: Settings,
 };
 
-/** Join the module base path with a feature route into an absolute href. */
 function hrefFor(base, route) {
   const b = (base || '/property-management').replace(/\/$/, '');
   return route ? `${b}/${route}` : b;
-}
-
-function isGatewayPath(pathname, basePath) {
-  const base = (basePath || '/property-management').replace(/\/$/, '');
-  return pathname === base || pathname === `${base}/`;
 }
 
 function Sidebar() {
@@ -75,10 +55,14 @@ function Sidebar() {
   return (
     <aside className={styles.sidebar}>
       <div className={styles.brand}>
-        {config.logo ? <img src={config.logo} alt={config.companyName} /> : <Icon name="home" size={28} />}
+        {config.logo ? (
+          <img src={config.logo} alt={config.companyName} />
+        ) : (
+          <Icon name="home" size={28} />
+        )}
         <div className={styles.brandText}>
           <span className={styles.brandName}>{config.productName}</span>
-          <span className={styles.brandSub}>{config.companyName}</span>
+          <span className={styles.brandSub}>{tenant?.name || config.companyName}</span>
         </div>
       </div>
 
@@ -86,15 +70,6 @@ function Sidebar() {
         <span className={styles.tenantDot} />
         <span>{tenant?.name || 'Demo Tenant'}</span>
       </div>
-
-      <NavLink
-        to={hrefFor(base, '')}
-        end
-        className={({ isActive }) => `${styles.navItem} ${isActive ? styles.navActive : ''}`}
-      >
-        <Icon name="home" size={18} className={styles.navIcon} />
-        <span>Gateway home</span>
-      </NavLink>
 
       {order.map((cat) => {
         const items = enabled.filter((f) => f.category === cat);
@@ -106,6 +81,7 @@ function Sidebar() {
               <NavLink
                 key={f.id}
                 to={hrefFor(base, f.route)}
+                end={f.route === ''}
                 className={({ isActive }) => `${styles.navItem} ${isActive ? styles.navActive : ''}`}
               >
                 <Icon name={f.icon} size={18} className={styles.navIcon} />
@@ -117,65 +93,51 @@ function Sidebar() {
       })}
 
       <div className={styles.navSpacer} />
-      {DEV_ADMIN_ENABLED && DevAdminRoute && (
-        <NavLink
-          to={hrefFor(base, 'developer-admin')}
-          className={({ isActive }) => `${styles.navItem} ${styles.navDev} ${isActive ? styles.navActive : ''}`}
-          title="Internal engineering docs, pitch deck, and tools"
-        >
-          <Icon name="doc" size={16} className={styles.navIcon} />
-          <span>Developer admin</span>
-        </NavLink>
-      )}
       <div className={styles.sidebarFoot}>
-        {config.productName} · build-and-pitch demo
-        <br />Data is local to this browser until a Firebase project is connected.
+        {config.productName} · {config.futureSite}
+        <br />Data is local to this browser until Firebase is connected.
       </div>
     </aside>
   );
 }
 
 function ModuleInner() {
-  const { config, features } = usePm();
+  const { config, features, onboardingComplete, completeOnboarding, featureMap } = usePm();
   const location = useLocation();
   const enabledIds = new Set(features.filter((f) => f.enabled).map((f) => f.id));
-  const gateway = isGatewayPath(location.pathname, config.basePath);
+  const [onboardingOpen, setOnboardingOpen] = useState(false);
+  const defaultTechs = featureMap.maintenance?.config?.technicians || [];
 
   return (
     <div
       className={styles.app}
       style={{ '--pm-accent': config.accent, '--pm-accent-soft': config.accentSoft }}
     >
-      {!gateway && <Sidebar />}
-      <main className={gateway ? styles.mainFull : styles.main}>
+      <Sidebar />
+      <main className={styles.main}>
+        {!onboardingComplete && (
+          <OnboardingBanner onStart={() => setOnboardingOpen(true)} />
+        )}
         <ErrorBoundary key={location.pathname}>
           <Routes>
-            <Route index element={<GatewayPage />} />
+            <Route index element={<Dashboard />} />
             {features.map((f) => {
-              if (!f.route) return null;
+              if (f.id === 'dashboard' || !f.route) return null;
               const Page = PAGE_MAP[f.id];
               if (!Page || !enabledIds.has(f.id)) return null;
               return <Route key={f.id} path={f.route} element={<Page />} />;
             })}
-            {DEV_ADMIN_ENABLED && DevAdminRoute && (
-              <Route
-                path="developer-admin"
-                element={(
-                  <Suspense fallback={(
-                    <div className={styles.content}>
-                      <div className={styles.hint}>Loading developer tools…</div>
-                    </div>
-                  )}
-                  >
-                    <DevAdminRoute />
-                  </Suspense>
-                )}
-              />
-            )}
-            <Route path="*" element={<GatewayPage />} />
+            <Route path="*" element={<Navigate to={config.basePath} replace />} />
           </Routes>
         </ErrorBoundary>
       </main>
+
+      <OnboardingWizard
+        open={onboardingOpen}
+        onClose={() => setOnboardingOpen(false)}
+        onComplete={completeOnboarding}
+        defaultTechnicians={defaultTechs}
+      />
     </div>
   );
 }

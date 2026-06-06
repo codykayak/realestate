@@ -30,6 +30,10 @@ export function usePm() {
 /** Seed the demo tenant on first run, then return the full initial snapshot. */
 function bootstrap(store) {
   let settings = store.getSettings();
+  if (settings && settings.onboardingComplete === undefined && settings.onboardedAt) {
+    settings = { ...settings, onboardingComplete: true };
+    store.saveSettings(settings);
+  }
   if (!settings) {
     settings = seedSettings();
     store.saveSettings(settings);

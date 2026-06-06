@@ -1,4 +1,4 @@
-# Macro REI — Property Management Module
+# ManyDoors AI — Property Management Module
 
 A **self-contained, white-label, multi-tenant** application for midsize
 multifamily property management, mounted at **`/property-management`**.
@@ -62,15 +62,10 @@ Today the module runs on a tenant-scoped **localStorage** store
 API. The PM Firebase app is initialized as a **named app** (`pm`) so it never
 collides with the host site's Firebase.
 
-## Developer Admin (internal)
-
-Engineering docs and tools live at **`/property-management/developer-admin`** (sidebar link at bottom of nav). Includes knowledge base, AI assistant (local search + optional OpenAI), triage playground, and deployment config generator. Source: `developer-admin/knowledge/*.md`.
-
 ## Folder map
 ```
 property-management/
   index.jsx                 # entry point + router + sidebar (host imports only this)
-  developer-admin/          # internal knowledge base + dev tools (not customer-facing)
   config/                   # appConfig (white-label) + featureRegistry (future-proof)
   context/PmContext.jsx     # tenant + store + features + collections
   data/                     # store (localStorage now) + seed
