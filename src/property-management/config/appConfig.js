@@ -22,6 +22,9 @@ export const APP_CONFIG = {
   basePath: PM_BASE_PATH,
   defaultTenantId: env.VITE_PM_DEFAULT_TENANT || 'demo',
   supportEmail: env.VITE_PM_SUPPORT_EMAIL || 'hello@manydoorsai.com',
+  supportPhone: env.VITE_PM_SUPPORT_PHONE || '(contact details coming soon)',
+  supportAddress:
+    env.VITE_PM_SUPPORT_ADDRESS || 'United States — full mailing address coming soon',
 };
 
 export default APP_CONFIG;

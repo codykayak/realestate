@@ -44,6 +44,9 @@ function publicUrl(req, functionName) {
   return `https://${REGION}-${PROJECT_ID}.cloudfunctions.net/${functionName}${q}`;
 }
 
+// ── HTTP: ManyDoors PM gateway site chat (Gemini + site knowledge) ─────────
+export const pmGatewayChat = onRequest({ region: REGION, invoker: 'public' }, handlePmGatewayChat);
+
 // ── Callable: return webhook URLs for Twilio Console setup ─────────────────
 export const getTwilioSetup = onCall(CALLABLE_OPTIONS, async (request) => {
   const uid = requireAuth(request);

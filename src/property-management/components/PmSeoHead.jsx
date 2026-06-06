@@ -11,7 +11,7 @@ export default function PmSeoHead({
   description,
   path = '/property-management',
   keywords = '',
-  ogImage = '/pm-pitch/manydoors-ai-software-property-management.png',
+  ogImage = '/manydoors-ai-software-property-management.png',
   jsonLd = null,
   robots = 'index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1',
 }) {

@@ -3,10 +3,11 @@
  * and feature detail pages at /property-management.
  */
 
+/** Served from /public — same location as manydoors-logo.png */
 export const GATEWAY_ASSETS = {
-  heroVideo: '/pm-pitch/manydoors-ai_property-management-realestate.mp4',
-  softwareImage: '/pm-pitch/manydoors-ai-software-property-management.png',
-  investorImage: '/pm-pitch/manydoorsai-property-management-investor-software-ai.png',
+  heroVideo: '/manydoors-ai_property-management-realestate.mp4',
+  softwareImage: '/manydoors-ai-software-property-management.png',
+  investorImage: '/manydoorsai-property-management-investor-software-ai.png',
   opsTeamImage: '/pm-pitch/pm-pitch-operations-team.png',
   logo: '/manydoors-logo.png',
 };
