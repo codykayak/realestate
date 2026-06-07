@@ -6,7 +6,6 @@ import GatewayNavbar from '../components/GatewayNavbar';
 import PmSeoHead from '../components/PmSeoHead';
 import { LineChart, BarChart, GroupedBar, PieChart } from '../components/charts/Charts';
 import { summarize, usd, pct } from '../lib/finance';
-import { monthLabel } from '../data/financials';
 import {
   computePortfolioRoi,
   DEFAULT_PORTFOLIO,
@@ -20,6 +19,9 @@ import {
   gatewayJsonLd,
 } from '../content/gatewayContent';
 import GatewayFooter from '../components/GatewayFooter';
+import EnterprisePitchSection from '../components/pitch/EnterprisePitchSection';
+import PitchModuleCard from '../components/pitch/PitchModuleCard';
+import pm from '../pm.module.css';
 import gw from './gateway.module.css';
 
 function hrefFor(base, route) {
@@ -42,16 +44,6 @@ export default function GatewayPage() {
   );
 
   const fin = useMemo(() => summarize(null), []);
-  const last12 = fin.series.slice(-12);
-  const noiLabels = last12.map((m) => monthLabel(m.month));
-
-  const noiSeries = {
-    labels: noiLabels,
-    series: [
-      { label: 'NOI', points: last12.map((m) => m.noi), color: '#00d2d3' },
-      { label: 'Budget', points: last12.map((m) => m.budgetNOI), color: '#58a6ff', dashed: true },
-    ],
-  };
 
   const roiRamp = useMemo(() => {
     const ramp = Array.from({ length: 12 }, (_, i) => Math.round(roi.monthlyTotal * (0.35 + (i / 11) * 0.65)));
@@ -65,12 +57,6 @@ export default function GatewayPage() {
     label: l.label,
     value: l.value,
     color: ['#00d2d3', '#58a6ff', '#3fb950', '#d29922', '#a371f7', '#f85149'][i % 6],
-  }));
-
-  const noiBar = last12.slice(-6).map((m) => ({
-    label: monthLabel(m.month).split(' ')[0],
-    value: m.noi,
-    color: m.noi >= m.budgetNOI ? '#3fb950' : '#00d2d3',
   }));
 
   const enter = () => navigate(hrefFor(base, 'dashboard'));
@@ -226,37 +212,7 @@ export default function GatewayPage() {
           </div>
         </section>
 
-        <section className={gw.investorSection} aria-labelledby="investor-heading">
-          <div className={gw.sectionHead}>
-            <h2 id="investor-heading" className={gw.sectionTitle}>NOI you can defend in the owner meeting</h2>
-            <p className={gw.sectionSub}>
-              Trailing-twelve NOI vs budget — simulated ledger data; production connects to your PMS.
-            </p>
-          </div>
-          <div className={gw.investorGrid}>
-            <div className={`${gw.chartCard} ${gw.chartCardWide}`}>
-              <div className={gw.chartLabel}>NOI vs budget — last 12 months</div>
-              <LineChart {...noiSeries} height={240} formatY={(v) => `$${Math.round(v / 1000)}k`} />
-            </div>
-            <div className={gw.chartCard}>
-              <div className={gw.chartLabel}>Recent monthly NOI</div>
-              <BarChart data={noiBar} height={200} formatY={(v) => `$${Math.round(v / 1000)}k`} />
-            </div>
-            <div className={gw.investorVisual}>
-              <img
-                src={GATEWAY_ASSETS.investorImage}
-                alt={`${config.productName} investor property management software with AI-powered NOI reporting`}
-                className={gw.heroImg}
-                width={560}
-                height={380}
-                loading="lazy"
-              />
-              <p className={gw.kpiSub}>
-                Owner-grade reporting for investors who expect transparency — AI impact itemized on every report.
-              </p>
-            </div>
-          </div>
-        </section>
+        <EnterprisePitchSection />
 
         <section>
           <div className={gw.sectionHead}>
@@ -266,24 +222,13 @@ export default function GatewayPage() {
               <Link to={hrefFor(base, 'features/communications')}>Read feature breakdowns →</Link>
             </p>
           </div>
-          <div className={gw.moduleGrid}>
+          <div className={`${pm.grid} ${pm.cols2}`}>
             {GATEWAY_MODULES.map((mod) => (
-              <Link
+              <PitchModuleCard
                 key={mod.id}
+                mod={mod}
                 to={hrefFor(base, `features/${mod.featureSlug}`)}
-                className={gw.moduleCard}
-              >
-                <div className={gw.moduleTitle}>
-                  <Icon name={mod.icon} size={18} />
-                  {mod.title}
-                </div>
-                <div className={gw.moduleStat}>{mod.stat}</div>
-                <div className={gw.kpiSub}>{mod.statLabel}</div>
-                <ul className={gw.moduleBullets}>
-                  {mod.bullets.slice(0, 2).map((b) => <li key={b}>{b}</li>)}
-                </ul>
-                <span className={gw.moduleLink}>Learn more →</span>
-              </Link>
+              />
             ))}
           </div>
         </section>
