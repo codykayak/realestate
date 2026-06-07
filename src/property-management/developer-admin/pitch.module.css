@@ -103,6 +103,17 @@
   gap: 12px;
 }
 
+.moduleCardLink {
+  text-decoration: none;
+  color: inherit;
+  transition: border-color 0.15s, transform 0.15s;
+}
+
+.moduleCardLink:hover {
+  border-color: var(--pm-accent, #00d2d3);
+  transform: translateY(-2px);
+}
+
 .moduleHead {
   display: grid;
   grid-template-columns: auto 1fr auto;
