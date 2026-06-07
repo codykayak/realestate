@@ -21,7 +21,6 @@ import {
 import { summarize, usd } from '../lib/finance';
 import { monthLabel } from '../data/financials';
 import GatewayFooter from '../components/GatewayFooter';
-import SiteChatbot from '../components/SiteChatbot';
 import gw from './gateway.module.css';
 
 function hrefFor(base, route) {
@@ -216,7 +215,6 @@ export default function FeaturePage() {
       </div>
 
       <GatewayFooter />
-      <SiteChatbot />
     </div>
   );
 }

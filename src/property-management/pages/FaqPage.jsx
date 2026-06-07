@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom';
 import { usePm } from '../context/PmContext';
 import GatewayNavbar from '../components/GatewayNavbar';
 import GatewayFooter from '../components/GatewayFooter';
-import SiteChatbot from '../components/SiteChatbot';
 import PmSeoHead from '../components/PmSeoHead';
 import Icon from '../components/Icon';
 import { FAQ_CATEGORIES, FAQ_COUNT, FAQ_INTRO, allFaqItems } from '../content/faqData';
@@ -129,7 +128,6 @@ export default function FaqPage() {
       </div>
 
       <GatewayFooter showFaqLink={false} />
-      <SiteChatbot />
     </div>
   );
 }

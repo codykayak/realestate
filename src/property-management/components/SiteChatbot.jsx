@@ -7,9 +7,8 @@ import cb from './siteChatbot.module.css';
 const WELCOME =
   'Hi! I can answer questions about ManyDoors AI using everything on this site — product modules, ROI, integrations, support, and FAQs. What would you like to know?';
 
-export default function SiteChatbot() {
+export default function SiteChatbot({ open, onOpenChange }) {
   const { config } = usePm();
-  const [open, setOpen] = useState(false);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -67,7 +66,7 @@ export default function SiteChatbot() {
   };
 
   return (
-    <div className={cb.wrap}>
+    <div className={cb.root}>
       {open && (
         <div className={cb.panel} role="dialog" aria-label={`${config.productName} assistant`}>
           <header className={cb.head}>
@@ -75,7 +74,12 @@ export default function SiteChatbot() {
               <div className={cb.title}>{config.productName} Assistant</div>
               <div className={cb.sub}>Powered by Gemini · answers from site content</div>
             </div>
-            <button type="button" className={cb.close} onClick={() => setOpen(false)} aria-label="Close chat">
+            <button
+              type="button"
+              className={cb.close}
+              onClick={() => onOpenChange(false)}
+              aria-label="Close chat"
+            >
               ×
             </button>
           </header>
@@ -111,7 +115,7 @@ export default function SiteChatbot() {
       <button
         type="button"
         className={cb.fab}
-        onClick={() => setOpen((v) => !v)}
+        onClick={() => onOpenChange(!open)}
         aria-expanded={open}
         aria-label={open ? 'Close chat' : 'Open chat assistant'}
       >
