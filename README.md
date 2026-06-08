@@ -90,7 +90,7 @@ firebase login
 firebase deploy --only functions,firestore:rules --project realestate-map-23692
 ```
 
-Add GitHub secret `FIREBASE_TOKEN` (`firebase login:ci`) to auto-deploy via `.github/workflows/deploy-firebase-functions.yml`.
+Firebase Functions auto-deploy via `.github/workflows/deploy-firebase-functions.yml` using GitHub secret **`forfucksaketwofirestone`** (service-account JSON for `realestate-map-23692`). Optional fallback: `FIREBASE_TOKEN` from `firebase login:ci`. PM Firestore project key: **`forfucksake`** (`property-managment`).
 
 **Twilio Console** — paste the Voice webhook URL from onboarding into your Twilio phone number’s “A call comes in” setting.
 
