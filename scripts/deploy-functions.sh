@@ -8,6 +8,9 @@ if ! command -v firebase >/dev/null 2>&1; then
   exit 1
 fi
 
+echo "Building PM site knowledge for Gemini chat…"
+node scripts/build-pm-knowledge.mjs
+
 echo "Installing function dependencies…"
 (cd functions && npm ci)
 

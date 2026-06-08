@@ -17,6 +17,10 @@ import { mergeTemplate, toE164, phoneKey, DEFAULT_TEMPLATES } from './lib/templa
 import { sendSmsToLead, leadBlocksSms } from './lib/sendSmsCore.js';
 import { CALLABLE_OPTIONS, REGION } from './lib/callableOpts.js';
 import { getLeadsDocRef } from './lib/leadsPath.js';
+import { handlePmGatewayChat } from './lib/pmGatewayChatHandler.js';
+import { defineSecret } from 'firebase-functions/params';
+
+const geminiApiKey = defineSecret('GEMINI_API_KEY');
 
 initializeApp();
 
@@ -45,7 +49,10 @@ function publicUrl(req, functionName) {
 }
 
 // ── HTTP: ManyDoors PM gateway site chat (Gemini + site knowledge) ─────────
-export const pmGatewayChat = onRequest({ region: REGION, invoker: 'public' }, handlePmGatewayChat);
+export const pmGatewayChat = onRequest(
+  { region: REGION, invoker: 'public', secrets: [geminiApiKey] },
+  handlePmGatewayChat,
+);
 
 // ── Callable: return webhook URLs for Twilio Console setup ─────────────────
 export const getTwilioSetup = onCall(CALLABLE_OPTIONS, async (request) => {
