@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react';
 import { mergeTemplate, smsCountForPhone } from '../utils/smsTemplates';
+import { openNativeSms } from '../utils/nativeContact';
 import styles from './TxtNowSheet.module.css';
 
 export default function TxtNowSheet({
@@ -9,6 +10,7 @@ export default function TxtNowSheet({
   activePhone,
   templates,
   config,
+  nativeMode = false,
   onSend,
   sending,
   error,
@@ -41,8 +43,16 @@ export default function TxtNowSheet({
 
   async function handleSend() {
     setSent(false);
+    if (nativeMode) {
+      const ok = openNativeSms(selectedPhone, preview);
+      if (ok) {
+        setSent(true);
+        setTimeout(() => onClose(), 800);
+      }
+      return;
+    }
     try {
-      await onSend({
+      await onSend?.({
         leadId: lead.id,
         templateId,
         toPhone: selectedPhone,
@@ -120,16 +130,32 @@ export default function TxtNowSheet({
           <p className={styles.previewText}>{preview}</p>
         </div>
 
+        {nativeMode && (
+          <p className={styles.hint}>
+            Opens your phone&apos;s Messages app with this text filled in — tap send there.
+          </p>
+        )}
+
         {error && <p className={styles.error}>{error}</p>}
-        {sent && <p className={styles.success}>Text sent!</p>}
+        {sent && (
+          <p className={styles.success}>
+            {nativeMode ? 'Opened Messages ✓' : 'Text sent!'}
+          </p>
+        )}
 
         <button
           type="button"
           className={styles.sendBtn}
-          disabled={sending || !selectedPhone}
+          disabled={sending || !selectedPhone || !preview.trim()}
           onClick={handleSend}
         >
-          {sending ? 'Sending…' : sent ? 'Sent ✓' : 'Send text'}
+          {sending
+            ? 'Sending…'
+            : sent
+              ? 'Done ✓'
+              : nativeMode
+                ? 'Open Messages'
+                : 'Send text'}
         </button>
       </div>
     </div>
