@@ -38,9 +38,10 @@ export default function DialerView({
   voipReady = false,
   voipHasCredentials = false,
   voipConfig = null,
-  voipTemplates = [],
+  dialerTemplates = [],
   voipProvider = null,
   onOpenVoipSetup,
+  onOpenTemplates,
   onSendSms,
   scheduleAppointmentSms,
   cancelScheduledAppointmentSms,
@@ -56,9 +57,7 @@ export default function DialerView({
   const openSetup = onOpenVoipSetup ?? onOpenTwilioSetup;
   const fromNumber = smsConfig?.phoneNumber ?? '';
   const useQuoCalls = voipProvider === 'quo' && voipReady;
-  const templateList = voipTemplates?.length
-    ? voipTemplates
-    : (twilioTemplates?.length ? twilioTemplates : DEFAULT_TEMPLATES);
+  const templateList = dialerTemplates?.length ? dialerTemplates : DEFAULT_TEMPLATES;
 
   const [idx, setIdx]             = useState(0);
   const [jumped, setJumped]       = useState(false);
@@ -315,6 +314,15 @@ export default function DialerView({
             Sheets
           </button>
         )}
+
+        <button
+          type="button"
+          className={styles.smsSetupBtn}
+          onClick={() => onOpenTemplates?.()}
+          title="Edit intro, follow-up, and other text templates"
+        >
+          Templates
+        </button>
 
         <button
           type="button"

@@ -12,9 +12,11 @@ import LayerToggle from './components/LayerToggle';
 import TabBar from './components/TabBar';
 import DialerView from './components/DialerView';
 import VoipSetup from './components/VoipSetup';
+import TemplateSettingsSheet from './components/TemplateSettingsSheet';
 import SheetsView from './components/SheetsView';
 import { useTwilioConfig } from './hooks/useTwilioConfig';
 import { useQuoConfig } from './hooks/useQuoConfig';
+import { useDialerSettings } from './hooks/useDialerSettings';
 import BgGeocodingBanner from './components/BgGeocodingBanner';
 import { geocodeLeads, geocodeAddress, hasMapPin } from './utils/geocode';
 import { useLeadPhotos } from './hooks/useLeadPhotos';
@@ -84,12 +86,17 @@ export default function App() {
     setError: setQuoError,
     templates: quoTemplates,
   } = useQuoConfig(uid);
+  const {
+    templates: dialerTemplates,
+    agentName: dialerAgentName,
+    missedCallTemplate: dialerMissedTemplate,
+    saveSettings: saveDialerSettings,
+  } = useDialerSettings(uid);
 
   const voipReady = quoReady || twilioReady;
   const voipProvider = quoReady ? 'quo' : (twilioReady ? 'twilio' : null);
   const voipHasCredentials = quoHasCredentials || twilioHasCredentials;
   const voipConfig = quoReady ? quoConfig : twilioConfig;
-  const voipTemplates = quoReady ? quoTemplates : twilioTemplates;
   const sendVoipSms = quoReady ? sendQuoSms : sendSms;
   const activeSmsSending = quoReady ? quoSending : twilioSending;
   const activeSmsError = quoReady ? quoError : smsError;
@@ -109,6 +116,8 @@ export default function App() {
   const [todayCalls, setTodayCalls]             = useState([]);
   const [dialerJumpId, setDialerJumpId]         = useState(null);
   const [voipSetupOpen, setVoipSetupOpen]       = useState(false);
+  const [templatesOpen, setTemplatesOpen]       = useState(false);
+  const [templatesBusy, setTemplatesBusy]       = useState(false);
   const [teamOpen, setTeamOpen]                 = useState(false);
   // Background (non-blocking) geocoding for "X missing → tap to finish"
   const [bgGeocoding, setBgGeocoding]           = useState(false);
@@ -136,6 +145,17 @@ export default function App() {
     await setStoredActiveListId(listId);
     setActiveListId(listId);
   }, [setStoredActiveListId]);
+
+  const handleSaveTemplates = useCallback(async (patch) => {
+    setTemplatesBusy(true);
+    try {
+      await saveDialerSettings(patch);
+      if (quoConfig) await saveQuoConfig(patch);
+      if (twilioConfig) await saveTwilioConfig(patch);
+    } finally {
+      setTemplatesBusy(false);
+    }
+  }, [saveDialerSettings, saveQuoConfig, saveTwilioConfig, quoConfig, twilioConfig]);
 
   const { geojson: eugeneGeojson, loading: eugeneLoading } = useZoningData();
   const { uploadPhoto, deletePhoto } = useLeadPhotos(uid);
@@ -686,8 +706,9 @@ export default function App() {
             voipReady={voipReady}
             voipHasCredentials={voipHasCredentials}
             voipConfig={voipConfig}
-            voipTemplates={voipTemplates}
+            dialerTemplates={dialerTemplates}
             voipProvider={voipProvider}
+            onOpenTemplates={() => setTemplatesOpen(true)}
             onOpenVoipSetup={() => {
               setSmsError(null);
               setQuoError(null);
@@ -701,7 +722,7 @@ export default function App() {
             smsError={activeSmsError}
             onShowInfo={(lead) => setInfoModal({ lead })}
             emailTemplates={voipConfig?.emailTemplates ?? twilioConfig?.emailTemplates}
-            agentName={voipConfig?.agentName ?? twilioConfig?.agentName}
+            agentName={dialerAgentName}
           />
         </div>
       )}
@@ -717,6 +738,16 @@ export default function App() {
         onJoinOrg={joinOrg}
         onLeaveOrg={leaveOrg}
         onUsePersonal={usePersonalLeads}
+      />
+
+      <TemplateSettingsSheet
+        open={templatesOpen}
+        onClose={() => setTemplatesOpen(false)}
+        templates={dialerTemplates}
+        agentName={dialerAgentName}
+        missedCallTemplate={dialerMissedTemplate}
+        onSave={handleSaveTemplates}
+        busy={templatesBusy}
       />
 
       <VoipSetup
