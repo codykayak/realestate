@@ -357,6 +357,162 @@
 .supportIcon { color: var(--pm-accent, #00d2d3); flex-shrink: 0; }
 .supportTitle { font-size: 18px; font-weight: 700; margin: 0 0 8px; }
 
+.localAreasLink {
+  margin: 12px 0 0;
+  font-size: 12px;
+  color: var(--pm-muted, #8b97a7);
+}
+
+.localAreasLink a {
+  color: var(--pm-accent, #00d2d3);
+  text-decoration: none;
+}
+
+.localAreasLink a:hover {
+  text-decoration: underline;
+}
+
+/* ── Location landing pages ─────────────────────────────────────────────── */
+.locationBreadcrumb {
+  font-size: 12px;
+  color: var(--pm-muted, #8b97a7);
+  margin-bottom: 8px;
+}
+
+.locationBreadcrumb a {
+  color: var(--pm-accent, #00d2d3);
+  text-decoration: none;
+}
+
+.locationHero {
+  padding: 8px 0 24px;
+}
+
+.locationCtaRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  align-items: center;
+  margin-top: 20px;
+}
+
+.locationPhone {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--pm-text, #e6edf3);
+  text-decoration: none;
+}
+
+.locationPhone:hover {
+  color: var(--pm-accent, #00d2d3);
+}
+
+.locationArticle {
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+  max-width: 780px;
+}
+
+.locationH2 {
+  font-size: 20px;
+  font-weight: 700;
+  margin: 0 0 10px;
+}
+
+.locationProse {
+  font-size: 15px;
+  line-height: 1.65;
+  color: #b6c0cc;
+  margin: 0;
+}
+
+.locationNeighborhoods {
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--pm-muted, #8b97a7);
+  margin: 0;
+}
+
+.locationModuleLinks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.locationModuleLinks a {
+  color: var(--pm-accent, #00d2d3);
+  text-decoration: none;
+}
+
+.locationOtherMarkets {
+  font-size: 12px;
+  color: var(--pm-muted, #8b97a7);
+  margin: 32px 0 0;
+  padding-top: 24px;
+  border-top: 1px solid var(--pm-border, #232b36);
+}
+
+.locationOtherMarkets a {
+  color: var(--pm-accent, #00d2d3);
+}
+
+.locationGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 16px;
+}
+
+.locationCard {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 20px;
+  border-radius: 12px;
+  background: var(--pm-panel, #11161d);
+  border: 1px solid var(--pm-border, #232b36);
+  text-decoration: none;
+  color: inherit;
+  transition: border-color 0.15s, transform 0.15s;
+}
+
+.locationCard:hover {
+  border-color: var(--pm-accent, #00d2d3);
+  transform: translateY(-2px);
+}
+
+.locationCardRegion {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--pm-muted, #8b97a7);
+}
+
+.locationCardTitle {
+  font-size: 18px;
+  font-weight: 800;
+}
+
+.locationCardBlurb {
+  font-size: 13px;
+  line-height: 1.55;
+  color: #b6c0cc;
+  margin: 0;
+  flex: 1;
+}
+
+.locationIndexFoot {
+  margin-top: 32px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
 .investorGrid {
   display: grid;
   grid-template-columns: 1.2fr 0.8fr;

@@ -3,6 +3,8 @@
  * and feature detail pages at /property-management.
  */
 
+import { localBusinessJsonLd, getPmSiteUrl } from './localBusiness.js';
+
 /** Served from /public — same location as manydoors-logo.png */
 export const GATEWAY_ASSETS = {
   heroVideo: '/manydoors-ai_property-management-realestate.mp4',
@@ -180,31 +182,32 @@ export const FEATURE_PAGES = [
 export const FEATURE_BY_SLUG = Object.fromEntries(FEATURE_PAGES.map((f) => [f.slug, f]));
 
 export function gatewayJsonLd(config, path = '/property-management') {
-  const site = 'https://www.macrorei.com';
-  return {
-    '@context': 'https://schema.org',
-    '@type': 'SoftwareApplication',
-    name: config.productName,
-    applicationCategory: 'BusinessApplication',
-    operatingSystem: 'Web',
-    description: config.productTagline,
-    url: `${site}${path}`,
-    offers: {
-      '@type': 'Offer',
-      price: '0',
-      priceCurrency: 'USD',
-      description: 'Live build-and-pitch demo — contact for portfolio pricing',
+  const url = getPmSiteUrl(config, path);
+  return [
+    {
+      '@context': 'https://schema.org',
+      '@type': 'SoftwareApplication',
+      name: config.productName,
+      applicationCategory: 'BusinessApplication',
+      operatingSystem: 'Web',
+      description: config.productTagline,
+      url,
+      offers: {
+        '@type': 'Offer',
+        price: '0',
+        priceCurrency: 'USD',
+        description: 'Live build-and-pitch demo — contact for portfolio pricing',
+      },
+      provider: {
+        '@id': `${url}#localbusiness`,
+      },
     },
-    provider: {
-      '@type': 'Organization',
-      name: config.companyName,
-      url: `https://${config.futureSite || 'manydoorsai.com'}`,
-    },
-  };
+    localBusinessJsonLd(config, path),
+  ];
 }
 
 export function featureJsonLd(config, feature, basePath) {
-  const site = 'https://www.macrorei.com';
+  const site = getPmSiteUrl(config);
   const path = `${basePath}/features/${feature.slug}`;
   return {
     '@context': 'https://schema.org',
