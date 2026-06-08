@@ -1,7 +1,7 @@
 ManyDoors AI (manydoorsai.com) is AI property management software for multifamily operators.
 Live demo: https://www.macrorei.com/property-management
 Tagline: AI-powered property operations — maintenance triage, leasing, and resident communications.
-Support email: hello@manydoorsai.com
+Support email: info@manydoorsai.com
 Support phone: 541-321-2630
 Headquarters: Eugene, OR (serving Oregon multifamily operators; expanding nationally).
 U.S.-based support teams with continuous platform updates.
@@ -21,6 +21,9 @@ A: ManyDoors AI is an AI operations layer for multifamily property management. I
 
 Q: Who is ManyDoors AI built for?
 A: Regional operators, third-party managers, and owner-operators running midsize to enterprise multifamily portfolios. It is designed for teams that want to protect NOI, reduce staff overtime, and prove ROI to owners without replacing their core PMS.
+
+Q: Where is ManyDoors AI located? Which markets do you serve?
+A: ManyDoors AI is headquartered in Eugene, OR (541-321-2630, info@manydoorsai.com). We actively market to multifamily operators in Portland, Eugene, Salem, Corvallis, and Bend, Oregon — see /property-management/locations for metro-specific pages. The platform is built to scale nationally as portfolios expand.
 
 Q: Does ManyDoors AI replace my PMS?
 A: No. ManyDoors is a connective AI layer — not a ledger replacement. Your PMS remains the system of record for rent roll, GL, and work orders. ManyDoors reads (and eventually writes back) operational data while handling high-volume resident and prospect interactions.
@@ -140,7 +143,7 @@ Q: What is the per-unit economics?
 A: Demo model shows monthly AI impact per unit and FTE equivalent hours reclaimed — visible on the gateway KPI strip after you enter portfolio size.
 
 Q: How is ManyDoors priced?
-A: Portfolio pricing based on unit count and modules enabled. Contact hello@manydoorsai.com for a quote. The live demo is free to explore.
+A: Portfolio pricing based on unit count and modules enabled. Contact info@manydoorsai.com for a quote. The live demo is free to explore.
 
 Q: Is there a pilot program?
 A: Yes — start with one property or cluster for 30–60 days. Baseline deflection %, response time, and maintenance metrics before portfolio roll-out.
@@ -161,7 +164,7 @@ Q: Is enterprise SLA available?
 A: Yes — SLA-backed response for large portfolios is on the enterprise roadmap. Discuss during sales conversations.
 
 Q: How do I get help during the demo?
-A: Use the site chat assistant (powered by Gemini) for questions about the product, or email hello@manydoorsai.com. Full contact details in the footer are being updated.
+A: Use the site chat assistant (powered by Gemini) for questions about the product, call 541-321-2630, or email info@manydoorsai.com. Office: Eugene, OR.
 
 
 ## FAQ: Security & compliance

@@ -24,7 +24,7 @@ export const FAQ_CATEGORIES = [
       },
       {
         q: 'Where is ManyDoors AI located? Which markets do you serve?',
-        a: 'ManyDoors AI is headquartered in Eugene, OR (541-321-2630, hello@manydoorsai.com). We actively market to multifamily operators in Portland, Eugene, Salem, Corvallis, and Bend, Oregon — see /property-management/locations for metro-specific pages. The platform is built to scale nationally as portfolios expand.',
+        a: 'ManyDoors AI is headquartered in Eugene, OR (541-321-2630, info@manydoorsai.com). We actively market to multifamily operators in Portland, Eugene, Salem, Corvallis, and Bend, Oregon — see /property-management/locations for metro-specific pages. The platform is built to scale nationally as portfolios expand.',
       },
       {
         q: 'Does ManyDoors AI replace my PMS?',
@@ -196,7 +196,7 @@ export const FAQ_CATEGORIES = [
       },
       {
         q: 'How is ManyDoors priced?',
-        a: 'Portfolio pricing based on unit count and modules enabled. Contact hello@manydoorsai.com for a quote. The live demo is free to explore.',
+        a: 'Portfolio pricing based on unit count and modules enabled. Contact info@manydoorsai.com for a quote. The live demo is free to explore.',
       },
       {
         q: 'Is there a pilot program?',
@@ -226,7 +226,7 @@ export const FAQ_CATEGORIES = [
       },
       {
         q: 'How do I get help during the demo?',
-        a: 'Use the site chat assistant (powered by Gemini) for questions about the product, or email hello@manydoorsai.com. Full contact details in the footer are being updated.',
+        a: 'Use the site chat assistant (powered by Gemini) for questions about the product, call 541-321-2630, or email info@manydoorsai.com. Office: Eugene, OR.',
       },
     ],
   },

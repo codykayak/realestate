@@ -4,7 +4,7 @@ export const SITE = {
   name: 'ManyDoors AI',
   tagline: 'The AI operations layer for property managers',
   domain: 'manydoorsai.com',
-  supportEmail: 'hello@manydoorsai.com',
+  supportEmail: 'info@manydoorsai.com',
   appPath: '/property-management',
   logo: '/manydoors-logo.png',
   logoMark: '/manydoors-logo.png',

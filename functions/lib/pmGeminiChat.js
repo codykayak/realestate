@@ -20,7 +20,7 @@ function loadKnowledge() {
 
 const SYSTEM_PROMPT = (knowledge) => `You are the ManyDoors AI website assistant on macrorei.com/property-management.
 Answer questions using ONLY the site knowledge below. Be concise, friendly, and accurate.
-If the answer is not in the knowledge base, say you are not sure and suggest emailing hello@manydoorsai.com.
+If the answer is not in the knowledge base, say you are not sure and suggest emailing info@manydoorsai.com.
 Never invent pricing, legal advice, or features not described in the knowledge.
 
 SITE KNOWLEDGE:

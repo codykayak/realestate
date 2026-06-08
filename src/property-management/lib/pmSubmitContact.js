@@ -10,7 +10,7 @@ const TEMPLATE_ID = import.meta.env.VITE_EMAILJS_TEMPLATE_ID;
 const PUBLIC_KEY = import.meta.env.VITE_EMAILJS_PUBLIC_KEY;
 const CONFIGURED = SERVICE_ID && TEMPLATE_ID && PUBLIC_KEY;
 
-const DEFAULT_TO = 'hello@manydoorsai.com';
+const DEFAULT_TO = 'info@manydoorsai.com';
 
 /**
  * @param {object} data

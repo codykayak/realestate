@@ -21,7 +21,7 @@ export const APP_CONFIG = {
   accentSoft: env.VITE_PM_ACCENT_SOFT || 'rgba(58, 181, 176, 0.14)',
   basePath: PM_BASE_PATH,
   defaultTenantId: env.VITE_PM_DEFAULT_TENANT || 'demo',
-  supportEmail: env.VITE_PM_SUPPORT_EMAIL || 'hello@manydoorsai.com',
+  supportEmail: env.VITE_PM_SUPPORT_EMAIL || 'info@manydoorsai.com',
   supportPhone: env.VITE_PM_SUPPORT_PHONE || '541-321-2630',
   salesPhone: env.VITE_PM_SALES_PHONE || '541-321-2630',
   supportAddress: env.VITE_PM_SUPPORT_ADDRESS || 'Eugene, OR',

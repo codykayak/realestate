@@ -52,7 +52,7 @@ function areaServedCities(cityNames) {
 export function localBusinessJsonLd(config, basePath = '/property-management') {
   const url = getPmSiteUrl(config, basePath);
   const phone = config.supportPhone || '541-321-2630';
-  const email = config.supportEmail || 'hello@manydoorsai.com';
+  const email = config.supportEmail || 'info@manydoorsai.com';
 
   return {
     '@context': 'https://schema.org',

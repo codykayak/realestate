@@ -41,7 +41,7 @@
 
 ## ManyDoors AI — Property Management Software
 - Product: ManyDoors AI (manydoorsai.com) — AI property management for multifamily operators
-- Support: U.S.-based teams; email hello@manydoorsai.com (phone/address in footer — being updated)
+- Support: U.S.-based teams; email info@manydoorsai.com (phone/address in footer)
 - Live demo: https://www.macrorei.com/property-management
 - Site chatbot: Gemini-powered assistant on gateway pages; answers from full site knowledge corpus
 - FAQ (footer link only): https://www.macrorei.com/property-management/faq — 62+ questions
