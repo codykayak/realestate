@@ -12,6 +12,9 @@ export const config = {
   gitWorkspacesDir: process.env.GIT_WORKSPACES_DIR ?? './.workspaces',
   secretsEncryptionKey: process.env.SECRETS_ENCRYPTION_KEY ?? '',
   corsOrigins: (process.env.CORS_ORIGINS ?? '*').split(',').map((s) => s.trim()),
+  /** Cloud Run secret name: cursorapi (also checks CURSOR_API_KEY) */
+  cursorApiKey: process.env.cursorapi ?? process.env.CURSOR_API_KEY ?? '',
+  cursorApiBase: process.env.CURSOR_API_BASE ?? 'https://api.cursor.com',
 };
 
 export function isProd(): boolean {

@@ -84,7 +84,10 @@ export function OnboardingScreen({ token, onComplete }: Props) {
         onChangeText={setRepoName}
       />
 
-      <Text style={styles.section}>LLM API keys (at least one)</Text>
+      <Text style={styles.section}>LLM API keys (optional if you only use Cursor tab)</Text>
+      <Text style={styles.hint}>
+        Cursor Cloud Agents use the server-side cursorapi key — you do not enter it here.
+      </Text>
       {LLM_PROVIDERS.map((p) => (
         <View key={p.id} style={styles.keyBlock}>
           <Text style={styles.label}>{p.label}</Text>
@@ -119,6 +122,7 @@ const styles = StyleSheet.create({
   heading: { color: colors.text, fontSize: 24, fontWeight: '700' },
   sub: { color: colors.muted, marginBottom: 12, lineHeight: 20 },
   section: { color: colors.text, fontWeight: '600', marginTop: 12, marginBottom: 4 },
+  hint: { color: colors.muted, fontSize: 12, marginBottom: 4, lineHeight: 18 },
   label: { color: colors.muted, fontSize: 13, marginTop: 8 },
   input: {
     backgroundColor: colors.surface,
