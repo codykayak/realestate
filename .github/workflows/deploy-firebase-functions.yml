@@ -42,14 +42,28 @@ jobs:
         with:
           node-version: '20'
 
-      - id: auth
+      - name: Validate realestate-map service account JSON
+        id: sa_valid
         if: steps.creds.outputs.method == 'sa'
+        env:
+          REALESTATE_SA: ${{ secrets.forfucksaketwofirestone }}
+        run: |
+          if printf '%s' "$REALESTATE_SA" | python3 -c "import json,sys; d=json.load(sys.stdin); assert d.get('type')=='service_account'" 2>/dev/null; then
+            echo "valid=true" >> "$GITHUB_OUTPUT"
+            python3 -c "import json,os; d=json.loads(os.environ['REALESTATE_SA']); print('Service account project_id:', d.get('project_id'))"
+          else
+            echo "valid=false" >> "$GITHUB_OUTPUT"
+            echo "::warning title=Invalid forfucksaketwofirestone::Re-paste the full JSON from Firebase → realestate-map-23692 → Service accounts → Generate new private key. Falling back to FIREBASE_TOKEN if set."
+          fi
+
+      - id: auth
+        if: steps.creds.outputs.method == 'sa' && steps.sa_valid.outputs.valid == 'true'
         uses: google-github-actions/auth@v2
         with:
           credentials_json: ${{ secrets.forfucksaketwofirestone }}
 
       - uses: google-github-actions/setup-gcloud@v2
-        if: steps.creds.outputs.method == 'sa'
+        if: steps.creds.outputs.method == 'sa' && steps.sa_valid.outputs.valid == 'true'
 
       - name: Install Firebase CLI
         if: steps.creds.outputs.method != 'none'
@@ -72,27 +86,27 @@ jobs:
         run: node -e "import('./index.js').then(() => console.log('functions index ok'))"
 
       - name: Deploy Cloud Functions (service account)
-        if: steps.creds.outputs.method == 'sa'
+        if: steps.creds.outputs.method == 'sa' && steps.sa_valid.outputs.valid == 'true'
         run: |
           echo "Deploying functions to realestate-map-23692"
           firebase deploy --only functions --project realestate-map-23692 --non-interactive
 
       - name: Deploy Firestore rules (service account, optional)
-        if: steps.creds.outputs.method == 'sa'
+        if: steps.creds.outputs.method == 'sa' && steps.sa_valid.outputs.valid == 'true'
         continue-on-error: true
         run: |
           firebase deploy --only firestore:rules --project realestate-map-23692 --non-interactive \
             || echo "::warning title=Firestore rules skipped::Rules deploy failed — functions deploy is the critical path."
 
       - name: Deploy Cloud Functions (legacy token)
-        if: steps.creds.outputs.method == 'token'
+        if: steps.creds.outputs.method == 'token' || (steps.creds.outputs.method == 'sa' && steps.sa_valid.outputs.valid != 'true')
         env:
           FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
         run: |
           firebase deploy --only functions --project realestate-map-23692 --non-interactive
 
       - name: Deploy Firestore rules (legacy token, optional)
-        if: steps.creds.outputs.method == 'token'
+        if: steps.creds.outputs.method == 'token' || (steps.creds.outputs.method == 'sa' && steps.sa_valid.outputs.valid != 'true')
         continue-on-error: true
         env:
           FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
