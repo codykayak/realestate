@@ -19,8 +19,10 @@ jobs:
       - name: Check for GCP credentials
         id: creds
         env:
-          # JSON service-account keys must not be interpolated into bash `[ -n ]` tests
-          SA_JSON: ${{ secrets.PROJECTMANAGMENT }}
+          # JSON keys via env only — never interpolate multi-line JSON in bash `[ -n ]` tests
+          # FIREBASE_DEPLOY_SA: service account from realestate-map-23692 (preferred)
+          # PROJECTMANAGMENT: Cloud Run SA — often a different GCP project
+          SA_JSON: ${{ secrets.FIREBASE_DEPLOY_SA || secrets.PROJECTMANAGMENT }}
           FB_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
         run: |
           if [ -n "$SA_JSON" ]; then
@@ -29,7 +31,7 @@ jobs:
             echo "method=token" >> "$GITHUB_OUTPUT"
           else
             echo "method=none" >> "$GITHUB_OUTPUT"
-            echo "::warning title=Firebase deploy skipped::Set PROJECTMANAGMENT (recommended) or FIREBASE_TOKEN in GitHub Actions secrets."
+            echo "::warning title=Firebase deploy skipped::Add FIREBASE_DEPLOY_SA (service account JSON from realestate-map-23692) or a valid FIREBASE_TOKEN from firebase login:ci."
           fi
 
       - uses: actions/checkout@v4
@@ -44,7 +46,7 @@ jobs:
         if: steps.creds.outputs.method == 'sa'
         uses: google-github-actions/auth@v2
         with:
-          credentials_json: ${{ secrets.PROJECTMANAGMENT }}
+          credentials_json: ${{ secrets.FIREBASE_DEPLOY_SA || secrets.PROJECTMANAGMENT }}
 
       - uses: google-github-actions/setup-gcloud@v2
         if: steps.creds.outputs.method == 'sa'
@@ -73,20 +75,17 @@ jobs:
         if: steps.creds.outputs.method == 'sa'
         run: |
           echo "Deploying functions to realestate-map-23692"
-          firebase deploy \
-            --only functions \
-            --project realestate-map-23692 \
-            --non-interactive
+          if ! firebase deploy --only functions --project realestate-map-23692 --non-interactive; then
+            echo "::error title=Firebase functions deploy failed::Use a service account from project realestate-map-23692. In GitHub → Settings → Secrets, add FIREBASE_DEPLOY_SA with a JSON key from Firebase Console → Project settings → Service accounts → Generate new private key. Roles needed: Cloud Functions Admin, Service Account User, Firebase Admin (or Editor)."
+            exit 1
+          fi
 
       - name: Deploy Firestore rules (service account, optional)
         if: steps.creds.outputs.method == 'sa'
         continue-on-error: true
         run: |
-          firebase deploy \
-            --only firestore:rules \
-            --project realestate-map-23692 \
-            --non-interactive \
-          || echo "::warning title=Firestore rules skipped::Service account needs Firebase Rules Admin on realestate-map-23692. Functions deploy is the critical path."
+          firebase deploy --only firestore:rules --project realestate-map-23692 --non-interactive \
+            || echo "::warning title=Firestore rules skipped::Grant Firebase Rules Admin to the deploy service account, or deploy rules manually."
 
       - name: Deploy Cloud Functions (legacy token)
         if: steps.creds.outputs.method == 'token'
@@ -104,8 +103,5 @@ jobs:
         env:
           FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
         run: |
-          firebase deploy \
-            --only firestore:rules \
-            --project realestate-map-23692 \
-            --non-interactive \
-          || echo "::warning title=Firestore rules skipped::Regenerate FIREBASE_TOKEN or use PROJECTMANAGMENT service account."
+          firebase deploy --only firestore:rules --project realestate-map-23692 --non-interactive \
+            || echo "::warning title=Firestore rules skipped::Regenerate FIREBASE_TOKEN with firebase login:ci or use FIREBASE_DEPLOY_SA."
