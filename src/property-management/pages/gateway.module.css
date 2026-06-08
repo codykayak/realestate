@@ -272,9 +272,9 @@
 .videoHero {
   position: relative;
   min-height: min(72vh, 640px);
-  display: flex;
+  display: grid;
+  grid-template-columns: minmax(300px, 1fr) 1fr;
   align-items: center;
-  justify-content: center;
   overflow: hidden;
 }
 
@@ -284,41 +284,81 @@
   width: 100%;
   height: 100%;
   object-fit: cover;
+  /* Slight zoom-out so more of the frame stays visible */
+  transform: scale(0.9);
+  transform-origin: center center;
 }
 
 .videoOverlay {
   position: absolute;
   inset: 0;
+  /* Lighter overlay — darker on the left for copy, clearer video on the right */
   background: linear-gradient(
-    180deg,
-    rgba(11, 15, 20, 0.55) 0%,
-    rgba(11, 15, 20, 0.82) 55%,
-    rgba(11, 15, 20, 0.95) 100%
+    105deg,
+    rgba(11, 15, 20, 0.68) 0%,
+    rgba(11, 15, 20, 0.38) 38%,
+    rgba(11, 15, 20, 0.14) 62%,
+    rgba(11, 15, 20, 0.06) 100%
   );
 }
 
 .videoContent {
   position: relative;
   z-index: 1;
-  max-width: 820px;
+  grid-column: 1;
+  justify-self: center;
+  width: min(100%, 520px);
   padding: 48px 28px 64px;
+  padding-left: max(28px, calc((100vw - 1180px) / 2 + 28px));
   text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
 .videoTitle {
-  font-size: clamp(32px, 5vw, 52px);
+  font-size: clamp(32px, 4.2vw, 48px);
   font-weight: 800;
   line-height: 1.08;
   margin: 0 0 18px;
   letter-spacing: -0.03em;
+  width: 100%;
 }
 
 .videoLead {
   font-size: 17px;
   line-height: 1.65;
   color: #c8d1dc;
-  margin: 0 auto 28px;
-  max-width: 58ch;
+  margin: 0 0 28px;
+  max-width: 42ch;
+  width: 100%;
+}
+
+@media (max-width: 900px) {
+  .videoHero {
+    grid-template-columns: 1fr;
+    justify-items: center;
+  }
+
+  .videoContent {
+    grid-column: 1;
+    padding-left: 28px;
+    padding-right: 28px;
+    max-width: 520px;
+  }
+
+  .videoBg {
+    transform: scale(0.95);
+  }
+
+  .videoOverlay {
+    background: linear-gradient(
+      180deg,
+      rgba(11, 15, 20, 0.45) 0%,
+      rgba(11, 15, 20, 0.62) 55%,
+      rgba(11, 15, 20, 0.78) 100%
+    );
+  }
 }
 
 /* ── Software showcase ────────────────────────────────────────────────────── */
