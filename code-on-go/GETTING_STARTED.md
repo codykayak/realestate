@@ -167,6 +167,7 @@ Cursor works in the cloud on your GitHub repo. You do **not** need to enter a Cu
 | Onboarding fails on GitHub | PAT needs `repo` scope; owner/name must be exact |
 | Expo won't connect | Try `npx expo start --tunnel` (slower but works across networks) |
 | Backend port in use | Change `PORT=8081` in `backend/.env` and update `EXPO_PUBLIC_API_URL` |
+| `Unable to resolve "./types.js" from shared` | Run `npm run build -w @code-on-go/shared` from `code-on-go/`, then restart Expo (`prestart` does this automatically) |
 
 ---
 

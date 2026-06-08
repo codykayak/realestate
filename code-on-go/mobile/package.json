@@ -4,6 +4,10 @@
   "private": true,
   "main": "index.ts",
   "scripts": {
+    "prestart": "npm run build -w @code-on-go/shared",
+    "preweb": "npm run build -w @code-on-go/shared",
+    "preandroid": "npm run build -w @code-on-go/shared",
+    "preios": "npm run build -w @code-on-go/shared",
     "start": "expo start",
     "android": "expo start --android",
     "ios": "expo start --ios",
@@ -17,7 +21,9 @@
     "expo-secure-store": "~15.0.7",
     "expo-status-bar": "~56.0.4",
     "react": "19.2.3",
-    "react-native": "0.85.3"
+    "react-dom": "19.2.3",
+    "react-native": "0.85.3",
+    "react-native-web": "^0.21.2"
   },
   "devDependencies": {
     "@types/react": "~19.2.2",
