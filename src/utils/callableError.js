@@ -39,6 +39,20 @@ export function parseCallableError(err) {
   return 'Something went wrong. Check credentials or use Save & continue.';
 }
 
+export function validateQuoFields({ apiKey, phoneNumber, phoneNumberId }) {
+  const key = String(apiKey ?? '').trim();
+  if (key.length < 20) {
+    return 'Paste your full Quo API key from Workspace Settings → API.';
+  }
+  const digits = (p) => String(p ?? '').replace(/\D/g, '');
+  const hasNumber = digits(phoneNumber).length >= 10;
+  const hasId = /^PN/i.test(String(phoneNumberId ?? '').trim());
+  if (!hasNumber && !hasId) {
+    return 'Enter your Quo phone number (E.164) or Phone Number ID (starts with PN).';
+  }
+  return null;
+}
+
 export function validateTwilioFields({ accountSid, authToken, phoneNumber, agentPhone }) {
   const sid = String(accountSid ?? '').trim();
   const token = String(authToken ?? '').trim();

@@ -14,6 +14,7 @@ export default function TwilioOnboarding({
   fetchWebhooks,
   webhooks,
   uid,
+  embedded = false,
 }) {
   const [step, setStep] = useState(0);
   const [accountSid, setAccountSid] = useState(config?.accountSid ?? '');
@@ -32,7 +33,7 @@ export default function TwilioOnboarding({
   const [copied, setCopied] = useState('');
 
   useEffect(() => {
-    if (!open) return;
+    if (!open && !embedded) return;
     setAccountSid(config?.accountSid ?? '');
     setAuthToken(config?.authToken ?? '');
     setPhoneNumber(config?.phoneNumber ?? '');
@@ -44,10 +45,10 @@ export default function TwilioOnboarding({
     setAutoMissed(config?.autoMissedCallSms !== false);
     if (config?.onboardingComplete) setStep(STEPS.indexOf('done'));
     else setStep(0);
-  }, [open, config]);
+  }, [open, embedded, config]);
 
   useEffect(() => {
-    if (open && step === STEPS.indexOf('webhooks') && uid) {
+    if ((open || embedded) && step === STEPS.indexOf('webhooks') && uid) {
       fetchWebhooks?.();
     }
   }, [open, step, uid, fetchWebhooks]);
@@ -187,27 +188,30 @@ export default function TwilioOnboarding({
     }
   }
 
-  if (!open) return null;
+  if (!open && !embedded) return null;
 
   const stepId = STEPS[step];
   const progress = ((step + 1) / STEPS.length) * 100;
 
-  return (
-    <div className={styles.overlay} role="dialog" aria-modal="true" aria-label="Twilio setup">
-      <div className={styles.sheet}>
-        <header className={styles.header}>
-          <div>
-            <h2 className={styles.title}>Twilio Setup</h2>
-            <p className={styles.sub}>Step {step + 1} of {STEPS.length}</p>
+  const body = (
+    <>
+      {!embedded && (
+        <>
+          <header className={styles.header}>
+            <div>
+              <h2 className={styles.title}>Twilio Setup</h2>
+              <p className={styles.sub}>Step {step + 1} of {STEPS.length}</p>
+            </div>
+            <button type="button" className={styles.closeBtn} onClick={onClose} aria-label="Close">✕</button>
+          </header>
+
+          <div className={styles.progressTrack}>
+            <div className={styles.progressFill} style={{ width: `${progress}%` }} />
           </div>
-          <button type="button" className={styles.closeBtn} onClick={onClose} aria-label="Close">✕</button>
-        </header>
+        </>
+      )}
 
-        <div className={styles.progressTrack}>
-          <div className={styles.progressFill} style={{ width: `${progress}%` }} />
-        </div>
-
-        <div className={styles.body}>
+      <div className={styles.body}>
           {err && <p className={styles.error}>{err}</p>}
           {notice && <p className={styles.notice}>{notice}</p>}
 
@@ -372,14 +376,21 @@ export default function TwilioOnboarding({
           )}
         </div>
 
-        {step > 0 && stepId !== 'done' && (
-          <footer className={styles.footer}>
-            <button type="button" className={styles.backBtn} onClick={() => setStep((s) => Math.max(0, s - 1))}>
-              ← Back
-            </button>
-          </footer>
-        )}
-      </div>
+      {step > 0 && stepId !== 'done' && !embedded && (
+        <footer className={styles.footer}>
+          <button type="button" className={styles.backBtn} onClick={() => setStep((s) => Math.max(0, s - 1))}>
+            ← Back
+          </button>
+        </footer>
+      )}
+    </>
+  );
+
+  if (embedded) return body;
+
+  return (
+    <div className={styles.overlay} role="dialog" aria-modal="true" aria-label="Twilio setup">
+      <div className={styles.sheet}>{body}</div>
     </div>
   );
 }
