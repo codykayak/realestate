@@ -8,6 +8,8 @@ import { isSmsBlocked, isCallBlocked, complianceLabel } from '../utils/leadCompl
 import TxtNowSheet from './TxtNowSheet';
 import LeadActivityTimeline from './LeadActivityTimeline';
 import SellerDealPanel from './SellerDealPanel';
+import CallbacksAgenda, { countUpcomingCallbacks } from './CallbacksAgenda';
+import PipelineBar from './PipelineBar';
 import styles from './DialerView.module.css';
 
 const OUTCOMES = [
@@ -71,6 +73,8 @@ export default function DialerView({
   const [appointmentAt, setAppointmentAt] = useState('');
   const [apptMsg, setApptMsg] = useState(null);
   const [apptBusy, setApptBusy] = useState(false);
+  const [callbacksOpen, setCallbacksOpen] = useState(false);
+  const [pipelineStage, setPipelineStage] = useState('all');
 
   function hasPhone(l) {
     if (l.phones?.length > 0) return true;
@@ -79,12 +83,14 @@ export default function DialerView({
   }
 
   // Filter leads to those with at least one phone number
+  const callbackCount = useMemo(() => countUpcomingCallbacks(leads, 7), [leads]);
+
   const queue = useMemo(() => {
     let q = leads.filter(hasPhone);
     if (filterStatus !== 'all') q = q.filter((l) => l.status === filterStatus);
-    // Sort: fewest calls first, then by id
+    if (pipelineStage !== 'all') q = q.filter((l) => l.status === pipelineStage);
     return q.sort((a, b) => (a.callCount ?? 0) - (b.callCount ?? 0) || a.id - b.id);
-  }, [leads, filterStatus]);
+  }, [leads, filterStatus, pipelineStage]);
 
   const lead = queue[idx] ?? null;
   const total = queue.length;
@@ -134,28 +140,33 @@ export default function DialerView({
   }, [lead]);
 
   const handleScheduleAppointment = useCallback(async () => {
-    if (!lead || !appointmentAt || !scheduleAppointmentSms) return;
+    if (!lead || !appointmentAt) return;
     setApptBusy(true);
     setApptMsg(null);
     try {
       const iso = new Date(appointmentAt).toISOString();
-      const data = await scheduleAppointmentSms({
-        leadId: lead.id,
-        appointmentAt: iso,
-        toPhone: activePhone,
-      });
-      onUpdateLead(lead.id, {
-        appointmentAt: data.appointmentAt,
-        scheduledSmsId: data.scheduledSmsId,
-        scheduledSmsSendAt: data.sendAt,
-      });
-      setApptMsg({ ok: true, text: `Reminder scheduled for ${new Date(data.sendAt).toLocaleString()}` });
+      if (smsReady && scheduleAppointmentSms) {
+        const data = await scheduleAppointmentSms({
+          leadId: lead.id,
+          appointmentAt: iso,
+          toPhone: activePhone,
+        });
+        onUpdateLead(lead.id, {
+          appointmentAt: data.appointmentAt,
+          scheduledSmsId: data.scheduledSmsId,
+          scheduledSmsSendAt: data.sendAt,
+        });
+        setApptMsg({ ok: true, text: `Reminder scheduled for ${new Date(data.sendAt).toLocaleString()}` });
+      } else {
+        onUpdateLead(lead.id, { appointmentAt: iso });
+        setApptMsg({ ok: true, text: 'Callback saved — see Scheduled in the stats bar.' });
+      }
     } catch (e) {
       setApptMsg({ ok: false, text: e.message || 'Could not schedule.' });
     } finally {
       setApptBusy(false);
     }
-  }, [lead, appointmentAt, activePhone, scheduleAppointmentSms, onUpdateLead]);
+  }, [lead, appointmentAt, activePhone, scheduleAppointmentSms, onUpdateLead, smsReady]);
 
   const handleCancelAppointment = useCallback(async () => {
     if (!lead || !cancelScheduledAppointmentSms) return;
@@ -237,6 +248,20 @@ export default function DialerView({
     setIdx((i) => Math.max(i - 1, 0));
   }, []);
 
+  const handleJumpToLead = useCallback((leadId) => {
+    const qIdx = queue.findIndex((l) => l.id === leadId);
+    if (qIdx !== -1) {
+      setIdx(qIdx);
+      return;
+    }
+    const anyIdx = leads.findIndex((l) => l.id === leadId);
+    if (anyIdx !== -1 && hasPhone(leads[anyIdx])) {
+      const rebuilt = leads.filter(hasPhone);
+      const pos = rebuilt.findIndex((l) => l.id === leadId);
+      if (pos !== -1) setIdx(pos);
+    }
+  }, [queue, leads]);
+
   // ── Empty state ───────────────────────────────────────────────────────────
   if (total === 0) {
     const totalLeads      = leads.length;
@@ -317,6 +342,15 @@ export default function DialerView({
 
         <button
           type="button"
+          className={`${styles.smsSetupBtn} ${callbackCount > 0 ? styles.smsSetupReady : ''}`}
+          onClick={() => setCallbacksOpen(true)}
+          title="View scheduled callbacks this week"
+        >
+          📅 {callbackCount > 0 ? `${callbackCount} scheduled` : 'Schedule'}
+        </button>
+
+        <button
+          type="button"
           className={styles.smsSetupBtn}
           onClick={() => onOpenTemplates?.()}
           title="Edit intro, follow-up, and other text templates"
@@ -380,6 +414,19 @@ export default function DialerView({
           </div>
         )}
       </div>
+
+      <PipelineBar
+        leads={leads}
+        activeStage={pipelineStage}
+        onStageChange={setPipelineStage}
+      />
+
+      <CallbacksAgenda
+        open={callbacksOpen}
+        onClose={() => setCallbacksOpen(false)}
+        leads={leads}
+        onJumpToLead={handleJumpToLead}
+      />
 
       {/* ── Position indicator ────────────────────────────────────────── */}
       <div className={styles.position}>
@@ -582,9 +629,11 @@ export default function DialerView({
       />
 
       {/* ── Appointment reminder (3 hrs before) ─────────────────────── */}
-      {smsReady && !isSmsBlocked(lead) && (
+      {!isSmsBlocked(lead) && (
         <div className={styles.appointmentSection}>
-          <p className={styles.appointmentLabel}>Appointment — auto-text 3 hours before</p>
+          <p className={styles.appointmentLabel}>
+            {smsReady ? 'Appointment — auto-text 3 hours before' : 'Schedule a callback'}
+          </p>
           <input
             type="datetime-local"
             className={styles.appointmentInput}
@@ -598,7 +647,7 @@ export default function DialerView({
               disabled={apptBusy || !appointmentAt}
               onClick={handleScheduleAppointment}
             >
-              {apptBusy ? 'Scheduling…' : 'Schedule reminder'}
+              {apptBusy ? 'Saving…' : (smsReady ? 'Schedule reminder' : 'Save callback')}
             </button>
             {lead.scheduledSmsSendAt && (
               <button

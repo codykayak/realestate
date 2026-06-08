@@ -22,6 +22,7 @@ import emailjs from '@emailjs/browser';
 import { addDoc, collection, serverTimestamp } from 'firebase/firestore';
 import { db, auth, isFirebaseConfigured } from '../firebase';
 import { CONTACT_EMAIL } from '../constants/brand';
+import { submitWebLead } from './submitWebLead';
 
 const SERVICE_ID  = import.meta.env.VITE_EMAILJS_SERVICE_ID;
 const TEMPLATE_ID = import.meta.env.VITE_EMAILJS_TEMPLATE_ID;
@@ -44,6 +45,20 @@ export async function sendFormToContact({ subject, fields }) {
     .filter(([, v]) => v != null && String(v).trim() !== '')
     .map(([k, v]) => `${k}: ${v}`)
     .join('\n');
+
+  // ── Route into Map CMS inbox + nurture (non-blocking) ───────────────
+  try {
+    await submitWebLead({
+      formType: subject,
+      name: fields.Name || fields['Your Name'] || '',
+      phone: fields.Phone || fields['Your Phone'] || '',
+      email: fields.Email || fields['Your Email'] || '',
+      address: fields['Property address'] || fields['Property Address'] || fields.Address || '',
+      details: body,
+    });
+  } catch (err) {
+    console.warn('[sendToContact] Web lead ingest failed (email still sent):', err);
+  }
 
   // ── Always save to Firestore /submissions (survives email failures) ──
   if (isFirebaseConfigured && db) {

@@ -2,6 +2,8 @@ import { StrictMode, lazy, Suspense } from 'react';
 import { createRoot } from 'react-dom/client';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import ScrollToTop from './components/ScrollToTop';
+import AttributionCapture from './components/AttributionCapture';
+import SellerSituationPage from './pages/SellerSituationPage';
 import LandingPage from './pages/LandingPage';
 import MarketingLayout from './layout/MarketingLayout';
 import CashOfferCalculator from './pages/CashOfferCalculator';
@@ -49,6 +51,7 @@ createRoot(document.getElementById('root')).render(
   <StrictMode>
     <BrowserRouter>
       <ScrollToTop />
+      <AttributionCapture />
       <Routes>
         {/* MacroREI cash-buyer home (original homepage) */}
         <Route path="/" element={<LandingPage />} />
@@ -56,6 +59,7 @@ createRoot(document.getElementById('root')).render(
         <Route element={<MarketingLayout />}>
           <Route path="cash-offer-calculator" element={<CashOfferCalculator />} />
           <Route path="we-buy-houses/:citySlug" element={<CityWeBuyHouses />} />
+          <Route path="sell/:situationSlug" element={<SellerSituationPage />} />
           <Route path="selling-vs-cash-offer" element={<SellingVsCash />} />
           <Route path="probate-inherited-house-guide" element={<ProbateGuide />} />
           <Route path="testimonials" element={<Testimonials />} />

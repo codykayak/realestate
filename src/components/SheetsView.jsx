@@ -14,11 +14,21 @@ const STATUS_COLORS = {
 };
 
 const SORT_OPTIONS = [
+  { value: 'appointment_asc', label: '📅 Appointments (soonest)' },
   { value: 'distress_desc', label: '🔥 Distress (high→low)' },
   { value: 'callcount_asc', label: '📞 Least called first' },
   { value: 'value_desc',    label: '💰 Value (high→low)' },
   { value: 'name_asc',      label: '🔤 Name (A→Z)' },
   { value: 'status_asc',    label: '📋 Status' },
+];
+
+const PIPELINE_FILTERS = [
+  { value: 'all', label: 'All' },
+  { value: 'web', label: '🌐 Web leads' },
+  { value: 'scheduled', label: '📅 Scheduled' },
+  { value: 'New', label: 'New' },
+  { value: 'Contacted', label: 'Contacted' },
+  { value: 'Negotiating', label: 'Negotiating' },
 ];
 
 function parseNum(val) {
@@ -36,9 +46,18 @@ export default function SheetsView({ leads, selectedId, isTeamMode, onDialLead, 
   const [search,   setSearch]   = useState('');
   const [sort,     setSort]     = useState('distress_desc');
   const [showSort, setShowSort] = useState(false);
+  const [pipeline, setPipeline] = useState('all');
 
   const sorted = useMemo(() => {
     let list = [...leads];
+
+    if (pipeline === 'web') {
+      list = list.filter((l) => l.webLead);
+    } else if (pipeline === 'scheduled') {
+      list = list.filter((l) => l.appointmentAt);
+    } else if (pipeline !== 'all') {
+      list = list.filter((l) => l.status === pipeline);
+    }
 
     // Filter by search
     if (search.trim()) {
@@ -47,13 +66,21 @@ export default function SheetsView({ leads, selectedId, isTeamMode, onDialLead, 
         (l.name    || '').toLowerCase().includes(q) ||
         (l.address || '').toLowerCase().includes(q) ||
         (l.city    || '').toLowerCase().includes(q) ||
-        (l.phone   || '').includes(q),
+        (l.phone   || '').includes(q) ||
+        (l.leadSource || '').toLowerCase().includes(q),
       );
     }
 
     // Sort
     list.sort((a, b) => {
       switch (sort) {
+        case 'appointment_asc': {
+          const at = (l) => {
+            const t = new Date(l.appointmentAt || 0).getTime();
+            return Number.isNaN(t) ? Infinity : t;
+          };
+          return at(a) - at(b);
+        }
         case 'distress_desc': return parseNum(b.distress)   - parseNum(a.distress);
         case 'callcount_asc': return (a.callCount ?? 0)     - (b.callCount ?? 0);
         case 'value_desc':    return parseNum(b.price)      - parseNum(a.price);
@@ -64,7 +91,7 @@ export default function SheetsView({ leads, selectedId, isTeamMode, onDialLead, 
     });
 
     return list;
-  }, [leads, search, sort]);
+  }, [leads, search, sort, pipeline]);
 
   const activeSortLabel = SORT_OPTIONS.find((o) => o.value === sort)?.label ?? 'Sort';
 
@@ -121,12 +148,25 @@ export default function SheetsView({ leads, selectedId, isTeamMode, onDialLead, 
         </div>
       </div>
 
+      <div className={styles.pipelineBar}>
+        {PIPELINE_FILTERS.map((f) => (
+          <button
+            key={f.value}
+            type="button"
+            className={`${styles.pipelineChip} ${pipeline === f.value ? styles.pipelineChipActive : ''}`}
+            onClick={() => setPipeline(f.value)}
+          >
+            {f.label}
+          </button>
+        ))}
+      </div>
+
       {/* ── Count ─────────────────────────────────────────────────── */}
       <div className={styles.countBar}>
         <span className={styles.countText}>
           {sorted.length} of {leads.length} properties
         </span>
-        {search && <span className={styles.countFilter}>filtered</span>}
+        {(search || pipeline !== 'all') && <span className={styles.countFilter}>filtered</span>}
       </div>
 
       {/* ── List ──────────────────────────────────────────────────── */}
@@ -173,6 +213,14 @@ export default function SheetsView({ leads, selectedId, isTeamMode, onDialLead, 
                     {lead.sellerDeal?.enabled && (
                       <span className={styles.portalBadge} title="Seller portal active">
                         🏠 {sellerStageLabel(lead.sellerDeal.stage)}
+                      </span>
+                    )}
+                    {lead.webLead && (
+                      <span className={styles.webBadge} title="Website form lead">🌐 Web</span>
+                    )}
+                    {lead.appointmentAt && (
+                      <span className={styles.apptBadge} title={lead.appointmentAt}>
+                        📅 {new Date(lead.appointmentAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
                       </span>
                     )}
                   </div>

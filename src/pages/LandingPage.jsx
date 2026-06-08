@@ -5,6 +5,7 @@ import { BRAND_NAME, CONTACT_EMAIL } from '../constants/brand';
 import { sendFormToContact } from '../utils/sendToContact';
 import { IMG as TEMPLATE_IMG } from '../constants/images';
 import { cities } from '../data/cities';
+import { SELLER_SITUATIONS } from '../data/sellerSituations';
 import OfferLink from '../components/OfferLink';
 import { useScrollReveal } from '../hooks/useScrollReveal';
 import { useScrollToOffer } from '../hooks/useScrollToOffer';
@@ -635,6 +636,15 @@ export default function LandingPage() {
               <Link to="/testimonials">Reviews</Link>
               <OfferLink>Get a Cash Offer</OfferLink>
               <a href="#areas">Areas We Buy</a>
+              {SELLER_SITUATIONS.slice(0, 4).map((s) => (
+                <Link key={s.slug} to={`/sell/${s.slug}`}>{s.headline.split('—')[0].trim()}</Link>
+              ))}
+            </div>
+            <div className={styles.footerCol}>
+              <h4>Situations</h4>
+              {SELLER_SITUATIONS.map((s) => (
+                <Link key={s.slug} to={`/sell/${s.slug}`}>{s.title.replace(' in Oregon', '')}</Link>
+              ))}
             </div>
             <div className={styles.footerCol}>
               <h4>Investors</h4>
