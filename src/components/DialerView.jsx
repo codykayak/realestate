@@ -3,6 +3,7 @@ import { fileIcon, isImage, formatSize } from '../hooks/useLeadPhotos';
 import { smsCountForPhone, mergeTemplate, DEFAULT_TEMPLATES } from '../utils/smsTemplates';
 import { DEFAULT_EMAIL_TEMPLATES } from '../utils/emailTemplates';
 import { openNativeSms, openNativeEmail } from '../utils/nativeContact';
+import { openQuoCall } from '../utils/quoContact';
 import { isSmsBlocked, isCallBlocked, complianceLabel } from '../utils/leadCompliance';
 import TxtNowSheet from './TxtNowSheet';
 import LeadActivityTimeline from './LeadActivityTimeline';
@@ -34,6 +35,12 @@ export default function DialerView({
   twilioConfig = null,
   twilioTemplates = [],
   onOpenTwilioSetup,
+  voipReady = false,
+  voipHasCredentials = false,
+  voipConfig = null,
+  voipTemplates = [],
+  voipProvider = null,
+  onOpenVoipSetup,
   onSendSms,
   scheduleAppointmentSms,
   cancelScheduledAppointmentSms,
@@ -43,6 +50,18 @@ export default function DialerView({
   emailTemplates,
   agentName,
 }) {
+  const smsReady = voipReady || twilioReady;
+  const smsHasCredentials = voipHasCredentials || twilioHasCredentials;
+  const smsConfig = voipConfig ?? twilioConfig;
+  const smsTemplates = voipTemplates?.length ? voipTemplates : twilioTemplates;
+  const openSetup = onOpenVoipSetup ?? onOpenTwilioSetup;
+  const fromNumber = smsConfig?.phoneNumber ?? '';
+  const useQuoCalls = voipProvider === 'quo' && voipReady;
+
+  const handleEmail = useCallback(() => {
+    if (!lead?.email?.trim()) return;
+    openNativeEmail(lead, emailTemplates?.[0], agentName ?? smsConfig?.agentName);
+  }, [lead, emailTemplates, agentName, smsConfig?.agentName]);
   const [idx, setIdx]             = useState(0);
   const [jumped, setJumped]       = useState(false);
   const [note, setNote]           = useState('');
@@ -105,13 +124,13 @@ export default function DialerView({
 
   const handleTxtNow = useCallback(() => {
     if (!lead) return;
-    if (!twilioReady) {
-      onOpenTwilioSetup?.();
+    if (!smsReady) {
+      openSetup?.();
       return;
     }
     if (isSmsBlocked(lead)) return;
     setTxtOpen(true);
-  }, [twilioReady, onOpenTwilioSetup, lead]);
+  }, [smsReady, openSetup, lead]);
 
   const handleScheduleAppointment = useCallback(async () => {
     if (!lead || !appointmentAt || !scheduleAppointmentSms) return;
@@ -166,18 +185,28 @@ export default function DialerView({
     return result;
   }, [onSendSms, onUpdateLead, lead]);
 
-  const handleCall = useCallback(() => {
-    if (!lead?.phone || isCallBlocked(lead)) return;
+  const startCall = useCallback((phone) => {
+    if (!lead || isCallBlocked(lead)) return;
     setCalling(true);
+    setActivePhone(phone);
     const count = (lead.callCount ?? 0) + 1;
     onUpdateLead(lead.id, {
-      callCount:    count,
+      phone,
+      callCount: count,
       lastCalledAt: new Date().toISOString(),
-      status:       lead.status === 'New' ? 'Contacted' : lead.status,
+      status: lead.status === 'New' ? 'Contacted' : lead.status,
     });
-    // tel: link opens native dialer on mobile
-    window.location.href = `tel:${lead.phone.replace(/\D/g, '')}`;
-  }, [lead, onUpdateLead]);
+    if (useQuoCalls) {
+      openQuoCall(phone, fromNumber);
+    } else {
+      window.location.href = `tel:${phone.replace(/\D/g, '')}`;
+    }
+  }, [lead, onUpdateLead, useQuoCalls, fromNumber]);
+
+  const handleCall = useCallback(() => {
+    if (!lead?.phone || isCallBlocked(lead)) return;
+    startCall(lead.phone);
+  }, [lead, startCall]);
 
   const handleOutcome = useCallback((outcome) => {
     if (!lead) return;
@@ -287,15 +316,25 @@ export default function DialerView({
 
         <button
           type="button"
-          className={`${styles.smsSetupBtn} ${twilioReady ? styles.smsSetupReady : ''}`}
-          onClick={() => onOpenTwilioSetup?.()}
-          title={twilioReady ? 'Twilio SMS active — in-app texting' : twilioHasCredentials ? 'Credentials saved — finish setup when Twilio approves' : 'Save Twilio credentials for in-app SMS'}
+          className={`${styles.smsSetupBtn} ${smsReady ? styles.smsSetupReady : ''}`}
+          onClick={() => openSetup?.()}
+          title={
+            smsReady
+              ? `${voipProvider === 'quo' ? 'Quo' : 'Twilio'} active — in-app texting`
+              : smsHasCredentials
+                ? 'Credentials saved — finish setup'
+                : 'Connect Quo or Twilio for in-app SMS'
+          }
         >
-          {twilioReady ? 'Twilio ✓' : twilioHasCredentials ? 'Twilio Setup ✓' : 'Twilio Setup'}
+          {smsReady
+            ? (voipProvider === 'quo' ? 'Quo ✓' : 'Twilio ✓')
+            : smsHasCredentials
+              ? 'VoIP Setup ✓'
+              : 'VoIP Setup'}
         </button>
 
-        {!twilioReady && (
-          <span className={styles.modeHint} title="Call, text, and email use your phone's apps until Twilio setup is complete">
+        {!smsReady && (
+          <span className={styles.modeHint} title="Call, text, and email use your phone's apps until VoIP setup is complete">
             📱 Phone apps
           </span>
         )}
@@ -433,22 +472,16 @@ export default function DialerView({
             {lead.phones.map(({ label, number }) => {
               const digits = number.replace(/\D/g, '');
               const isActive = calling && lead.phone === number;
+              const href = (!isCallBlocked(lead) && !useQuoCalls) ? `tel:${digits}` : undefined;
               return (
                 <a
                   key={label}
-                  href={isCallBlocked(lead) ? undefined : `tel:${digits}`}
+                  href={href}
                   className={`${styles.multiPhoneRow} ${isActive ? styles.multiPhoneActive : ''} ${isCallBlocked(lead) ? styles.rowDisabled : ''}`}
                   onClick={(e) => {
                     if (isCallBlocked(lead)) { e.preventDefault(); return; }
-                    setCalling(true);
-                    setActivePhone(number);
-                    const count = (lead.callCount ?? 0) + 1;
-                    onUpdateLead(lead.id, {
-                      phone:        number,
-                      callCount:    count,
-                      lastCalledAt: new Date().toISOString(),
-                      status:       lead.status === 'New' ? 'Contacted' : lead.status,
-                    });
+                    if (useQuoCalls) e.preventDefault();
+                    startCall(number);
                   }}
                 >
                   <div className={styles.multiPhoneLeft}>
@@ -471,10 +504,11 @@ export default function DialerView({
             <p className={styles.phoneNumber}>{formatPhone(lead.phone)}</p>
             <div className={styles.callActionRow}>
               <a
-                href={isCallBlocked(lead) ? undefined : `tel:${(lead.phone || '').replace(/\D/g, '')}`}
+                href={(!isCallBlocked(lead) && !useQuoCalls) ? `tel:${(lead.phone || '').replace(/\D/g, '')}` : undefined}
                 className={`${styles.callBtn} ${calling ? styles.callBtnActive : ''} ${isCallBlocked(lead) ? styles.rowDisabled : ''}`}
                 onClick={(e) => {
                   if (isCallBlocked(lead)) { e.preventDefault(); return; }
+                  if (useQuoCalls) e.preventDefault();
                   handleCall();
                 }}
               >
@@ -489,7 +523,7 @@ export default function DialerView({
                 onClick={handleTxtNow}
                 disabled={isSmsBlocked(lead)}
               >
-                {isSmsBlocked(lead) ? 'Text blocked' : (twilioReady ? 'Txt Now' : 'Text')}
+                {isSmsBlocked(lead) ? 'Text blocked' : (smsReady ? 'Txt Now' : 'Text')}
                 {smsCountForPhone(lead, lead.phone) > 0 && (
                   <span className={styles.txtTally}>{smsCountForPhone(lead, lead.phone)}</span>
                 )}
@@ -511,7 +545,7 @@ export default function DialerView({
             onClick={handleTxtNow}
             disabled={isSmsBlocked(lead)}
           >
-            {isSmsBlocked(lead) ? '💬 Text blocked' : (twilioReady ? '💬 Txt Now' : '💬 Text')}
+            {isSmsBlocked(lead) ? '💬 Text blocked' : (smsReady ? '💬 Txt Now' : '💬 Text')}
             {(lead.smsCount ?? 0) > 0 && (
               <span className={styles.txtTally}>{lead.smsCount} sent</span>
             )}
@@ -529,15 +563,15 @@ export default function DialerView({
         onClose={() => setTxtOpen(false)}
         lead={lead}
         activePhone={activePhone}
-        templates={twilioTemplates ?? []}
-        config={twilioConfig}
+        templates={smsTemplates ?? []}
+        config={smsConfig}
         onSend={handleSmsSent}
         sending={smsSending}
         error={smsError}
       />
 
       {/* ── Appointment reminder (3 hrs before) ─────────────────────── */}
-      {twilioReady && !isSmsBlocked(lead) && (
+      {smsReady && !isSmsBlocked(lead) && (
         <div className={styles.appointmentSection}>
           <p className={styles.appointmentLabel}>Appointment — auto-text 3 hours before</p>
           <input

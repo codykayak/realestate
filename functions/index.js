@@ -15,6 +15,8 @@ import {
 } from './lib/twilioStore.js';
 import { mergeTemplate, toE164, phoneKey, DEFAULT_TEMPLATES } from './lib/templates.js';
 import { sendSmsToLead, leadBlocksSms } from './lib/sendSmsCore.js';
+import { getQuoConfig, verifyQuoCredentials } from './lib/quoStore.js';
+import { sendQuoSmsToLead } from './lib/sendQuoSmsCore.js';
 import { CALLABLE_OPTIONS, REGION } from './lib/callableOpts.js';
 import { getLeadsDocRef } from './lib/leadsPath.js';
 import { handlePmGatewayChat } from './lib/pmGatewayChatHandler.js';
@@ -25,6 +27,17 @@ const geminiApiKey = defineSecret('GEMINI_API_KEY');
 initializeApp();
 
 const PROJECT_ID = process.env.GCLOUD_PROJECT || process.env.GCP_PROJECT || 'realestate-map-23692';
+
+function quoErrorMessage(err) {
+  const status = err?.status;
+  const msg = err?.message ?? String(err);
+  if (status === 401 || err?.code === '0400401' || err?.code === '0200401') {
+    return 'Invalid Quo API key. Generate a new key in Quo → Workspace Settings → API.';
+  }
+  if (status === 403) return 'This API key does not have access to the selected Quo number.';
+  if (status === 404) return 'Quo resource not found. Check your phone number or Phone Number ID.';
+  return msg || 'Quo API request failed.';
+}
 
 function twilioErrorMessage(err) {
   const code = err?.code ?? err?.status;
@@ -97,6 +110,73 @@ export const testTwilioCredentials = onCall(CALLABLE_OPTIONS, async (request) =>
     console.error('[testTwilioCredentials]', e);
     throw new HttpsError('invalid-argument', twilioErrorMessage(e));
   }
+});
+
+// ── Callable: verify Quo API key ────────────────────────────────────────────
+export const testQuoCredentials = onCall(CALLABLE_OPTIONS, async (request) => {
+  requireAuth(request);
+  const { apiKey, phoneNumber, phoneNumberId } = request.data ?? {};
+  const key = String(apiKey ?? '').trim();
+  if (!key) {
+    throw new HttpsError('invalid-argument', 'Quo API key is required.');
+  }
+  try {
+    const result = await verifyQuoCredentials(key, phoneNumberId || phoneNumber);
+    return result;
+  } catch (e) {
+    console.error('[testQuoCredentials]', e);
+    throw new HttpsError('invalid-argument', quoErrorMessage(e));
+  }
+});
+
+// ── Callable: send SMS from dialer via Quo ───────────────────────────────────
+export const sendQuoSms = onCall(CALLABLE_OPTIONS, async (request) => {
+  const uid = requireAuth(request);
+  const { leadId, templateId, toPhone, leadSnapshot } = request.data ?? {};
+
+  if (leadId == null || !templateId) {
+    throw new HttpsError('invalid-argument', 'leadId and templateId are required.');
+  }
+
+  const config = await getQuoConfig(uid);
+  if (!config?.onboardingComplete) {
+    throw new HttpsError('failed-precondition', 'Complete Quo setup before sending texts.');
+  }
+
+  const template = (config.templates ?? DEFAULT_TEMPLATES).find((t) => t.id === templateId);
+  if (!template) {
+    throw new HttpsError('invalid-argument', 'Unknown template.');
+  }
+
+  let lead = leadSnapshot;
+  if (!lead) {
+    const snap = await (await getLeadsDocRef(uid)).get();
+    lead = snap.data()?.leads?.find((l) => l.id === leadId) ?? null;
+  }
+  if (!lead) throw new HttpsError('not-found', 'Lead not found.');
+  if (leadBlocksSms(lead)) {
+    throw new HttpsError('failed-precondition', 'Lead is marked do-not-text or SMS opt-out.');
+  }
+
+  const actor = { uid, email: request.auth.token?.email ?? '' };
+  let result;
+  try {
+    result = await sendQuoSmsToLead(uid, config, lead, templateId, template.body, toPhone, 'manual', actor);
+  } catch (e) {
+    throw new HttpsError('internal', e.message || 'Quo send failed.');
+  }
+
+  const snap = await (await getLeadsDocRef(uid)).get();
+  const updated = snap.data()?.leads?.find((l) => l.id === leadId);
+
+  return {
+    sid: result.message.id,
+    status: result.message.status,
+    body: result.body,
+    smsCount: updated?.smsCount ?? 1,
+    smsCountsByPhone: updated?.smsCountsByPhone ?? { [phoneKey(result.to)]: 1 },
+    provider: 'quo',
+  };
 });
 
 // ── Callable: send SMS from dialer ──────────────────────────────────────────
@@ -174,9 +254,12 @@ export const scheduleAppointmentSms = onCall(CALLABLE_OPTIONS, async (request) =
     throw new HttpsError('invalid-argument', 'Invalid appointment date.');
   }
 
-  const config = await getTwilioConfig(uid);
+  const quoConfig = await getQuoConfig(uid);
+  const twilioConfig = quoConfig?.onboardingComplete ? null : await getTwilioConfig(uid);
+  const config = quoConfig?.onboardingComplete ? quoConfig : twilioConfig;
+  const provider = quoConfig?.onboardingComplete ? 'quo' : 'twilio';
   if (!config?.onboardingComplete) {
-    throw new HttpsError('failed-precondition', 'Complete Twilio setup first.');
+    throw new HttpsError('failed-precondition', 'Complete Quo or Twilio setup first.');
   }
 
   const snap = await (await getLeadsDocRef(uid)).get();
@@ -212,6 +295,7 @@ export const scheduleAppointmentSms = onCall(CALLABLE_OPTIONS, async (request) =
     appointmentAt: appt.toISOString(),
     sendAt,
     status: 'pending',
+    provider,
     createdByUid: uid,
     createdByEmail: request.auth.token?.email ?? '',
     createdAt: FieldValue.serverTimestamp(),
@@ -267,9 +351,12 @@ export const processScheduledSms = onSchedule(
       if (!uid) continue;
 
       try {
-        const config = await getTwilioConfig(uid);
+        const provider = data.provider ?? 'twilio';
+        const config = provider === 'quo'
+          ? await getQuoConfig(uid)
+          : await getTwilioConfig(uid);
         if (!config) {
-          await doc.ref.update({ status: 'failed', error: 'Twilio not configured' });
+          await doc.ref.update({ status: 'failed', error: `${provider} not configured` });
           continue;
         }
 
@@ -285,7 +372,8 @@ export const processScheduledSms = onSchedule(
         const template = (config.templates ?? DEFAULT_TEMPLATES).find((t) => t.id === 'appointment')
           ?? DEFAULT_TEMPLATES.find((t) => t.id === 'appointment');
 
-        const result = await sendSmsToLead(
+        const sendFn = provider === 'quo' ? sendQuoSmsToLead : sendSmsToLead;
+        const result = await sendFn(
           uid,
           config,
           { ...lead, appointmentAt: data.appointmentAt },
@@ -299,7 +387,9 @@ export const processScheduledSms = onSchedule(
         await doc.ref.update({
           status: 'sent',
           sentAt: FieldValue.serverTimestamp(),
-          twilioSid: result.message.sid,
+          twilioSid: result.message.sid ?? null,
+          quoMessageId: result.message.id ?? null,
+          provider,
         });
       } catch (e) {
         console.error('[processScheduledSms]', doc.id, e);

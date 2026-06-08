@@ -5,16 +5,15 @@ import { db, functions, isFirebaseConfigured } from '../firebase';
 import { DEFAULT_MISSED_TEMPLATE, DEFAULT_TEMPLATES } from '../utils/smsTemplates';
 import { parseCallableError } from '../utils/callableError';
 
-const TWILIO_DOC = 'twilio';
+const QUO_DOC = 'quo';
 
-function twilioRef(uid) {
-  return doc(db, 'users', uid, 'data', TWILIO_DOC);
+function quoRef(uid) {
+  return doc(db, 'users', uid, 'data', QUO_DOC);
 }
 
-export function useTwilioConfig(uid) {
+export function useQuoConfig(uid) {
   const [config, setConfig]       = useState(null);
   const [loading, setLoading]     = useState(true);
-  const [webhooks, setWebhooks]   = useState(null);
   const [sending, setSending]     = useState(false);
   const [error, setError]         = useState(null);
 
@@ -26,7 +25,7 @@ export function useTwilioConfig(uid) {
     }
     setLoading(true);
     const unsub = onSnapshot(
-      twilioRef(uid),
+      quoRef(uid),
       (snap) => {
         setConfig(snap.exists() ? snap.data() : null);
         setLoading(false);
@@ -37,9 +36,8 @@ export function useTwilioConfig(uid) {
   }, [uid]);
 
   const hasCredentials = Boolean(
-    config?.accountSid &&
-    config?.authToken &&
-    config?.phoneNumber,
+    config?.apiKey &&
+    (config?.phoneNumber || config?.phoneNumberId),
   );
 
   const isReady = Boolean(
@@ -50,9 +48,10 @@ export function useTwilioConfig(uid) {
   const saveConfig = useCallback(async (patch) => {
     if (!uid) return;
     await setDoc(
-      twilioRef(uid),
+      quoRef(uid),
       {
         ...patch,
+        provider: 'quo',
         updatedAt: serverTimestamp(),
         templates: patch.templates ?? config?.templates ?? DEFAULT_TEMPLATES,
         missedCallTemplate: patch.missedCallTemplate ?? config?.missedCallTemplate ?? DEFAULT_MISSED_TEMPLATE,
@@ -61,23 +60,10 @@ export function useTwilioConfig(uid) {
     );
   }, [uid, config]);
 
-  const fetchWebhooks = useCallback(async () => {
-    if (!uid || !isFirebaseConfigured) return null;
+  const testCredentials = useCallback(async ({ apiKey, phoneNumber, phoneNumberId }) => {
+    const fn = httpsCallable(functions, 'testQuoCredentials');
     try {
-      const fn = httpsCallable(functions, 'getTwilioSetup');
-      const { data } = await fn();
-      setWebhooks(data.webhooks);
-      return data.webhooks;
-    } catch (e) {
-      console.error('[Twilio] getTwilioSetup:', e);
-      return null;
-    }
-  }, [uid]);
-
-  const testCredentials = useCallback(async ({ accountSid, authToken, phoneNumber }) => {
-    const fn = httpsCallable(functions, 'testTwilioCredentials');
-    try {
-      const { data } = await fn({ accountSid, authToken, phoneNumber });
+      const { data } = await fn({ apiKey, phoneNumber, phoneNumberId });
       return data;
     } catch (e) {
       const err = new Error(parseCallableError(e));
@@ -90,7 +76,7 @@ export function useTwilioConfig(uid) {
     setSending(true);
     setError(null);
     try {
-      const fn = httpsCallable(functions, 'sendSms');
+      const fn = httpsCallable(functions, 'sendQuoSms');
       const { data } = await fn({ leadId, templateId, toPhone, leadSnapshot });
       return data;
     } catch (e) {
@@ -102,31 +88,14 @@ export function useTwilioConfig(uid) {
     }
   }, []);
 
-  const scheduleAppointmentSms = useCallback(async ({ leadId, appointmentAt, toPhone }) => {
-    setError(null);
-    const fn = httpsCallable(functions, 'scheduleAppointmentSms');
-    const { data } = await fn({ leadId, appointmentAt, toPhone });
-    return data;
-  }, []);
-
-  const cancelScheduledAppointmentSms = useCallback(async (leadId) => {
-    const fn = httpsCallable(functions, 'cancelScheduledAppointmentSms');
-    const { data } = await fn({ leadId });
-    return data;
-  }, []);
-
   return {
     config,
     loading,
     isReady,
     hasCredentials,
-    webhooks,
-    fetchWebhooks,
     saveConfig,
     testCredentials,
     sendSms,
-    scheduleAppointmentSms,
-    cancelScheduledAppointmentSms,
     sending,
     error,
     setError,

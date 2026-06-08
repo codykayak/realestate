@@ -11,9 +11,10 @@ import ZoneFilter from './components/ZoneFilter';
 import LayerToggle from './components/LayerToggle';
 import TabBar from './components/TabBar';
 import DialerView from './components/DialerView';
-import TwilioOnboarding from './components/TwilioOnboarding';
+import VoipSetup from './components/VoipSetup';
 import SheetsView from './components/SheetsView';
 import { useTwilioConfig } from './hooks/useTwilioConfig';
+import { useQuoConfig } from './hooks/useQuoConfig';
 import BgGeocodingBanner from './components/BgGeocodingBanner';
 import { geocodeLeads, geocodeAddress, hasMapPin } from './utils/geocode';
 import { useLeadPhotos } from './hooks/useLeadPhotos';
@@ -66,11 +67,32 @@ export default function App() {
     sendSms,
     scheduleAppointmentSms,
     cancelScheduledAppointmentSms,
-    sending: smsSending,
+    sending: twilioSending,
     error: smsError,
     setError: setSmsError,
     templates: twilioTemplates,
   } = useTwilioConfig(uid);
+  const {
+    config: quoConfig,
+    isReady: quoReady,
+    hasCredentials: quoHasCredentials,
+    saveConfig: saveQuoConfig,
+    testCredentials: testQuoCredentials,
+    sendSms: sendQuoSms,
+    sending: quoSending,
+    error: quoError,
+    setError: setQuoError,
+    templates: quoTemplates,
+  } = useQuoConfig(uid);
+
+  const voipReady = quoReady || twilioReady;
+  const voipProvider = quoReady ? 'quo' : (twilioReady ? 'twilio' : null);
+  const voipHasCredentials = quoHasCredentials || twilioHasCredentials;
+  const voipConfig = quoReady ? quoConfig : twilioConfig;
+  const voipTemplates = quoReady ? quoTemplates : twilioTemplates;
+  const sendVoipSms = quoReady ? sendQuoSms : sendSms;
+  const activeSmsSending = quoReady ? quoSending : twilioSending;
+  const activeSmsError = quoReady ? quoError : smsError;
 
   const [leads, setLeads]                       = useState(null);
   const [selectedId, setSelectedId]             = useState(null);
@@ -86,7 +108,7 @@ export default function App() {
   const [activeTab, setActiveTab]               = useState('map');
   const [todayCalls, setTodayCalls]             = useState([]);
   const [dialerJumpId, setDialerJumpId]         = useState(null);
-  const [twilioSetupOpen, setTwilioSetupOpen]   = useState(false);
+  const [voipSetupOpen, setVoipSetupOpen]       = useState(false);
   const [teamOpen, setTeamOpen]                 = useState(false);
   // Background (non-blocking) geocoding for "X missing → tap to finish"
   const [bgGeocoding, setBgGeocoding]           = useState(false);
@@ -661,20 +683,25 @@ export default function App() {
             onViewInSheets={handleViewInSheets}
             onUploadPhoto={uploadPhoto}
             onDeletePhoto={deletePhoto}
-            twilioReady={twilioReady}
-            twilioHasCredentials={twilioHasCredentials}
-            twilioConfig={twilioConfig}
-            twilioTemplates={twilioTemplates}
-            onOpenTwilioSetup={() => { setSmsError(null); setTwilioSetupOpen(true); }}
-            onSendSms={sendSms}
+            voipReady={voipReady}
+            voipHasCredentials={voipHasCredentials}
+            voipConfig={voipConfig}
+            voipTemplates={voipTemplates}
+            voipProvider={voipProvider}
+            onOpenVoipSetup={() => {
+              setSmsError(null);
+              setQuoError(null);
+              setVoipSetupOpen(true);
+            }}
+            onSendSms={sendVoipSms}
             scheduleAppointmentSms={scheduleAppointmentSms}
             cancelScheduledAppointmentSms={cancelScheduledAppointmentSms}
             fetchLeadActivity={getLeadActivity}
-            smsSending={smsSending}
-            smsError={smsError}
+            smsSending={activeSmsSending}
+            smsError={activeSmsError}
             onShowInfo={(lead) => setInfoModal({ lead })}
-            emailTemplates={twilioConfig?.emailTemplates}
-            agentName={twilioConfig?.agentName}
+            emailTemplates={voipConfig?.emailTemplates ?? twilioConfig?.emailTemplates}
+            agentName={voipConfig?.agentName ?? twilioConfig?.agentName}
           />
         </div>
       )}
@@ -692,15 +719,27 @@ export default function App() {
         onUsePersonal={usePersonalLeads}
       />
 
-      <TwilioOnboarding
-        open={twilioSetupOpen}
-        onClose={() => setTwilioSetupOpen(false)}
-        config={twilioConfig}
-        saveConfig={saveTwilioConfig}
-        testCredentials={testCredentials}
-        fetchWebhooks={fetchWebhooks}
-        webhooks={webhooks}
-        uid={uid}
+      <VoipSetup
+        open={voipSetupOpen}
+        onClose={() => setVoipSetupOpen(false)}
+        initialTab={twilioHasCredentials && !quoHasCredentials ? 'twilio' : 'quo'}
+        quoProps={{
+          config: quoConfig,
+          saveConfig: saveQuoConfig,
+          testCredentials: testQuoCredentials,
+          isReady: quoReady,
+          hasCredentials: quoHasCredentials,
+        }}
+        twilioProps={{
+          config: twilioConfig,
+          saveConfig: saveTwilioConfig,
+          testCredentials,
+          fetchWebhooks,
+          webhooks,
+          uid,
+          isReady: twilioReady,
+          hasCredentials: twilioHasCredentials,
+        }}
       />
 
       <MyListsPanel

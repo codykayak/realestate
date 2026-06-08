@@ -1,0 +1,40 @@
+.tabs {
+  display: flex;
+  gap: 8px;
+  padding: 0 20px 12px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.tab {
+  flex: 1;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.04);
+  color: #8b949e;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+}
+
+.tab:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: #c9d1d9;
+}
+
+.tabActive {
+  background: rgba(27, 125, 125, 0.22);
+  border-color: rgba(27, 125, 125, 0.55);
+  color: #7ee8d8;
+}
+
+.tabPanel {
+  overflow: auto;
+  flex: 1;
+  min-height: 0;
+}
+
+.tabPanel :global(.body) {
+  padding-top: 8px;
+}
