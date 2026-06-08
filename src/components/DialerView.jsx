@@ -53,15 +53,13 @@ export default function DialerView({
   const smsReady = voipReady || twilioReady;
   const smsHasCredentials = voipHasCredentials || twilioHasCredentials;
   const smsConfig = voipConfig ?? twilioConfig;
-  const smsTemplates = voipTemplates?.length ? voipTemplates : twilioTemplates;
   const openSetup = onOpenVoipSetup ?? onOpenTwilioSetup;
   const fromNumber = smsConfig?.phoneNumber ?? '';
   const useQuoCalls = voipProvider === 'quo' && voipReady;
+  const templateList = voipTemplates?.length
+    ? voipTemplates
+    : (twilioTemplates?.length ? twilioTemplates : DEFAULT_TEMPLATES);
 
-  const handleEmail = useCallback(() => {
-    if (!lead?.email?.trim()) return;
-    openNativeEmail(lead, emailTemplates?.[0], agentName ?? smsConfig?.agentName);
-  }, [lead, emailTemplates, agentName, smsConfig?.agentName]);
   const [idx, setIdx]             = useState(0);
   const [jumped, setJumped]       = useState(false);
   const [note, setNote]           = useState('');
@@ -91,6 +89,15 @@ export default function DialerView({
 
   const lead = queue[idx] ?? null;
   const total = queue.length;
+
+  const templateConfig = useMemo(() => ({
+    agentName: smsConfig?.agentName ?? agentName ?? 'Macro REI',
+  }), [smsConfig?.agentName, agentName]);
+
+  const handleEmail = useCallback(() => {
+    if (!lead?.email?.trim()) return;
+    openNativeEmail(lead, emailTemplates?.[0], templateConfig.agentName);
+  }, [lead, emailTemplates, templateConfig.agentName]);
 
   // Stats
   const todayCount   = todayCalls?.length ?? 0;
@@ -123,14 +130,9 @@ export default function DialerView({
   }, [lead, onUpdateLead]);
 
   const handleTxtNow = useCallback(() => {
-    if (!lead) return;
-    if (!smsReady) {
-      openSetup?.();
-      return;
-    }
-    if (isSmsBlocked(lead)) return;
+    if (!lead || isSmsBlocked(lead)) return;
     setTxtOpen(true);
-  }, [smsReady, openSetup, lead]);
+  }, [lead]);
 
   const handleScheduleAppointment = useCallback(async () => {
     if (!lead || !appointmentAt || !scheduleAppointmentSms) return;
@@ -334,7 +336,7 @@ export default function DialerView({
         </button>
 
         {!smsReady && (
-          <span className={styles.modeHint} title="Call, text, and email use your phone's apps until VoIP setup is complete">
+          <span className={styles.modeHint} title="Call opens your phone dialer. Text opens Messages with your template filled in. Connect Quo or Twilio in VoIP Setup when ready for in-app send.">
             📱 Phone apps
           </span>
         )}
@@ -563,9 +565,10 @@ export default function DialerView({
         onClose={() => setTxtOpen(false)}
         lead={lead}
         activePhone={activePhone}
-        templates={smsTemplates ?? []}
-        config={smsConfig}
-        onSend={handleSmsSent}
+        templates={templateList}
+        config={templateConfig}
+        nativeMode={!smsReady}
+        onSend={smsReady ? handleSmsSent : undefined}
         sending={smsSending}
         error={smsError}
       />

@@ -186,6 +186,13 @@
   margin: 0 0 10px;
 }
 
+.hint {
+  color: #8b949e;
+  font-size: 13px;
+  line-height: 1.45;
+  margin: 0 0 12px;
+}
+
 .sendBtn {
   width: 100%;
   min-height: 56px;
