@@ -69,23 +69,43 @@ jobs:
           GEMINI_API_KEY: ci-smoke-test
         run: node -e "import('./index.js').then(() => console.log('functions index ok'))"
 
-      - name: Deploy functions and Firestore rules (service account)
+      - name: Deploy Cloud Functions (service account)
         if: steps.creds.outputs.method == 'sa'
-        env:
-          PROJECT_ID: ${{ secrets.GCP_PROJECT_ID || steps.auth.outputs.project_id }}
         run: |
-          echo "Deploying Firebase to project: ${PROJECT_ID}"
+          echo "Deploying functions to realestate-map-23692"
           firebase deploy \
-            --only functions,firestore:rules \
+            --only functions \
             --project realestate-map-23692 \
             --non-interactive
 
-      - name: Deploy functions and Firestore rules (legacy token)
+      - name: Deploy Firestore rules (service account, optional)
+        if: steps.creds.outputs.method == 'sa'
+        continue-on-error: true
+        run: |
+          firebase deploy \
+            --only firestore:rules \
+            --project realestate-map-23692 \
+            --non-interactive \
+          || echo "::warning title=Firestore rules skipped::Service account needs Firebase Rules Admin on realestate-map-23692. Functions deploy is the critical path."
+
+      - name: Deploy Cloud Functions (legacy token)
         if: steps.creds.outputs.method == 'token'
         env:
           FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
         run: |
           firebase deploy \
-            --only functions,firestore:rules \
+            --only functions \
             --project realestate-map-23692 \
             --non-interactive
+
+      - name: Deploy Firestore rules (legacy token, optional)
+        if: steps.creds.outputs.method == 'token'
+        continue-on-error: true
+        env:
+          FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
+        run: |
+          firebase deploy \
+            --only firestore:rules \
+            --project realestate-map-23692 \
+            --non-interactive \
+          || echo "::warning title=Firestore rules skipped::Regenerate FIREBASE_TOKEN or use PROJECTMANAGMENT service account."
