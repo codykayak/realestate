@@ -1,5 +1,5 @@
 import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
-import * as SecureStore from 'expo-secure-store';
+import { getStoredItem, setStoredItem } from '../storage';
 import { colors } from '../theme';
 
 const DEV_USER_KEY = 'code_on_go_dev_user';
@@ -18,7 +18,7 @@ export function SettingsScreen({
   onResetOnboarding,
 }: Props) {
   async function saveDevUser() {
-    await SecureStore.setItemAsync(DEV_USER_KEY, devUserId);
+    await setStoredItem(DEV_USER_KEY, devUserId);
   }
 
   return (
@@ -54,7 +54,7 @@ export function SettingsScreen({
 }
 
 export async function loadDevUserId(): Promise<string> {
-  return (await SecureStore.getItemAsync(DEV_USER_KEY)) ?? 'demo-user';
+  return (await getStoredItem(DEV_USER_KEY)) ?? 'demo-user';
 }
 
 const styles = StyleSheet.create({

@@ -17,7 +17,9 @@ export default function App() {
   const token = `dev:${devUserId}`;
 
   useEffect(() => {
-    loadDevUserId().then(setDevUserId);
+    loadDevUserId()
+      .then(setDevUserId)
+      .catch(() => setDevUserId('demo-user'));
   }, []);
 
   if (screen === 'onboarding') {
