@@ -20,6 +20,7 @@ import { sendQuoSmsToLead } from './lib/sendQuoSmsCore.js';
 import { CALLABLE_OPTIONS, REGION } from './lib/callableOpts.js';
 import { getLeadsDocRef } from './lib/leadsPath.js';
 import { handlePmGatewayChat } from './lib/pmGatewayChatHandler.js';
+import { handleWebLeadSubmit } from './lib/webLeadHandler.js';
 import { defineSecret } from 'firebase-functions/params';
 
 const geminiApiKey = defineSecret('GEMINI_API_KEY');
@@ -65,6 +66,12 @@ function publicUrl(req, functionName) {
 export const pmGatewayChat = onRequest(
   { region: REGION, invoker: 'public', secrets: [geminiApiKey] },
   handlePmGatewayChat,
+);
+
+// ── HTTP: website forms + Meta/Google/Zapier lead webhook ─────────────────
+export const submitWebLead = onRequest(
+  { region: REGION, invoker: 'public' },
+  handleWebLeadSubmit,
 );
 
 // ── Callable: return webhook URLs for Twilio Console setup ─────────────────
