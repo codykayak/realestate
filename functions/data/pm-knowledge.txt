@@ -2,6 +2,8 @@ ManyDoors AI (manydoorsai.com) is AI property management software for multifamil
 Live demo: https://www.macrorei.com/property-management
 Tagline: AI-powered property operations — maintenance triage, leasing, and resident communications.
 Support email: hello@manydoorsai.com
+Support phone: 541-321-2630
+Headquarters: Eugene, OR (serving Oregon multifamily operators; expanding nationally).
 U.S.-based support teams with continuous platform updates.
 Five modules: AI Resident Communication, Automated Leasing, AI Maintenance Triage, Owner Portal & NOI, U.S. Support & Updates.
 Target outcomes: 50-70% inquiry deflection, 15-25% maintenance truck-roll avoidance, 2+ vacancy-days saved per lease (illustrative), one-click owner PDF reports.
@@ -239,6 +241,31 @@ ManyDoors AI is built and supported in the United States. Your portfolio gets a 
 Human support for setup, integrations, and knowledge-base tuning
 Continuous platform updates — new AI models, PMS connectors, and compliance patches ship regularly
 SLA-backed response for enterprise portfolios (roadmap)
+
+
+## Service areas — Oregon multifamily
+We are headquartered in Eugene, OR and market heavily across Oregon's core multifamily metros. Each page below describes how AI operations — resident communication, leasing, and maintenance — maps to local operator realities. Expanding to additional states; contact us for portfolio pricing outside these markets.
+HQ: Eugene, OR
+
+### Portland, Oregon
+ManyDoors AI helps Portland-area multifamily operators deflect resident inquiries, automate leasing, and triage maintenance — without replacing Yardi, RealPage, or AppFolio.
+The Portland metro carries some of Oregon's densest multifamily inventory — and some of the tightest onsite labor. Operators with 2,000–20,000 units compete for leasing and maintenance staff while residents expect sub-hour text replies. Statewide rent-policy attention and insurance volatility mean owners scrutinize NOI line by line; slow speed-to-lead and manual screening still burn vacancy days.
+
+### Eugene, Oregon
+ManyDoors AI for Eugene and Lane County multifamily: 24/7 resident communication, automated leasing, and maintenance triage. HQ in Eugene, OR. Live demo available.
+Eugene–Springfield blends university-driven demand with a regional hub for healthcare and public-sector employment. Multifamily operators here often manage a mix of 1970s–2000s stock and newer infill — with seasonal turnover and student-adjacent leasing spikes. Teams of 50–150 staff support thousands of units; after-hours texts and maintenance photos do not wait for Monday morning.
+
+### Salem, Oregon
+ManyDoors AI for Salem-area property managers: speed-to-lead, resident deflection, and maintenance triage for midsize multifamily portfolios in the Willamette Valley.
+Salem's economy anchors on government, healthcare, and logistics — steady rental demand with less hype than Portland, but the same operational math: vacancy days hurt, fraud risk is rising, and site teams answer the same resident questions hundreds of times per month. Operators stretching from West Salem to Keizer and into Polk County need scalable communication without proportional headcount.
+
+### Corvallis, Oregon
+ManyDoors AI for Corvallis multifamily: AI resident replies, leasing automation, and maintenance triage for Benton County operators running lean onsite teams.
+Corvallis multifamily is shaped by university cycles, a tight local hiring pool, and a buyer/renter market smaller than Eugene or Portland. Operators often run dual roles — regional manager plus onsite lead — which makes after-hours coverage and speed-to-lead especially painful. One slow weekend response can mean a lost lease in a market with limited backup inventory.
+
+### Bend, Oregon
+ManyDoors AI for Bend and Central Oregon multifamily: maintenance triage, leasing automation, and resident AI — built for fast-growth markets with thin onsite staffing.
+Bend and Deschutes County saw rapid multifamily development and migration-driven demand — then the same insurance, turnover, and labor pressures as the rest of Oregon. Seasonal fluctuations and second-home adjacency mean some communities see burst traffic; operators still run on lean teams. Remote owners expect institutional-grade reporting from regional PMCs.
 
 
 ## Feature pages

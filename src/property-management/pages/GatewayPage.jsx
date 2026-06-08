@@ -69,7 +69,7 @@ export default function GatewayPage() {
 
   const seoTitle = `${config.productName} | AI Property Management Software — NOI, Leasing & Maintenance`;
   const seoDesc =
-    `${config.productName} is AI property management software for multifamily operators: 24/7 resident communications, automated leasing, maintenance triage, and owner-grade NOI reporting — backed by U.S. support teams. Live demo at macrorei.com/property-management.`;
+    `${config.productName} is AI property management software for Oregon multifamily operators — Portland, Eugene, Salem, Corvallis & Bend. HQ in Eugene, OR. 24/7 resident communications, automated leasing, maintenance triage, and owner-grade NOI reporting.`;
 
   return (
     <div className={gw.gateway}>
@@ -173,6 +173,11 @@ export default function GatewayPage() {
           <div>
             <h2 className={gw.supportTitle}>{US_SUPPORT.headline}</h2>
             <p className={gw.sectionSub}>{US_SUPPORT.body}</p>
+            <p className={gw.localAreasLink}>
+              Headquartered in Eugene, OR —{' '}
+              <Link to={hrefFor(base, 'locations')}>Oregon service areas</Link>
+              {' '}(Portland, Salem, Corvallis, Bend)
+            </p>
           </div>
         </section>
 

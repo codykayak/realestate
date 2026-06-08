@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 
-const SITE_URL = 'https://www.macrorei.com';
+const DEFAULT_SITE_URL = 'https://www.macrorei.com';
 
 /**
  * Per-route SEO for the property-management gateway (ManyDoors AI).
@@ -14,9 +14,12 @@ export default function PmSeoHead({
   ogImage = '/manydoors-ai-software-property-management.png',
   jsonLd = null,
   robots = 'index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1',
+  /** Override canonical origin — e.g. from getPmSiteUrl(config) */
+  siteBase = DEFAULT_SITE_URL,
 }) {
-  const canonical = `${SITE_URL}${path.startsWith('/') ? path : `/${path}`}`;
-  const imageUrl = ogImage.startsWith('http') ? ogImage : `${SITE_URL}${ogImage}`;
+  const origin = (siteBase || DEFAULT_SITE_URL).replace(/\/$/, '');
+  const canonical = `${origin}${path.startsWith('/') ? path : `/${path}`}`;
+  const imageUrl = ogImage.startsWith('http') ? ogImage : `${origin}${ogImage}`;
 
   useEffect(() => {
     document.title = title;

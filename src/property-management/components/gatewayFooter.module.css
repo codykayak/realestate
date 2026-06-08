@@ -74,11 +74,29 @@
   margin-bottom: 2px;
 }
 
-.contactNote {
-  margin: 12px 0 0;
-  font-size: 11px;
-  color: var(--pm-muted, #8b97a7);
-  font-style: italic;
+.areaList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 13px;
+}
+
+.areaList a {
+  color: var(--pm-text, #e6edf3);
+  text-decoration: none;
+}
+
+.areaList a:hover {
+  color: var(--pm-accent, #00d2d3);
+}
+
+.footLinks {
+  display: flex;
+  gap: 16px;
+  align-items: center;
 }
 
 .footRow {

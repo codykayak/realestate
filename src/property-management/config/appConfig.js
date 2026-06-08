@@ -24,8 +24,7 @@ export const APP_CONFIG = {
   supportEmail: env.VITE_PM_SUPPORT_EMAIL || 'hello@manydoorsai.com',
   supportPhone: env.VITE_PM_SUPPORT_PHONE || '541-321-2630',
   salesPhone: env.VITE_PM_SALES_PHONE || '541-321-2630',
-  supportAddress:
-    env.VITE_PM_SUPPORT_ADDRESS || 'United States — full mailing address coming soon',
+  supportAddress: env.VITE_PM_SUPPORT_ADDRESS || 'Eugene, OR',
 };
 
 export default APP_CONFIG;

@@ -1,5 +1,7 @@
 import { Link } from 'react-router-dom';
 import { usePm } from '../context/PmContext';
+import { LOCAL_BUSINESS } from '../content/localBusiness';
+import { LOCATIONS } from '../content/locationsData';
 import ft from './gatewayFooter.module.css';
 
 function hrefFor(base, route) {
@@ -8,16 +10,19 @@ function hrefFor(base, route) {
 }
 
 /**
- * Gateway footer — contact placeholders and a discreet FAQ link only.
+ * Gateway footer — consistent NAP for local citations + discreet FAQ / service-area links.
  */
 export default function GatewayFooter({ showFaqLink = true }) {
   const { config } = usePm();
   const base = config.basePath;
-  const phone = config.supportPhone || '(contact details coming soon)';
-  const address = config.supportAddress || 'United States — full mailing address coming soon';
+  const phone = config.supportPhone || '541-321-2630';
+  const phoneTel = phone.replace(/\D/g, '');
+  const address = config.supportAddress || LOCAL_BUSINESS.addressDisplay;
 
   return (
-    <footer className={ft.footer}>
+    <footer className={ft.footer} itemScope itemType="https://schema.org/LocalBusiness">
+      <meta itemProp="name" content={config.companyName} />
+      <meta itemProp="email" content={config.supportEmail} />
       <div className={ft.inner}>
         <div className={ft.grid}>
           <div>
@@ -31,38 +36,48 @@ export default function GatewayFooter({ showFaqLink = true }) {
             <ul className={ft.contactList}>
               <li>
                 <span className={ft.contactLabel}>Email</span>
-                <a href={`mailto:${config.supportEmail}`}>{config.supportEmail}</a>
+                <a href={`mailto:${config.supportEmail}`} itemProp="email">{config.supportEmail}</a>
               </li>
               <li>
                 <span className={ft.contactLabel}>Phone</span>
-                <span>{phone}</span>
+                <a href={`tel:${phoneTel}`} itemProp="telephone">{phone}</a>
               </li>
-              <li>
+              <li itemProp="address" itemScope itemType="https://schema.org/PostalAddress">
                 <span className={ft.contactLabel}>Office</span>
-                <span>{address}</span>
+                <span>
+                  <span itemProp="addressLocality">{LOCAL_BUSINESS.addressLocality}</span>,{' '}
+                  <span itemProp="addressRegion">{LOCAL_BUSINESS.addressRegion}</span>
+                </span>
               </li>
             </ul>
-            <p className={ft.contactNote}>Contact details are being updated — check back soon.</p>
           </div>
 
           <div>
-            <div className={ft.colTitle}>Demo</div>
-            <p className={ft.blurb}>
-              Explore the live build-and-pitch demo at{' '}
-              <strong>/property-management</strong> — click Enter platform to open the operations app.
-            </p>
+            <div className={ft.colTitle}>Oregon service areas</div>
+            <ul className={ft.areaList}>
+              {LOCATIONS.map((loc) => (
+                <li key={loc.slug}>
+                  <Link to={hrefFor(base, `locations/${loc.slug}`)}>{loc.name}</Link>
+                </li>
+              ))}
+            </ul>
           </div>
         </div>
 
         <div className={ft.footRow}>
           <span className={ft.copy}>
-            © {new Date().getFullYear()} {config.companyName}. All rights reserved.
+            © {new Date().getFullYear()} {config.companyName}. {address}
           </span>
-          {showFaqLink && (
-            <Link to={hrefFor(base, 'faq')} className={ft.faqLink}>
-              FAQ
+          <div className={ft.footLinks}>
+            <Link to={hrefFor(base, 'locations')} className={ft.faqLink}>
+              All service areas
             </Link>
-          )}
+            {showFaqLink && (
+              <Link to={hrefFor(base, 'faq')} className={ft.faqLink}>
+                FAQ
+              </Link>
+            )}
+          </div>
         </div>
       </div>
     </footer>

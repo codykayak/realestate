@@ -23,6 +23,10 @@ export const FAQ_CATEGORIES = [
         a: 'Regional operators, third-party managers, and owner-operators running midsize to enterprise multifamily portfolios. It is designed for teams that want to protect NOI, reduce staff overtime, and prove ROI to owners without replacing their core PMS.',
       },
       {
+        q: 'Where is ManyDoors AI located? Which markets do you serve?',
+        a: 'ManyDoors AI is headquartered in Eugene, OR (541-321-2630, hello@manydoorsai.com). We actively market to multifamily operators in Portland, Eugene, Salem, Corvallis, and Bend, Oregon — see /property-management/locations for metro-specific pages. The platform is built to scale nationally as portfolios expand.',
+      },
+      {
         q: 'Does ManyDoors AI replace my PMS?',
         a: 'No. ManyDoors is a connective AI layer — not a ledger replacement. Your PMS remains the system of record for rent roll, GL, and work orders. ManyDoors reads (and eventually writes back) operational data while handling high-volume resident and prospect interactions.',
       },

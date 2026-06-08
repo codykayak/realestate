@@ -5,12 +5,16 @@
 
 import { FAQ_CATEGORIES, FAQ_INTRO } from './faqData.js';
 import { FEATURE_PAGES, US_SUPPORT } from './gatewayContent.js';
+import { LOCAL_BUSINESS } from './localBusiness.js';
+import { LOCATIONS, LOCATIONS_INDEX } from './locationsData.js';
 
 const PRODUCT_SUMMARY = `
 ManyDoors AI (manydoorsai.com) is AI property management software for multifamily operators.
 Live demo: https://www.macrorei.com/property-management
 Tagline: AI-powered property operations — maintenance triage, leasing, and resident communications.
 Support email: hello@manydoorsai.com
+Support phone: 541-321-2630
+Headquarters: Eugene, OR (serving Oregon multifamily operators; expanding nationally).
 U.S.-based support teams with continuous platform updates.
 Five modules: AI Resident Communication, Automated Leasing, AI Maintenance Triage, Owner Portal & NOI, U.S. Support & Updates.
 Target outcomes: 50-70% inquiry deflection, 15-25% maintenance truck-roll avoidance, 2+ vacancy-days saved per lease (illustrative), one-click owner PDF reports.
@@ -34,6 +38,11 @@ export function buildSiteKnowledgeText() {
   }
 
   parts.push(section(US_SUPPORT.headline, `${US_SUPPORT.body}\n${US_SUPPORT.bullets.join('\n')}`));
+
+  parts.push(section(LOCATIONS_INDEX.title, `${LOCATIONS_INDEX.intro}\nHQ: ${LOCAL_BUSINESS.addressDisplay}`));
+  for (const loc of LOCATIONS) {
+    parts.push(`### ${loc.name}, Oregon\n${loc.metaDescription}\n${loc.marketContext}\n`);
+  }
 
   parts.push('\n## Feature pages\n');
   for (const f of FEATURE_PAGES) {
