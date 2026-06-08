@@ -17,10 +17,14 @@ jobs:
     steps:
       - name: Check for GCP credentials
         id: creds
+        env:
+          # JSON service-account keys must not be interpolated into bash `[ -n ]` tests
+          SA_JSON: ${{ secrets.PROJECTMANAGMENT }}
+          FB_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
         run: |
-          if [ -n "${{ secrets.PROJECTMANAGMENT }}" ]; then
+          if [ -n "$SA_JSON" ]; then
             echo "method=sa" >> "$GITHUB_OUTPUT"
-          elif [ -n "${{ secrets.FIREBASE_TOKEN }}" ]; then
+          elif [ -n "$FB_TOKEN" ]; then
             echo "method=token" >> "$GITHUB_OUTPUT"
           else
             echo "method=none" >> "$GITHUB_OUTPUT"
@@ -73,8 +77,7 @@ jobs:
           firebase deploy \
             --only functions,firestore:rules \
             --project realestate-map-23692 \
-            --non-interactive \
-            --debug
+            --non-interactive
 
       - name: Deploy functions and Firestore rules (legacy token)
         if: steps.creds.outputs.method == 'token'
@@ -84,5 +87,4 @@ jobs:
           firebase deploy \
             --only functions,firestore:rules \
             --project realestate-map-23692 \
-            --non-interactive \
-            --debug
+            --non-interactive
