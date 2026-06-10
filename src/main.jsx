@@ -20,7 +20,7 @@ import SellerDealTrackerPage from './pages/SellerDealTrackerPage';
 import './index.css';
 
 const App = lazy(() => import('./App'));
-const PropertyManagement = lazy(() => import('./property-management/index.jsx'));
+const PropertyManagementRedirect = lazy(() => import('./components/PropertyManagementRedirect.jsx'));
 const ManyDoorsSite = lazy(() => import('./manydoors-site/index.jsx'));
 
 function SiteLoading() {
@@ -39,10 +39,10 @@ function MapLoading() {
   );
 }
 
-function PmLoading() {
+function PmRedirectLoading() {
   return (
     <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#0c1524', color: '#8b97a7' }}>
-      Loading Property Management…
+      Redirecting to ManyDoors AI…
     </div>
   );
 }
@@ -78,7 +78,7 @@ createRoot(document.getElementById('root')).render(
         <Route path="legal/affidavit-of-heirship" element={<AffidavitHeirshipPage />} />
 
         <Route path="/app/*" element={<Suspense fallback={<MapLoading />}><App /></Suspense>} />
-        <Route path="/property-management/*" element={<Suspense fallback={<PmLoading />}><PropertyManagement /></Suspense>} />
+        <Route path="/property-management/*" element={<Suspense fallback={<PmRedirectLoading />}><PropertyManagementRedirect /></Suspense>} />
 
         {/* ManyDoors AI marketing site */}
         <Route path="/manydoors/*" element={<Suspense fallback={<SiteLoading />}><ManyDoorsSite /></Suspense>} />
