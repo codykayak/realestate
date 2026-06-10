@@ -30,7 +30,7 @@
   width: 34px;
   height: 34px;
   object-fit: contain;
-  border-radius: 7px;
+  background: transparent;
 }
 
 .brandText {

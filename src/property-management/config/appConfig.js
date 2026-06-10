@@ -12,8 +12,9 @@ export const APP_CONFIG = {
   productTagline:
     env.VITE_PM_PRODUCT_TAGLINE ||
     'AI-powered property operations — maintenance triage, leasing, and resident communications',
-  logo: env.VITE_PM_LOGO || '/manydoors-logo.png',
-  logoWordmark: env.VITE_PM_LOGO_WORDMARK || '/manydoors-logo.png',
+  /** Mark (transparent SVG) for nav/sidebar; PNG has an opaque background. */
+  logo: env.VITE_PM_LOGO || '/manydoors-logo-mark.svg',
+  logoWordmark: env.VITE_PM_LOGO_WORDMARK || '/manydoors-logo.svg',
   heroImage: env.VITE_PM_HERO_IMAGE || '/manydoors-ai-software-property-management.png',
   companyName: env.VITE_PM_COMPANY_NAME || 'ManyDoors AI',
   futureSite: env.VITE_PM_FUTURE_SITE || 'manydoorsai.com',
