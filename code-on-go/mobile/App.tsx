@@ -6,6 +6,7 @@ import { CursorScreen } from './src/screens/CursorScreen';
 import { OnboardingScreen } from './src/screens/OnboardingScreen';
 import { SettingsScreen, loadDevUserId } from './src/screens/SettingsScreen';
 import { BottomTabs, type TabId } from './src/components/BottomTabs';
+import { loadApiBaseUrl } from './src/config';
 import { colors } from './src/theme';
 
 type Screen = 'onboarding' | 'main';
@@ -20,6 +21,7 @@ export default function App() {
     loadDevUserId()
       .then(setDevUserId)
       .catch(() => setDevUserId('demo-user'));
+    loadApiBaseUrl().catch(() => undefined);
   }, []);
 
   const shell = [styles.root, Platform.OS === 'web' && styles.rootWeb];

@@ -7,20 +7,28 @@ import type {
   RepoLink,
   SendMessageResponse,
 } from '@code-on-go/shared';
-import { API_BASE_URL } from '../config';
+import { getApiBaseUrl } from '../config';
 
 export class ApiClient {
   constructor(private token: string) {}
 
   private async request<T>(path: string, init?: RequestInit): Promise<T> {
-    const res = await fetch(`${API_BASE_URL}${path}`, {
-      ...init,
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${this.token}`,
-        ...(init?.headers ?? {}),
-      },
-    });
+    const base = getApiBaseUrl();
+    let res: Response;
+    try {
+      res = await fetch(`${base}${path}`, {
+        ...init,
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${this.token}`,
+          ...(init?.headers ?? {}),
+        },
+      });
+    } catch {
+      throw new Error(
+        `Cannot reach API at ${base}. Is the backend running? (cd code-on-go && npm run dev:backend)`,
+      );
+    }
     const body = await res.json().catch(() => ({}));
     if (!res.ok) {
       throw new Error(body.error ?? `Request failed (${res.status})`);

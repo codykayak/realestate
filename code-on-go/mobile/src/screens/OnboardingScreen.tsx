@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   ActivityIndicator,
   Pressable,
@@ -11,6 +11,7 @@ import {
 import { LLM_PROVIDERS } from '@code-on-go/shared';
 import type { LlmProvider, OnboardingPayload } from '@code-on-go/shared';
 import { ApiClient } from '../api/client';
+import { getApiBaseUrl, loadApiBaseUrl, saveApiBaseUrl, testApiConnection } from '../config';
 import { colors } from '../theme';
 
 type Props = {
@@ -23,13 +24,27 @@ export function OnboardingScreen({ token, onComplete }: Props) {
   const [repoOwner, setRepoOwner] = useState('');
   const [repoName, setRepoName] = useState('');
   const [llmKeys, setLlmKeys] = useState<Partial<Record<LlmProvider, string>>>({});
+  const [apiUrl, setApiUrl] = useState(getApiBaseUrl());
+  const [connStatus, setConnStatus] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    loadApiBaseUrl().then((url) => setApiUrl(url));
+  }, []);
+
+  async function handleTestConnection() {
+    setConnStatus('Testing…');
+    await saveApiBaseUrl(apiUrl);
+    const result = await testApiConnection();
+    setConnStatus(result.ok ? `✓ ${result.message}` : `✗ ${result.message}`);
+  }
 
   async function handleSubmit() {
     setError(null);
     setLoading(true);
     try {
+      await saveApiBaseUrl(apiUrl);
       const payload: OnboardingPayload = {
         githubPat,
         repos: [{ owner: repoOwner.trim(), name: repoName.trim() }],
@@ -52,6 +67,27 @@ export function OnboardingScreen({ token, onComplete }: Props) {
         Keys are sent to the backend once and stored encrypted server-side. The phone does not
         keep Git or LLM secrets long-term.
       </Text>
+
+      <Text style={styles.label}>Backend API URL</Text>
+      <Text style={styles.hint}>
+        Default is localhost — only works in the browser on this machine. Phone / Codespaces need
+        your computer&apos;s IP or forwarded port URL.
+      </Text>
+      <TextInput
+        style={styles.input}
+        autoCapitalize="none"
+        autoCorrect={false}
+        placeholder="http://localhost:8080"
+        placeholderTextColor={colors.muted}
+        value={apiUrl}
+        onChangeText={setApiUrl}
+      />
+      <Pressable style={styles.btnSecondary} onPress={handleTestConnection}>
+        <Text style={styles.btnText}>Test API connection</Text>
+      </Pressable>
+      {connStatus ? (
+        <Text style={connStatus.startsWith('✓') ? styles.ok : styles.error}>{connStatus}</Text>
+      ) : null}
 
       <Text style={styles.label}>GitHub personal access token</Text>
       <TextInput
@@ -141,6 +177,15 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     alignItems: 'center',
   },
-  btnText: { color: '#fff', fontWeight: '700' },
-  error: { color: colors.danger, marginTop: 8 },
+  btnText: { color: colors.text, fontWeight: '600' },
+  btnSecondary: {
+    backgroundColor: colors.surface,
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: 8,
+    padding: 12,
+    alignItems: 'center',
+  },
+  ok: { color: colors.success, marginTop: 4, lineHeight: 18 },
+  error: { color: colors.danger, marginTop: 8, lineHeight: 18 },
 });
