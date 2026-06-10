@@ -611,8 +611,8 @@ export default function LandingPage() {
               </p>
             </div>
             <div className={styles.mdPromoActions}>
-              <Link to="/manydoors" className={styles.mdPromoBtnPrimary}>Explore ManyDoors AI</Link>
-              <Link to="/property-management" className={styles.mdPromoBtnGhost}>Open PM platform</Link>
+              <a href="https://www.manydoorsai.com" className={styles.mdPromoBtnPrimary}>Explore ManyDoors AI</a>
+              <a href="https://www.manydoorsai.com/dashboard" className={styles.mdPromoBtnGhost}>Open PM platform</a>
             </div>
           </div>
         </div>
