@@ -9,6 +9,7 @@
     "mobile"
   ],
   "scripts": {
+    "postinstall": "npm run build -w @code-on-go/shared",
     "dev:backend": "npm run dev -w @code-on-go/backend",
     "dev:mobile": "npm run start -w @code-on-go/mobile",
     "build": "npm run build -w @code-on-go/shared && npm run build -w @code-on-go/backend",

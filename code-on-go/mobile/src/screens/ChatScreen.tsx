@@ -18,10 +18,11 @@ import { colors } from '../theme';
 
 type Props = {
   token: string;
-  onOpenSettings: () => void;
+  onOpenSettings?: () => void;
+  hideSettingsLink?: boolean;
 };
 
-export function ChatScreen({ token, onOpenSettings }: Props) {
+export function ChatScreen({ token, onOpenSettings, hideSettingsLink }: Props) {
   const client = new ApiClient(token);
   const [repos, setRepos] = useState<RepoLink[]>([]);
   const [session, setSession] = useState<AgentSession | null>(null);
@@ -116,9 +117,11 @@ export function ChatScreen({ token, onOpenSettings }: Props) {
           <Text style={styles.title}>Code on Go</Text>
           <Text style={styles.repo}>{repos[0]?.id ?? 'No repo'}</Text>
         </View>
-        <Pressable onPress={onOpenSettings}>
-          <Text style={styles.settings}>Settings</Text>
-        </Pressable>
+        {!hideSettingsLink && onOpenSettings ? (
+          <Pressable onPress={onOpenSettings}>
+            <Text style={styles.settings}>Settings</Text>
+          </Pressable>
+        ) : null}
       </View>
 
       <View style={styles.pickerWrap}>

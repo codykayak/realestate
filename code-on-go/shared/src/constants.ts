@@ -12,3 +12,6 @@ export const LLM_PROVIDERS: Array<{
 ];
 
 export const API_VERSION = 'v1';
+
+/** Cursor uses the Cloud Agents API — key lives on the backend (Cloud Run secret). */
+export const CURSOR_PROVIDER_ID = 'cursor' as const;

@@ -26,6 +26,10 @@ code-on-go/
 └── README.md
 ```
 
+## How to open the app
+
+**See [GETTING_STARTED.md](./GETTING_STARTED.md)** for step-by-step instructions (phone + Expo Go, emulator, web).
+
 ## Quick start (local)
 
 ### 1. Install dependencies
@@ -73,6 +77,13 @@ npm run dev:mobile
 | POST | `/v1/sessions/:id/messages` | Send chat → agent |
 | POST | `/v1/sessions/:id/approve` | Apply changes + git push |
 | POST | `/v1/sessions/:id/reject` | Discard pending changes |
+| GET | `/v1/cursor/status` | Cursor API key configured? |
+| GET | `/v1/cursor/models` | List Cursor models |
+| GET | `/v1/cursor/agents` | List past Cursor cloud agents |
+| POST | `/v1/cursor/agents` | Create new Cursor agent + run |
+| GET | `/v1/cursor/agents/:id` | Agent thread + messages |
+| POST | `/v1/cursor/agents/:id/messages` | Follow-up prompt |
+| GET | `/v1/cursor/agents/:id/runs/:runId` | Poll run status + sync reply |
 
 ## Production architecture
 
@@ -91,8 +102,18 @@ npm run dev:mobile
                                    GitHub push
 ```
 
+### Cursor Cloud Agents
+
+The **Cursor** tab uses the [Cloud Agents API](https://cursor.com/docs/cloud-agent/api/endpoints). Set the API key on the backend:
+
+- **Cloud Run:** secret/env `cursorapi` (already configured on your deployment)
+- **Local:** `cursorapi=...` in `backend/.env`
+
+The phone never sees the Cursor key.
+
 ### Next implementation steps
 
+- [x] Cursor Cloud Agents tab (list, new, model, chat, poll for replies)
 - [ ] Firebase Auth on mobile + `verifyIdToken` on backend
 - [ ] Firestore store (replace in-memory `store.ts`)
 - [ ] Secret Manager for PAT/LLM keys (never store raw keys in Firestore docs)
