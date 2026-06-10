@@ -2,12 +2,14 @@
   "name": "@code-on-go/mobile",
   "version": "0.1.0",
   "private": true,
-  "main": "index.ts",
+  "main": "index.tsx",
   "scripts": {
     "start": "expo start",
+    "start:clean": "expo start --clear",
     "android": "expo start --android",
     "ios": "expo start --ios",
     "web": "expo start --web",
+    "web:clean": "expo start --web --clear",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {

@@ -162,12 +162,26 @@ Cursor works in the cloud on your GitHub repo. You do **not** need to enter a Cu
 
 | Problem | Fix |
 |---------|-----|
+| **Blank white screen** | Run from `code-on-go/mobile`: `npm run web:clean`. Ensure you're on branch `cursor/mobile-code-agent-47f2` (has `metro.config.js`). Open browser DevTools (F12) → Console for red errors. |
+| `ERROR … installing React Native DevTools` | **Usually harmless** — Metro still works; it falls back to browser debugging. Ignore unless the bundler also shows red errors. |
+| "Bundler cache is empty, rebuilding" | Normal after `--clear` or first run. Wait ~30–60s. |
 | "Network request failed" on phone | Use `EXPO_PUBLIC_API_URL=http://YOUR_LAN_IP:8080`, same Wi‑Fi, backend running |
 | Cursor tab says key not configured | Set `cursorapi=` in `backend/.env` locally, or Cloud Run secret in prod |
 | Onboarding fails on GitHub | PAT needs `repo` scope; owner/name must be exact |
 | Expo won't connect | Try `npx expo start --tunnel` (slower but works across networks) |
 | Backend port in use | Change `PORT=8081` in `backend/.env` and update `EXPO_PUBLIC_API_URL` |
-| `Unable to resolve "./types.js" from shared` | From `code-on-go/`: `npm install` then `npx expo start --clear` in `mobile/`. Metro uses `shared/src/mobile.ts` (fixed in metro.config.js) |
+| `Unable to resolve "./types.js" from shared` | From `code-on-go/`: `npm install` then `npm run web:clean` in `mobile/`. Requires `metro.config.js` (mobile-code-agent branch). |
+
+### Clean restart (try this first)
+
+```bash
+cd code-on-go
+npm install
+cd mobile
+npm run web:clean
+```
+
+When the browser opens, you should see a **dark** onboarding screen — not white.
 
 ---
 

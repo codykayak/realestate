@@ -21,7 +21,8 @@
       }
     },
     "web": {
-      "favicon": "./assets/favicon.png"
+      "favicon": "./assets/favicon.png",
+      "backgroundColor": "#0d1117"
     },
     "extra": {
       "apiBaseUrl": "http://localhost:8080"

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { StatusBar } from 'expo-status-bar';
-import { View, StyleSheet } from 'react-native';
+import { Platform, View, StyleSheet } from 'react-native';
 import { ChatScreen } from './src/screens/ChatScreen';
 import { CursorScreen } from './src/screens/CursorScreen';
 import { OnboardingScreen } from './src/screens/OnboardingScreen';
@@ -22,17 +22,19 @@ export default function App() {
       .catch(() => setDevUserId('demo-user'));
   }, []);
 
+  const shell = [styles.root, Platform.OS === 'web' && styles.rootWeb];
+
   if (screen === 'onboarding') {
     return (
-      <>
+      <View style={shell}>
         <StatusBar style="light" />
         <OnboardingScreen token={token} onComplete={() => setScreen('main')} />
-      </>
+      </View>
     );
   }
 
   return (
-    <View style={styles.root}>
+    <View style={shell}>
       <StatusBar style="light" />
       <View style={styles.body}>
         {tab === 'cursor' && <CursorScreen token={token} />}
@@ -55,5 +57,6 @@ export default function App() {
 
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: colors.bg },
+  rootWeb: { minHeight: '100vh' as unknown as number },
   body: { flex: 1 },
 });
