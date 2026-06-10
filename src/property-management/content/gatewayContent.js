@@ -5,13 +5,13 @@
 
 import { localBusinessJsonLd, getPmSiteUrl } from './localBusiness.js';
 
-/** Served from /public — same location as manydoors-logo.png */
+/** Served from /public — SVG logos are transparent; avoid manydoors-logo.png (opaque). */
 export const GATEWAY_ASSETS = {
   heroVideo: '/manydoors-ai_property-management-realestate.mp4',
   softwareImage: '/manydoors-ai-software-property-management.png',
   investorImage: '/manydoorsai-property-management-investor-software-ai.png',
   opsTeamImage: '/pm-pitch/pm-pitch-operations-team.png',
-  logo: '/manydoors-logo.png',
+  logo: '/manydoors-logo-mark.svg',
 };
 
 export const US_SUPPORT = {
