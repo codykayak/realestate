@@ -19,6 +19,45 @@ service cloud.firestore {
     match /users/{userId}/data/{docId} {
       allow read, write: if isSignedIn() && request.auth.uid == userId;
     }
+
+    // Old Tartar Research — per-user research data
+    match /users/{userId}/tartarResearch/{docId} {
+      allow read, write: if isSignedIn() && request.auth.uid == userId;
+    }
+    match /users/{userId}/tartarResearch/mentions/{mentionId} {
+      allow read, write: if isSignedIn() && request.auth.uid == userId;
+    }
+    match /users/{userId}/tartarResearch/entities/{entityId} {
+      allow read, write: if isSignedIn() && request.auth.uid == userId;
+    }
+    match /users/{userId}/tartarResearch/sources/{sourceId} {
+      allow read, write: if isSignedIn() && request.auth.uid == userId;
+    }
+    match /users/{userId}/tartarResearch/searchTerms/{termId} {
+      allow read, write: if isSignedIn() && request.auth.uid == userId;
+    }
+    match /users/{userId}/tartarResearch/ingestionJobs/{jobId} {
+      allow read: if isSignedIn() && request.auth.uid == userId;
+      allow create: if isSignedIn() && request.auth.uid == userId;
+      allow update, delete: if false;
+    }
+    match /users/{userId}/tartarResearch/anomalies/{anomalyId} {
+      allow read, write: if isSignedIn() && request.auth.uid == userId;
+    }
+    match /users/{userId}/tartarResearch/usageLog/{logId} {
+      allow read: if isSignedIn() && request.auth.uid == userId;
+      allow create, update, delete: if false;
+    }
+    // API keys — server (Admin SDK / Cloud Functions) only
+    match /users/{userId}/tartarResearch/apiSecrets/{provider} {
+      allow read, write: if false;
+    }
+
+    // Platform catalog (read-only for signed-in users)
+    match /tartarPlatform/{collection}/{docId} {
+      allow read: if isSignedIn();
+      allow write: if false;
+    }
     match /users/{userId}/callLogs/{logId} {
       allow read, create: if isSignedIn() && request.auth.uid == userId;
       allow update, delete: if false;

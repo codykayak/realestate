@@ -22,8 +22,12 @@ import { getLeadsDocRef } from './lib/leadsPath.js';
 import { handlePmGatewayChat } from './lib/pmGatewayChatHandler.js';
 import { handleWebLeadSubmit } from './lib/webLeadHandler.js';
 import { defineSecret } from 'firebase-functions/params';
+import { createTartarHandlers, handleTartarIngestionWorker } from './lib/tartar/handlers.js';
 
 const geminiApiKey = defineSecret('GEMINI_API_KEY');
+const grokApiKey = defineSecret('GROK_API_KEY');
+const kimiApiKey = defineSecret('KIMI_API_KEY');
+const tartarWorkerSecret = defineSecret('TARTAR_WORKER_SECRET');
 
 initializeApp();
 
@@ -502,3 +506,38 @@ export const twilioDialStatus = onRequest({ region: REGION }, async (req, res) =
     console.error('[twilioDialStatus] SMS failed:', e);
   }
 });
+
+// ── Old Tartar Research — historical anomaly detection ─────────────────────
+const tartarDb = getFirestore();
+
+function tartarSecrets() {
+  return {
+    gemini: geminiApiKey.value(),
+    grok: grokApiKey.value(),
+    kimi: kimiApiKey.value(),
+    workerSecret: tartarWorkerSecret.value(),
+  };
+}
+
+function withTartar(fn) {
+  return (req) => fn(createTartarHandlers({ db: tartarDb, platformSecrets: tartarSecrets() }), req);
+}
+
+const TARTAR_CALLABLE = { ...CALLABLE_OPTIONS, secrets: [geminiApiKey, grokApiKey, kimiApiKey] };
+
+export const tartarInit = onCall(TARTAR_CALLABLE, withTartar((h, req) => h.tartarInit(req)));
+export const tartarGetProfile = onCall(TARTAR_CALLABLE, withTartar((h, req) => h.tartarGetProfile(req)));
+export const tartarSaveCustomBuild = onCall(TARTAR_CALLABLE, withTartar((h, req) => h.tartarSaveCustomBuild(req)));
+export const tartarAddSource = onCall(TARTAR_CALLABLE, withTartar((h, req) => h.tartarAddSource(req)));
+export const tartarAddSearchTerm = onCall(TARTAR_CALLABLE, withTartar((h, req) => h.tartarAddSearchTerm(req)));
+export const tartarStartIngestion = onCall(TARTAR_CALLABLE, withTartar((h, req) => h.tartarStartIngestion(req)));
+export const tartarDetectAnomalies = onCall(TARTAR_CALLABLE, withTartar((h, req) => h.tartarDetectAnomalies(req)));
+export const tartarQueryMentions = onCall(TARTAR_CALLABLE, withTartar((h, req) => h.tartarQueryMentions(req)));
+export const tartarQueryEntities = onCall(TARTAR_CALLABLE, withTartar((h, req) => h.tartarQueryEntities(req)));
+export const tartarSetBillingMode = onCall(TARTAR_CALLABLE, withTartar((h, req) => h.tartarSetBillingMode(req)));
+export const tartarStoreApiKey = onCall(TARTAR_CALLABLE, withTartar((h, req) => h.tartarStoreApiKey(req)));
+
+export const tartarIngestionWorker = onRequest(
+  { region: REGION, invoker: 'public', secrets: [geminiApiKey, grokApiKey, kimiApiKey, tartarWorkerSecret] },
+  (req, res) => handleTartarIngestionWorker(req, res, { db: tartarDb, platformSecrets: tartarSecrets() }),
+);

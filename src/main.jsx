@@ -22,6 +22,7 @@ import './index.css';
 const App = lazy(() => import('./App'));
 const PropertyManagementRedirect = lazy(() => import('./components/PropertyManagementRedirect.jsx'));
 const ManyDoorsSite = lazy(() => import('./manydoors-site/index.jsx'));
+const OldTartarResearch = lazy(() => import('./old-tartar-research/index.jsx'));
 
 function SiteLoading() {
   return (
@@ -35,6 +36,14 @@ function MapLoading() {
   return (
     <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#070d14', color: '#8b949e' }}>
       Loading Map CMS…
+    </div>
+  );
+}
+
+function TartarLoading() {
+  return (
+    <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#0a0e14', color: '#8b9cb3' }}>
+      Loading Old Tartar Research…
     </div>
   );
 }
@@ -78,6 +87,9 @@ createRoot(document.getElementById('root')).render(
         <Route path="legal/affidavit-of-heirship" element={<AffidavitHeirshipPage />} />
 
         <Route path="/app/*" element={<Suspense fallback={<MapLoading />}><App /></Suspense>} />
+        {/* Old Tartar Research — historical anomaly detection */}
+        <Route path="/apps/old-tartar-research/*" element={<Suspense fallback={<TartarLoading />}><OldTartarResearch /></Suspense>} />
+
         <Route path="/property-management/*" element={<Suspense fallback={<PmRedirectLoading />}><PropertyManagementRedirect /></Suspense>} />
 
         {/* ManyDoors AI marketing site */}
